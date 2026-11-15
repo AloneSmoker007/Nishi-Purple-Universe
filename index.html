@@ -69,6 +69,14 @@
 .realm-portal{display:flex;flex-direction:column;align-items:center;gap:5px;padding:17px 10px;border:1px solid #b987e866;border-radius:18px;background:linear-gradient(145deg,#35194e,#150b25);text-decoration:none;transition:transform .25s,border-color .25s,box-shadow .25s}
 .realm-portal:hover,.realm-portal:focus-visible{transform:translateY(-5px);border-color:#f0caff;box-shadow:0 0 26px #bc78ef66}
 .realm-portal span{font-size:1.8rem;filter:drop-shadow(0 0 10px #e3b2ff)}.realm-portal strong{color:#f2dcff;font-size:.94rem}.realm-portal small{color:#cbb9df;font-size:.76rem}
+.realm-portal{position:relative;min-height:126px;justify-content:center;overflow:hidden}
+.realm-portal:before{content:"";position:absolute;inset:-60%;background:conic-gradient(from 0deg,transparent,#d9aaff18,transparent 35%);opacity:0;transition:opacity .3s;pointer-events:none}
+.realm-portal:hover:before,.realm-portal:focus-visible:before{opacity:1}
+.realm-portal .realm-check{position:absolute;top:8px;right:10px;width:21px;height:21px;display:grid;place-items:center;border-radius:50%;font-style:normal;font-size:.72rem;color:#1a0b29;background:#f2d5ff;opacity:0;transform:scale(.5);transition:.25s}
+.realm-portal.visited{border-color:#e8c4ff;background:linear-gradient(145deg,#593078,#20102f);box-shadow:inset 0 0 22px #e4baff20,0 0 20px #bd78ef33}
+.realm-portal.visited .realm-check{opacity:1;transform:scale(1)}
+.realm-progress{text-align:center;color:#e2c8f5;font-size:.82rem;letter-spacing:.04em;margin:16px 0 0}
+
 @keyframes islandFloat{0%,100%{translate:0 0}50%{translate:0 -13px}}
 @keyframes realmTwinkle{from{opacity:.4;transform:scale(.8)}to{opacity:1;transform:scale(1.2)}}
 @media(max-width:650px){.realm-portals{grid-template-columns:repeat(2,minmax(0,1fr))}.realm-sky{height:290px}.realm-island{width:28%;height:22%}.island-left{left:1%}.island-right{right:1%}.realm-rainbow{width:85%;left:7.5%}}
@@ -156,14 +164,15 @@ body.cinema-entered .hero{animation:heroArrive 1.2s both}
   <div class="realm-star star-a">✦</div><div class="realm-star star-b">✧</div><div class="realm-star star-c">✦</div><div class="realm-star star-d">✧</div>
   <div class="realm-caption">NISHI'S PURPLE KINGDOM</div>
  </div>
- <div class="realm-portals">
-  <a class="realm-portal" href="#ot7"><span>🌟</span><strong>Seven-Star Constellation</strong><small>Meet all seven lights</small></a>
-  <a class="realm-portal" href="#songs"><span>🎧</span><strong>Melody Moon</strong><small>Enter the music room</small></a>
-  <a class="realm-portal" href="#concert"><span>🎤</span><strong>Memory Island</strong><small>Visit the Busan keepsake</small></a>
-  <a class="realm-portal" href="#journey"><span>📖</span><strong>Storybook Valley</strong><small>Choose your adventure</small></a>
-  <a class="realm-portal" href="#game"><span>✨</span><strong>Star Quest Gate</strong><small>Unlock the hidden letter</small></a>
-  <a class="realm-portal" href="#surprise"><span>🚘</span><strong>Dream Road</strong><small>Follow a beautiful dream</small></a>
+ <div class="realm-portals" id="realm-portals">
+  <a class="realm-portal" data-realm="ot7" href="#ot7"><span>🌟</span><strong><span class="en">Seven-Star Constellation</span><span class="bn">সাত-তারার নক্ষত্রমণ্ডল</span></strong><small><span class="en">Meet all seven lights</span><span class="bn">সাতটি আলোকে দেখো</span></small><i class="realm-check" aria-hidden="true">✓</i></a>
+  <a class="realm-portal" data-realm="songs" href="#songs"><span>🎧</span><strong><span class="en">Melody Moon</span><span class="bn">সুরের চাঁদ</span></strong><small><span class="en">Enter the music room</span><span class="bn">সঙ্গীতের ঘরে যাও</span></small><i class="realm-check" aria-hidden="true">✓</i></a>
+  <a class="realm-portal" data-realm="concert" href="#concert"><span>🎤</span><strong><span class="en">Memory Island</span><span class="bn">স্মৃতির দ্বীপ</span></strong><small><span class="en">Visit the Busan keepsake</span><span class="bn">বুসানের স্মৃতিতে যাও</span></small><i class="realm-check" aria-hidden="true">✓</i></a>
+  <a class="realm-portal" data-realm="journey" href="#journey"><span>📖</span><strong><span class="en">Storybook Valley</span><span class="bn">গল্পের উপত্যকা</span></strong><small><span class="en">Choose your adventure</span><span class="bn">নিজের অভিযান বেছে নাও</span></small><i class="realm-check" aria-hidden="true">✓</i></a>
+  <a class="realm-portal" data-realm="game" href="#game"><span>✨</span><strong><span class="en">Star Quest Gate</span><span class="bn">তারার অভিযানের দরজা</span></strong><small><span class="en">Unlock the hidden letter</span><span class="bn">গোপন চিঠি খোলো</span></small><i class="realm-check" aria-hidden="true">✓</i></a>
+  <a class="realm-portal" data-realm="surprise" href="#surprise"><span>🚘</span><strong><span class="en">Dream Road</span><span class="bn">স্বপ্নের পথ</span></strong><small><span class="en">Follow a beautiful dream</span><span class="bn">সুন্দর স্বপ্নের পথে চলো</span></small><i class="realm-check" aria-hidden="true">✓</i></a>
  </div>
+ <p class="realm-progress" id="realm-progress" aria-live="polite"><span class="en">✨ Realms explored: 0 / 6</span><span class="bn">✨ ঘুরে দেখা জগৎ: ০ / ৬</span></p>
 </section>
 <section class="section center"><h2>The Purple Promise 🌈</h2><p class="sub en">Purple is the last colour of the rainbow. “I Purple You” became a beautiful ARMY promise — trust, love, and staying beside one another.</p><p class="sub bn">রংধনুর শেষ রং বেগুনি। “I Purple You” ARMY-র কাছে বিশ্বাস, ভালোবাসা আর পাশে থাকার সুন্দর প্রতিশ্রুতি।</p><div class="promise">“I Purple You” 💜</div><p class="tiny en">A little reminder of the bond between BTS and ARMY.</p><p class="tiny bn">BTS ও ARMY-র বন্ধনের ছোট্ট এক স্মারক।</p></section>
 <section class="section" id="ot7"><div class="center"><h2>Seven Stars · One Sky ✨</h2><p class="sub en">OT7 — seven unique lights, together in one beautiful universe.</p><p class="sub bn">OT7 — সাতটি আলাদা আলো, একসাথে এক সুন্দর মহাবিশ্ব।</p></div><div class="ot7-gallery" aria-label="Seven original fantasy portrait illustrations, one for each BTS member">
@@ -242,6 +251,15 @@ const storyBranches={
 };
 function renderStory(){const bn=document.body.classList.contains('bangla'),s=bn?storyBn[chapter]:story[chapter];document.getElementById('story-kicker').textContent=s.k;document.getElementById('story-title').textContent=s.t;document.getElementById('story-copy').textContent=chapter===1?storyBranches[bn?'bn':'en'][storyPath]:chapter===2?storyBranches[bn?'bn':'en'][storyRoute==='music'?'musicFinish':'rainbowFinish']:s.p;const dots=document.querySelectorAll('#story-dots i');dots.forEach((d,i)=>d.classList.toggle('active',i===chapter));const box=document.getElementById('story-actions');box.innerHTML='';s.choices.forEach(([id,label])=>{const b=document.createElement('button');b.type='button';b.textContent=label;b.addEventListener('click',()=>{if(id==='quest'){document.getElementById('game').scrollIntoView({behavior:reduced?'auto':'smooth'});return}if(id==='again'){chapter=0;storyPath='open';storyRoute='music'}else{if(chapter===0)storyPath=id;if(chapter===1)storyRoute=id;chapter=Math.min(2,chapter+1)}renderStory()});box.appendChild(b)})}
 renderStory();
+
+// Remember explored realms for this visit, without creating a persistent profile.
+const realmLinks=[...document.querySelectorAll('.realm-portal[data-realm]')];
+const realmProgress=document.getElementById('realm-progress');
+const explored=new Set();
+try{JSON.parse(sessionStorage.getItem('nishi-purple-realms')||'[]').forEach(id=>explored.add(id))}catch{}
+function renderRealmProgress(){realmLinks.forEach(link=>link.classList.toggle('visited',explored.has(link.dataset.realm)));const count=explored.size;realmProgress.innerHTML=document.body.classList.contains('bangla')?'<span class="en">✨ Realms explored: '+count+' / 6</span><span class="bn">✨ ঘুরে দেখা জগৎ: '+['০','১','২','৩','৪','৫','৬'][count]+' / ৬</span>':'<span class="en">✨ Realms explored: '+count+' / 6</span><span class="bn">✨ ঘুরে দেখা জগৎ: '+['০','১','২','৩','৪','৫','৬'][count]+' / ৬</span>'}
+realmLinks.forEach(link=>link.addEventListener('click',()=>{explored.add(link.dataset.realm);try{sessionStorage.setItem('nishi-purple-realms',JSON.stringify([...explored]))}catch{}renderRealmProgress()}));
+renderRealmProgress();
 
 // Language and navigation controls
 // Optional original ambient soundscape (no copyrighted recordings)
