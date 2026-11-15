@@ -314,7 +314,7 @@ function makeWindowTexture() {
 /* ------------------------------------------------------------------ *
  *  Fog constants (hand-rolled in custom shaders so they match THREE.FogExp2)
  * ------------------------------------------------------------------ */
-const FOG_DENSITY = 0.00135;
+const FOG_DENSITY = 0.00082;
 
 const GLSL_NOISE = /* glsl */ `
 float hash21(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123); }
@@ -576,13 +576,13 @@ function buildMoon() {
       ${GLSL_NOISE}
       void main(){
         float d = length(vUv - vec2(0.5)) * 2.0;
-        float body = 1.0 - smoothstep(0.68, 1.0, d);
+        float body = 1.0 - smoothstep(0.55, 1.0, d);
         float limb = smoothstep(0.12, 1.0, d);
         float craters = fbm(vUv * 6.0) * 0.5 + fbm(vUv * 13.0) * 0.25;
         vec3 col = mix(uCore, uEdge, limb * 0.8);
         col *= 0.82 + 0.36 * craters;
         col = mix(col, uEdge * 0.9, smoothstep(0.55, 0.95, d) * 0.35);
-        float a = body * (1.0 - smoothstep(0.68, 1.0, d));
+        float a = body * (1.0 - smoothstep(0.55, 1.0, d));
         gl_FragColor = vec4(col, a);
       }
     `,
@@ -946,7 +946,7 @@ function buildWater() {
 
         // pseudo-normal from the two noise fields -> moon glitter
         vec3 viewDir = normalize(cameraPosition - vWorld);
-        vec3 nrm = normalize(vec3((n2 - n1) * 1.7, 1.0, (n1 - n2) * 1.7));
+        vec3 nrm = normalize(vec3((n2 - n1) * 0.9, 1.0, (n1 - n2) * 0.9));
         vec3 moonDir = normalize(uMoonPos - vWorld);
         vec3 refl = reflect(-viewDir, nrm);
         float spec = pow(max(dot(refl, moonDir), 0.0), 90.0);
@@ -965,8 +965,8 @@ function buildWater() {
         float castleGlow = exp(-cd * 0.0085);
 
         vec3 col = base;
-        col += uGlow * streak * 0.75;
-        col += vec3(1.0) * spec * 1.7 + uGlow * spec2 * 0.4;
+        col += uGlow * streak * 0.58;
+        col += vec3(1.0) * spec * 1.25 + uGlow * spec2 * 0.4;
         col += mix(uGold, uCore, 0.32) * castleGlow * (0.13 + wave * 0.20);
 
         float fogFactor = 1.0 - exp(-uFogDensity * uFogDensity * vFogDepth * vFogDepth);
@@ -1084,6 +1084,37 @@ function buildIslands() {
     const ox = def.pos[0] + Math.cos(edgeA) * 17 * s;
     const oz = def.pos[2] + Math.sin(edgeA) * 17 * s;
     const oy = def.pos[1] + 2 * s;
+
+    // translucent falling sheet + mist glow (visual anchor for the particle stream)
+    const sheetTex = makeFallSheetTexture();
+    const sheetMat = new THREE.MeshBasicMaterial({
+      map: sheetTex,
+      transparent: true,
+      opacity: 0.32,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      side: THREE.DoubleSide,
+    });
+    const sheet = new THREE.Mesh(new THREE.PlaneGeometry(6 * s, def.fall * 0.82), sheetMat);
+    sheet.position.set(ox, oy - def.fall * 0.41, oz);
+    sheet.lookAt(0, oy - def.fall * 0.41, 400);
+    g.add(sheet);
+    state.disposables.push(sheet.geometry, sheetMat);
+    const mistTex = makeGlowTexture(96, 'rgba(220,190,255,0.55)', 'rgba(160,110,255,0.18)', 'rgba(160,110,255,0)');
+    const mistMat = new THREE.SpriteMaterial({
+      map: mistTex,
+      transparent: true,
+      depthWrite: false,
+      fog: false,
+      blending: THREE.AdditiveBlending,
+      opacity: 0.5,
+    });
+    const mist = new THREE.Sprite(mistMat);
+    mist.position.set(ox, oy - def.fall, oz);
+    mist.scale.set(26 * s, 14 * s, 1);
+    g.add(mist);
+    state.disposables.push(mistMat);
+
     for (let i = 0; i < COUNT; i++) {
       fpos[i * 3] = ox + (rng() - 0.5) * 7 * s;
       fpos[i * 3 + 1] = oy - rng() * def.fall;
@@ -1155,7 +1186,7 @@ function buildRainbowBridge() {
   const ribbonMat = new THREE.MeshBasicMaterial({
     map: ribbonTex,
     transparent: true,
-    opacity: 0.5,
+    opacity: 0.42,
     blending: THREE.AdditiveBlending,
     depthWrite: false,
     side: THREE.DoubleSide,
@@ -1435,9 +1466,9 @@ function updateClouds() {
  *  Ambient lighting
  * ------------------------------------------------------------------ */
 function buildLights() {
-  const hemi = new THREE.HemisphereLight(TOKENS.purpleCore, TOKENS.inkAbyss, 1.05);
+  const hemi = new THREE.HemisphereLight(TOKENS.purpleCore, TOKENS.inkAbyss, 2.05);
   state.scene.add(hemi);
-  const amb = new THREE.AmbientLight(TOKENS.inkDeep, 1.35);
+  const amb = new THREE.AmbientLight(TOKENS.inkDeep, 2.35);
   state.scene.add(amb);
   const castleGlow = new THREE.PointLight(TOKENS.gold, 4600, 380, 2);
   castleGlow.position.set(0, 60, -225);
@@ -1725,6 +1756,10 @@ function createRenderer(canvas, antialias) {
     stencil: false,
   });
   renderer.setPixelRatio(dprForQuality());
+  // ACES tone mapping keeps highlights from clipping and lifts midtones so the
+  // purple scene reads as *cinematic* rather than muddy/near-black.
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.32;
   renderer.shadowMap.enabled = state.quality === 'high';
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   return renderer;
@@ -1827,7 +1862,7 @@ export function initWorld(canvas, opts = {}) {
     return { ok: true };
   } catch (e) {
     state.ready = false;
-    return { ok: false, reason: (e && (e.stack || e.message)) || 'unknown error while building the world' }; // DEBUG
+    return { ok: false, reason: (e && e.message) || 'unknown error while building the world' };
   }
 }
 
