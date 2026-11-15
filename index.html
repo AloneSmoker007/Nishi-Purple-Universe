@@ -27,7 +27,7 @@
 </head>
 <body>
 <canvas id="sky" aria-hidden="true"></canvas>
-<header class="top"><div class="brand">✦ NISHI'S PURPLE UNIVERSE</div><nav class="nav" aria-label="Main navigation"><a href="#home">Home</a><a href="#ot7">OT7</a><a href="#songs">Songs</a><a href="#journey">Story</a><a href="#game">Game</a><a href="#surprise">Surprise</a><button id="lang" type="button">বাংলা</button></nav></header>
+<header class="top"><div class="brand">✦ NISHI'S PURPLE UNIVERSE</div><nav class="nav" aria-label="Main navigation"><a href="#home">Home</a><a href="#ot7">OT7</a><a href="#songs">Songs</a><a href="#journey">Story</a><a href="#army">Purple ARMY</a><a href="#game">Game</a><a href="#surprise">Surprise</a><button id="lang" type="button">বাংলা</button></nav></header>
 <main class="wrap">
 <section class="hero" id="home"><img class="hero-art" src="assets/purple-galaxy.svg" alt="Purple moonlit galaxy, fantasy castle and seven glowing stars"><div class="moon"></div><div><div class="eyebrow">A little galaxy made just for Nishi</div><h1>Welcome, Nishi 💜</h1><p class="en">Step into a dreamy purple world where seven stars shine together, music fills the sky, and a little surprise is waiting just for you.</p><p class="bn">নিশি, তোমার নিজের বেগুনি জগতে স্বাগতম। এখানে সাতটি তারা একসাথে জ্বলে, আর তোমার জন্য অপেক্ষা করছে ছোট্ট এক চমক।</p><a class="cta" href="#ot7">Enter the universe ✨</a><div class="rainbow"></div><span class="scrollhint">SCROLL TO EXPLORE · ✦ · SCROLL TO EXPLORE</span></div></section>
 <section class="section center"><h2>The Purple Promise 🌈</h2><p class="sub en">Purple is the last colour of the rainbow. “I Purple You” became a beautiful ARMY promise — trust, love, and staying beside one another.</p><p class="sub bn">রংধনুর শেষ রং বেগুনি। “I Purple You” ARMY-র কাছে বিশ্বাস, ভালোবাসা আর পাশে থাকার সুন্দর প্রতিশ্রুতি।</p><div class="promise">“I Purple You” 💜</div><p class="tiny">A little reminder of the bond between BTS and ARMY.</p></section>
@@ -41,6 +41,29 @@
 <div class="song"><div class="note">🧬</div><strong>DNA</strong><small>BTS · Your playlist</small><a class="pill" target="_blank" rel="noopener" href="https://www.youtube.com/results?search_query=BTS+DNA+official+MV">Find song ↗</a></div>
 <div class="song"><div class="note">✨</div><strong>FYA?</strong><small>Kept as you wrote it — title to confirm</small><a class="pill" target="_blank" rel="noopener" href="https://www.youtube.com/results?search_query=BTS+FYA">Find song ↗</a></div></div></section>
 
+<section class="section" id="army">
+<div class="center"><div class="eyebrow">Nishi is the host · Friends join by invitation</div><h2>Nishi’s Purple ARMY 💜</h2><p class="sub">A little private gathering for Nishi and the friends she invites. One host, one purple night, seven stars together.</p></div>
+<div class="story-stage">
+ <div class="grid">
+  <div class="feature"><div class="note">👑</div><strong>Nishi · Owner & Host</strong><p class="tiny">The Purple ARMY belongs to Nishi. She decides who gets an invitation.</p></div>
+  <div class="feature"><div class="note">💌</div><strong>Invite-only guests</strong><p class="tiny">Friends can join through Nishi’s personal invitation link.</p></div>
+  <div class="feature"><div class="note">🌌</div><strong>Purple Night Plan</strong><p class="tiny">Share song picks, wishes, and concert-night ideas together.</p></div>
+ </div>
+ <div style="margin-top:24px;text-align:center">
+  <p class="story-kicker">Nishi’s private invitation</p>
+  <p id="army-code" class="promise" style="font-size:1.2rem;overflow-wrap:anywhere">Preparing your invite…</p>
+  <div class="story-actions" style="justify-content:center"><button type="button" id="army-copy">Copy invite link 🔗</button><button type="button" id="army-share">Share invitation ✨</button></div>
+  <p id="army-feedback" class="tiny" aria-live="polite">Create a link and send it only to the friends Nishi wants to invite.</p>
+ </div>
+ <div class="grid" style="margin-top:22px">
+  <div class="feature"><label for="army-name">Your name / ARMY nickname</label><input id="army-name" maxlength="28" placeholder="Enter your nickname" style="display:block;width:100%;margin:8px 0;padding:12px;border-radius:12px;border:1px solid #a77bc3;background:#13091f;color:white"><button type="button" id="army-join">Join this Purple ARMY 💜</button></div>
+  <div class="feature"><strong>Guest wishes</strong><p class="tiny">Leave a little purple message for Nishi.</p><textarea id="army-wish" maxlength="180" placeholder="Write a kind wish…" style="display:block;width:100%;min-height:78px;margin:8px 0;padding:12px;border-radius:12px;border:1px solid #a77bc3;background:#13091f;color:white"></textarea><button type="button" id="army-wish-send">Save my wish 💌</button></div>
+ </div>
+ <div class="feature" style="margin-top:16px"><strong>Guest list on this device</strong><p id="army-guests" class="tiny">No guests have joined on this device yet.</p><div id="army-wishes" class="tiny"></div></div>
+ <div class="feature" style="margin-top:16px"><strong>Plan the Purple Night 🎤</strong><p class="tiny">Pick a group activity idea (this preview saves your choice on this device).</p><select id="army-plan" style="width:100%;padding:12px;border-radius:12px;background:#13091f;color:white;border:1px solid #a77bc3"><option>OT7 song listening party</option><option>Favourite BTS song vote</option><option>Purple dress-code photo moment</option><option>Seven-star challenge</option><option>Surprise wishes for Nishi</option></select><button type="button" id="army-plan-save" style="margin-top:10px">Save concert plan ✨</button><p id="army-plan-status" class="tiny">No plan saved yet.</p></div>
+</div>
+<p class="tiny center" style="margin-top:18px">Preview limitation: this version saves guest names and wishes only in each visitor’s own browser. A shared live guest list, owner approvals, and cross-device messages need a database and secure backend before real invitations are sent.</p>
+</section>
 <section class="section center" id="journey"><h2>The Purple Storybook 🌌</h2><p class="sub">A tiny choose-your-path adventure. Nishi is the hero of this universe.</p>
 <div class="story-stage" aria-live="polite">
 <div class="story-kicker" id="story-kicker">Chapter 1 · The First Star</div>
@@ -68,6 +91,21 @@ let chapter=0;
 function renderStory(){const s=story[chapter];document.getElementById('story-kicker').textContent=s.k;document.getElementById('story-title').textContent=s.t;document.getElementById('story-copy').textContent=s.p;const dots=document.querySelectorAll('#story-dots i');dots.forEach((d,i)=>d.classList.toggle('active',i===chapter));const box=document.getElementById('story-actions');box.innerHTML='';s.choices.forEach(([id,label])=>{const b=document.createElement('button');b.type='button';b.textContent=label;b.addEventListener('click',()=>{if(id==='quest'){document.getElementById('game').scrollIntoView({behavior:reduced?'auto':'smooth'});return}if(id==='again'){chapter=0}else{chapter=Math.min(2,chapter+1)}renderStory()});box.appendChild(b)})}
 renderStory();
 
+// Nishi’s Purple ARMY — invitation preview (local-only until a shared backend is connected)
+const armyParams=new URLSearchParams(location.hash.replace(/^#/,''));let armyRoom=armyParams.get('purple-army');
+if(!armyRoom){armyRoom=(crypto.randomUUID?crypto.randomUUID():Math.random().toString(36).slice(2)+Date.now().toString(36)).replace(/-/g,'').slice(0,12).toUpperCase()}
+const armyInvite=location.href.split('#')[0]+'#purple-army='+encodeURIComponent(armyRoom);
+document.getElementById('army-code').textContent='PURPLE ARMY · '+armyRoom;
+const armyKey='nishi-purple-army-preview-'+armyRoom;
+function armyRead(){try{return JSON.parse(localStorage.getItem(armyKey)||'{"guests":[],"wishes":[],"plan":""}')}catch{return {guests:[],wishes:[],plan:''}}}
+function armyWrite(data){localStorage.setItem(armyKey,JSON.stringify(data));armyRender()}
+function armyRender(){const d=armyRead();document.getElementById('army-guests').textContent=d.guests.length?d.guests.join(' · '):'No guests have joined on this device yet.';const list=document.getElementById('army-wishes');list.replaceChildren();d.wishes.forEach(w=>{const p=document.createElement('p');p.textContent=w.name+': “'+w.message+'”';list.appendChild(p)});document.getElementById('army-plan-status').textContent=d.plan?'Saved plan: '+d.plan:'No plan saved yet.';document.getElementById('army-plan').value=d.plan||'OT7 song listening party'}
+document.getElementById('army-copy').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(armyInvite);document.getElementById('army-feedback').textContent='Invitation link copied. Share it privately with Nishi’s invited friends.'}catch{document.getElementById('army-feedback').textContent='Copy is unavailable here. You can copy the page address and add #purple-army='+armyRoom}});
+document.getElementById('army-share').addEventListener('click',async()=>{if(navigator.share){try{await navigator.share({title:'Nishi’s Purple ARMY 💜',text:'You are invited to Nishi’s Purple ARMY!',url:armyInvite})}catch{}}else{document.getElementById('army-feedback').textContent='Use Copy invite link to share this invitation privately.'}});
+document.getElementById('army-join').addEventListener('click',()=>{const name=document.getElementById('army-name').value.trim();if(!name){document.getElementById('army-feedback').textContent='Please enter your ARMY nickname first.';return}const d=armyRead();if(!d.guests.includes(name))d.guests.push(name);armyWrite(d);document.getElementById('army-feedback').textContent='Welcome, '+name+'! Your join is saved in this browser preview.'});
+document.getElementById('army-wish-send').addEventListener('click',()=>{const name=document.getElementById('army-name').value.trim(),message=document.getElementById('army-wish').value.trim();if(!name||!message){document.getElementById('army-feedback').textContent='Enter your nickname and a short wish first.';return}const d=armyRead();d.wishes.push({name,message});armyWrite(d);document.getElementById('army-wish').value='';document.getElementById('army-feedback').textContent='Your wish is saved in this browser preview.'});
+document.getElementById('army-plan-save').addEventListener('click',()=>{const d=armyRead();d.plan=document.getElementById('army-plan').value;armyWrite(d)});
+armyRender();
 document.getElementById('lang').addEventListener('click',()=>{document.body.classList.toggle('bangla');document.getElementById('lang').textContent=document.body.classList.contains('bangla')?'English':'বাংলা'});document.getElementById('top').addEventListener('click',()=>scrollTo({top:0,behavior:reduced?'auto':'smooth'}));
 })();
 </script>
