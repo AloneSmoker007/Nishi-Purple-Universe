@@ -1,0 +1,45 @@
+name: Static validation
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Syntax and static assets
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check JavaScript module syntax
+        run: |
+          node --check js/ui.js
+          node --check js/quest.js
+          node --check js/world.js
+          node --check js/audio.js
+      - name: Validate SEO and fallback files
+        run: |
+          test -s robots.txt
+          test -s sitemap.xml
+          test -s 404.html
+          python - <<'PY'
+          import xml.etree.ElementTree as ET
+          root = ET.parse("sitemap.xml").getroot()
+          ns = {"s": "http://www.sitemaps.org/schemas/sitemap/0.9"}
+          urls = [node.text for node in root.findall("s:sitemap/s:loc", ns)]
+          urls += [node.text for node in root.findall("s:url/s:loc", ns)]
+          assert "https://alonesmoker007.github.io/Nishi-Purple-Universe/" in urls
+          robots = open("robots.txt", encoding="utf-8").read()
+          assert "https://alonesmoker007.github.io/Nishi-Purple-Universe/sitemap.xml" in robots
+          print("SEO and fallback assets: PASS")
+          PY
