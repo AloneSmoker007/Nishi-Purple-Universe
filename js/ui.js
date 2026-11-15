@@ -35,7 +35,7 @@ function announce(msg) {
    3D world (optional module)
 --------------------------------------------------------------- */
 const world = {
-  ready: false, api: null, quality: 'auto', canvas: null,
+  ready: false, api: null, quality: 'auto', qualityMode: 'auto', canvas: null,
   async boot() {
     this.canvas = $('#scene-canvas');
     if (!this.canvas) return;
@@ -487,6 +487,17 @@ function initLang() {
       }
     } catch { /* ignore */ }
   }
+
+  // The quest portal has its own language toggle — keep this header toggle
+  // in sync when it is used (guarded so it can never loop back on itself).
+  document.addEventListener('nishi:quest-lang', (e) => {
+    const bn = !!(e && e.detail && e.detail.lang === 'bn');
+    if (bn !== banglaFirst) {
+      banglaFirst = bn;
+      try { localStorage.setItem('nishi-lang', bn ? 'bn' : 'en'); } catch { /* ignore */ }
+      applyLang(bn);
+    }
+  });
 }
 
 /* ---------------------------------------------------------------
@@ -502,11 +513,16 @@ function initFabs() {
 
   const QUALITIES = ['auto', 'high', 'medium', 'low'];
   $('#fab-quality')?.addEventListener('click', () => {
-    const i = QUALITIES.indexOf(world.quality);
+    // Cycle the *selected mode* — cycling the resolved quality would collapse
+    // the 'auto' step whenever it resolves to the current level (e.g. stuck on
+    // 'low' on small/touch devices, where the switcher matters most).
+    const i = QUALITIES.indexOf(world.qualityMode);
     const next = QUALITIES[(i + 1) % QUALITIES.length];
-    if (next === 'auto') world.applyQuality(detectQuality());
-    else world.applyQuality(next);
-    toast(`✦ Visual quality: ${world.quality}`);
+    world.qualityMode = next;
+    world.applyQuality(next === 'auto' ? detectQuality() : next);
+    toast(next === 'auto'
+      ? `✦ Visual quality: auto (${world.quality})`
+      : `✦ Visual quality: ${next}`);
   });
 }
 

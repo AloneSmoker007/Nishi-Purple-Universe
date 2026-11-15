@@ -6,6 +6,7 @@
 <title>Nishi's Purple Universe 💜</title>
 <meta name="description" content="Enter Nishi's Purple Universe — a cinematic fan-made journey for OT7 and ARMY.">
 <meta name="theme-color" content="#0B0420">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-src https://www.youtube-nocookie.com https://www.youtube.com; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <link rel="canonical" href="https://alonesmoker007.github.io/Nishi-Purple-Universe/">
 <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
@@ -235,10 +236,16 @@ h1,h2,h3,h4{margin:0 0 .5em; line-height:1.15; font-weight:800; letter-spacing:.
 
 .topbar{
   position:sticky; top:0; z-index:60;
+  border-bottom:1px solid rgba(199,125,255,.14);
+}
+/* Frosted-glass layer lives on a pseudo-element on purpose: a backdrop-filter
+   on .topbar itself creates a containing block for position:fixed descendants,
+   which pinned the mobile nav sheet to the 70px header instead of the viewport. */
+.topbar::before{
+  content:""; position:absolute; inset:0; z-index:-1;
   background:linear-gradient(180deg, rgba(11,4,32,.92), rgba(11,4,32,.62) 70%, transparent);
   backdrop-filter:blur(18px) saturate(150%);
   -webkit-backdrop-filter:blur(18px) saturate(150%);
-  border-bottom:1px solid rgba(199,125,255,.14);
 }
 .topbar .shell{display:flex; align-items:center; gap:1rem; min-height:70px; padding-block:.65rem}
 .brand{display:flex; align-items:center; gap:.75rem; text-decoration:none; color:var(--text); margin-right:auto; min-width:0; min-height:48px}
@@ -649,7 +656,11 @@ footer{position:relative; z-index:2; padding:clamp(3rem,7vw,5.25rem) 0 clamp(2.2
 .float-controls{
   position:fixed; right:clamp(12px,2.4vw,26px); bottom:clamp(12px,2.4vw,26px); z-index:80;
   display:flex; flex-direction:column; gap:.65rem; align-items:flex-end;
+  transition:opacity .3s var(--ease);
 }
+/* While the mobile nav sheet is open, the floating controls would cover its
+   bottom-right corner and steal taps — hide them until the sheet closes. */
+body:has(.nav-links.is-open) .float-controls{opacity:0; pointer-events:none}
 .fab{
   width:52px; height:52px; border-radius:50%; border:1px solid var(--stroke-hot); cursor:pointer;
   background:rgba(26,11,59,.82); color:#fff; font-size:1.22rem; display:grid; place-items:center;
@@ -756,7 +767,7 @@ footer{position:relative; z-index:2; padding:clamp(3rem,7vw,5.25rem) 0 clamp(2.2
 }
 .intro.is-hidden{opacity:0; visibility:hidden; pointer-events:none}
 .intro-inner{position:relative; text-align:center; padding:2rem; max-width:min(920px,92vw)}
-./* movie-poster typography hierarchy */
+/* movie-poster typography hierarchy */
 .intro .kicker{
   font-family:'Outfit',sans-serif; font-size:clamp(.66rem,1.5vw,.86rem); font-weight:600;
   letter-spacing:.62em; text-indent:.62em; text-transform:uppercase; color:#C9A7F0;

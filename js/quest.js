@@ -417,6 +417,14 @@ function wipeStorage() {
   try { localStorage.removeItem(STORAGE_KEY); } catch (e) { /* ignore */ }
 }
 
+/** Keep the site-wide language toggle in sync (key shared with js/ui.js). */
+function broadcastLang() {
+  try { localStorage.setItem('nishi-lang', state.lang); } catch (e) { /* private mode */ }
+  try {
+    document.dispatchEvent(new CustomEvent('nishi:quest-lang', { detail: { lang: state.lang } }));
+  } catch (e) { /* non-DOM env */ }
+}
+
 /** Deterministic star field so the same answers always paint the same sky. */
 function starField(count) {
   const parts = [];
@@ -900,6 +908,7 @@ function onAction(e) {
     case 'lang':
       state.lang = el.getAttribute('data-lang') === 'bn' ? 'bn' : 'en';
       save();
+      broadcastLang();
       break;
     default:
       return;
@@ -940,6 +949,7 @@ export function initQuest(rootEl, opts = {}) {
 export function setLanguage(lang) {
   state.lang = lang === 'bn' ? 'bn' : 'en';
   save();
+  broadcastLang();
   render();
 }
 
