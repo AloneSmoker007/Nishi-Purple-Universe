@@ -53,7 +53,26 @@ const world = {
       if (res && res.ok === false) return;
       this.api = mod;
       this.ready = true;
-      this.canvas.classList.add('is-live');
+      // Reveal the canvas only once a real frame exists, so the visitor never
+      // sees a blank/background-only canvas while the world is still building.
+      // The 2s timeout is a safety net: the canvas must never stay hidden.
+      const reveal = () => this.canvas.classList.add('is-live');
+      let revealed = false;
+      const revealOnce = () => {
+        if (revealed) return;
+        revealed = true;
+        reveal();
+      };
+      try {
+        const st = typeof mod.getWorldStatus === 'function' ? mod.getWorldStatus() : null;
+        if (st && st.renderedFrames > 0) revealOnce();
+        else {
+          document.addEventListener('nishi:world-firstframe', revealOnce, { once: true });
+          setTimeout(revealOnce, 2000);
+        }
+      } catch (e) {
+        revealOnce();
+      }
       if (typeof mod.setReducedMotion === 'function') mod.setReducedMotion(REDUCED);
       this.applyQuality(detectQuality());
     } catch (err) {

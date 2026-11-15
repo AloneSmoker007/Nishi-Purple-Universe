@@ -1598,6 +1598,31 @@ function cancelIntro() {
 /* ------------------------------------------------------------------ *
  *  Render loop
  * ------------------------------------------------------------------ */
+
+/* First-frame signal.
+ *
+ * The canvas sits at `opacity: 0` in CSS and only becomes visible via the
+ * `is-live` class (see #scene-canvas in index.html). If that class lands
+ * before a real frame exists, the visitor sees the flat `.bg-fallback`
+ * gradient and the scene looks like a "background-only canvas".
+ *
+ * So we announce the moment real pixels have been drawn and let the UI
+ * reveal the canvas on that signal. Purely additive; never throws. */
+let firstFrameDone = false;
+let renderedFrames = 0;
+function signalFirstFrame() {
+  renderedFrames += 1;
+  if (firstFrameDone) return;
+  firstFrameDone = true;
+  try {
+    if (typeof document !== 'undefined' && typeof document.dispatchEvent === 'function') {
+      document.dispatchEvent(new CustomEvent('nishi:world-firstframe'));
+    }
+  } catch (e) {
+    /* never let diagnostics break the render loop */
+  }
+}
+
 function tick() {
   if (state.ctxLost || !state.ready) return;
   const dt = Math.min(state.clock.getDelta(), 0.05);
@@ -1664,6 +1689,7 @@ function tick() {
   }
 
   state.renderer.render(state.scene, state.camera);
+  signalFirstFrame();
 }
 
 /* ------------------------------------------------------------------ *
@@ -1996,6 +2022,23 @@ export function setReducedMotion(flag) {
     state.parTarget.set(0, 0);
     state.par.set(0, 0);
   }
+}
+
+/**
+ * Lightweight diagnostic snapshot. Used by the UI to decide whether the canvas
+ * can be revealed, and by future debugging to answer "is the world actually
+ * drawing?" without guessing from screenshots.
+ * @returns {{ok:boolean, ready:boolean, renderedFrames:number, quality:string, reducedMotion:boolean, ctxLost:boolean}}
+ */
+export function getWorldStatus() {
+  return {
+    ok: !!(state.ready && state.renderer),
+    ready: !!state.ready,
+    renderedFrames,
+    quality: state.quality,
+    reducedMotion: !!state.reducedMotion,
+    ctxLost: !!state.ctxLost,
+  };
 }
 
 /** Free every geometry, material, texture, the renderer and all listeners. */
