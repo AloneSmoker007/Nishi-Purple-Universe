@@ -385,7 +385,6 @@ function initGame() {
     if (btn.dataset.real === '1') {
       btn.classList.add('is-found');
       btn.setAttribute('aria-label', 'Star found.');
-      btn.setAttribute('aria-pressed', 'true');
       game.found++;
       sound.chime('star');
       announce(`Star found. ${game.found} of ${STAR_TOTAL}.`);
