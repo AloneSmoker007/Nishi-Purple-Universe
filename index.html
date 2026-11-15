@@ -227,17 +227,19 @@ const storyBranches={
   follow:"You follow seven lights through a quiet galaxy. They form a gentle constellation above you, then reveal a hidden rainbow bridge.",
   music:"A soft melody leads you to a moonlit music room. Every note becomes a little star, reminding you that songs can keep precious memories close.",
   rainbow:"You close your eyes and make a wish beneath the rainbow. A warm purple light answers, carrying your wish toward the seven-star castle.",
-  finish:"At the castle, all seven lights welcome you. Your path was shaped by curiosity, kindness, and the things that make you smile. Your final surprise waits in the Star Quest."
+  musicFinish:"At the castle, seven lights turn into a sky-wide melody. Your journey leaves one gentle message: the songs and memories you love can always bring a little light. Your final surprise waits in the Star Quest.",
+  rainbowFinish:"At the castle, seven lights gather around your wish and paint the sky in purple. Keep that hope close wherever your road leads. Your final surprise waits in the Star Quest."
  },
  bn:{
   open:"তুমি চিঠিটি খুললে। ভেতরে রুপালি কালিতে আঁকা একটি ছোট মানচিত্র, আর লেখা: “সুন্দর যাত্রা শুরু হয় একটি সুন্দর মন থেকে।” মানচিত্রটি রংধনুর সেতুর দিকে নিয়ে যায়।",
   follow:"তুমি সাতটি আলোর পিছু নিলে। তারা শান্ত ছায়াপথ পেরিয়ে তোমার মাথার ওপর একটি নক্ষত্রমণ্ডল তৈরি করল, তারপর দেখাল লুকানো রংধনুর সেতু।",
   music:"একটি কোমল সুর তোমাকে চাঁদের আলোয় ভরা সঙ্গীতকক্ষে নিয়ে গেল। প্রতিটি সুর ছোট্ট তারায় পরিণত হলো, মনে করিয়ে দিল গান সুন্দর স্মৃতি কাছে রাখে।",
   rainbow:"রংধনুর নিচে চোখ বন্ধ করে তুমি একটি ইচ্ছে করলে। উষ্ণ বেগুনি আলো উত্তর দিল, আর তোমার ইচ্ছেকে সাত-তারার দুর্গের দিকে নিয়ে গেল।",
-  finish:"দুর্গে সাতটি আলো তোমাকে স্বাগত জানাল। তোমার পথ তৈরি হয়েছে কৌতূহল, মমতা আর আনন্দের ছোট ছোট মুহূর্ত দিয়ে। শেষ চমকটি অপেক্ষা করছে Star Quest-এ।"
+  musicFinish:"দুর্গে সাতটি আলো আকাশজুড়ে সুর হয়ে উঠল। তোমার যাত্রা মনে করিয়ে দিল — প্রিয় গান আর স্মৃতি সবসময় একটু আলো এনে দিতে পারে। শেষ চমকটি অপেক্ষা করছে Star Quest-এ।",
+  rainbowFinish:"দুর্গে সাতটি আলো তোমার ইচ্ছেকে ঘিরে বেগুনি রঙে আকাশ রাঙিয়ে দিল। পথ যেদিকেই যাক, এই আশাটুকু কাছে রেখো। শেষ চমকটি অপেক্ষা করছে Star Quest-এ।"
  }
 };
-function renderStory(){const bn=document.body.classList.contains('bangla'),s=bn?storyBn[chapter]:story[chapter];document.getElementById('story-kicker').textContent=s.k;document.getElementById('story-title').textContent=s.t;document.getElementById('story-copy').textContent=chapter===1?storyBranches[bn?'bn':'en'][storyPath]:chapter===2?storyBranches[bn?'bn':'en'].finish:s.p;const dots=document.querySelectorAll('#story-dots i');dots.forEach((d,i)=>d.classList.toggle('active',i===chapter));const box=document.getElementById('story-actions');box.innerHTML='';s.choices.forEach(([id,label])=>{const b=document.createElement('button');b.type='button';b.textContent=label;b.addEventListener('click',()=>{if(id==='quest'){document.getElementById('game').scrollIntoView({behavior:reduced?'auto':'smooth'});return}if(id==='again'){chapter=0;storyPath='open';storyRoute='music'}else{if(chapter===0)storyPath=id;if(chapter===1)storyRoute=id;chapter=Math.min(2,chapter+1)}renderStory()});box.appendChild(b)})}
+function renderStory(){const bn=document.body.classList.contains('bangla'),s=bn?storyBn[chapter]:story[chapter];document.getElementById('story-kicker').textContent=s.k;document.getElementById('story-title').textContent=s.t;document.getElementById('story-copy').textContent=chapter===1?storyBranches[bn?'bn':'en'][storyPath]:chapter===2?storyBranches[bn?'bn':'en'][storyRoute==='music'?'musicFinish':'rainbowFinish']:s.p;const dots=document.querySelectorAll('#story-dots i');dots.forEach((d,i)=>d.classList.toggle('active',i===chapter));const box=document.getElementById('story-actions');box.innerHTML='';s.choices.forEach(([id,label])=>{const b=document.createElement('button');b.type='button';b.textContent=label;b.addEventListener('click',()=>{if(id==='quest'){document.getElementById('game').scrollIntoView({behavior:reduced?'auto':'smooth'});return}if(id==='again'){chapter=0;storyPath='open';storyRoute='music'}else{if(chapter===0)storyPath=id;if(chapter===1)storyRoute=id;chapter=Math.min(2,chapter+1)}renderStory()});box.appendChild(b)})}
 renderStory();
 
 // Language and navigation controls
