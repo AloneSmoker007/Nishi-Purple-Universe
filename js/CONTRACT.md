@@ -11,6 +11,7 @@
 | `js/world.js` | agent `world3d` | Three.js 3D world |
 | `js/audio.js` | agent `audio` | WebAudio ambient engine |
 | `js/ui.js` | integrator | DOM interactions, game, storybook, i18n |
+| `js/quest.js` | integrator | "Nishi, Tell Me Your Universe" Q&A + personalised reveal (Phase 3-4) |
 | `vendor/three.module.min.js` | (locked) | Three.js r169, MIT, already vendored |
 | `assets/*` | (locked) | existing assets — do not modify |
 
@@ -78,6 +79,28 @@ export function isReady()
 
 Audio must be **synthesised with WebAudio** (oscillators + noise + filters + reverb-ish delay).
 Do NOT load any audio files, do NOT use copyrighted music. Never autoplay.
+
+## Public API — `js/quest.js`
+
+```js
+export function initQuest(rootEl, opts) -> { ok: boolean, reason?: string }
+export function setLanguage(lang)      // 'en' | 'bn'
+export function getAnswers()            // plain object, local only
+export function resetQuest()            // start over
+export function deleteAllData()         // wipe localStorage
+export function destroy()
+```
+
+`opts`: `{ lang: 'en'|'bn', confirmRestart: bool, autoAdvance: bool }`
+
+Hard rules for the quest module:
+1. **Every question is optional.** Skip is always available and never punished.
+2. **No sensitive data** — never ask for name, age, location, contacts, or anything
+   that could identify her beyond what she volunteers.
+3. **Answers never leave the device.** localStorage only, key `nishi-universe-v1`.
+   No fetch/XHR/beacon with answer data. Ever.
+4. **Visible reset + delete controls** at all times, with a confirm step on delete.
+5. **Sharing is opt-in only** ("Copy my universe"), never automatic.
 
 ## Verification each agent must run before reporting done
 

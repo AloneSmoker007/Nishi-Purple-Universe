@@ -463,6 +463,12 @@ function initLang() {
     btn.textContent = bn ? 'English' : 'বাংলা';
     btn.setAttribute('aria-label', bn ? 'Switch to English' : 'Switch to Bangla emphasis');
     document.body.classList.toggle('bn-first', bn);
+    // keep the Q&A portal in sync with the site language
+    try {
+      if (window.__nishiQuest && typeof window.__nishiQuest.setLanguage === 'function') {
+        window.__nishiQuest.setLanguage(bn ? 'bn' : 'en');
+      }
+    } catch { /* ignore */ }
   }
 }
 
@@ -563,6 +569,31 @@ function initResize() {
 }
 
 /* ---------------------------------------------------------------
+   quest — "Nishi, Tell Me Your Universe"
+   Lazy-loaded so it can never block first paint. Answers stay in
+   localStorage only; nothing is transmitted anywhere.
+--------------------------------------------------------------- */
+async function initQuest() {
+  const mount = $('#quest-mount');
+  if (!mount) return;
+  try {
+    const mod = await import('./quest.js');
+    if (typeof mod.initQuest !== 'function') return;
+    let lang = 'en';
+    try { lang = localStorage.getItem('nishi-lang') === 'bn' ? 'bn' : 'en'; } catch { /* ignore */ }
+    const res = mod.initQuest(mount, { lang, confirmRestart: true, autoAdvance: true });
+    if (res && res.ok === false) {
+      console.warn('[nishi] quest unavailable:', res.reason);
+      mount.innerHTML = '<p class="dim" style="text-align:center">This little corner needs JavaScript to bloom. 💜</p>';
+      return;
+    }
+    window.__nishiQuest = mod;
+  } catch (err) {
+    console.warn('[nishi] quest unavailable:', err && err.message);
+  }
+}
+
+/* ---------------------------------------------------------------
    boot
 --------------------------------------------------------------- */
 function boot() {
@@ -579,6 +610,7 @@ function boot() {
   initGyro();
   initResize();
   syncAudioUI();
+  initQuest();
 
   // 3D last — it must never block the page from becoming usable.
   world.boot();
