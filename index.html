@@ -93,7 +93,7 @@ renderStory();
 
 // Nishi’s Purple ARMY — invitation preview (local-only until a shared backend is connected)
 const armyParams=new URLSearchParams(location.hash.replace(/^#/,''));let armyRoom=armyParams.get('purple-army');
-if(!armyRoom){armyRoom=(crypto.randomUUID?crypto.randomUUID():Math.random().toString(36).slice(2)+Date.now().toString(36)).replace(/-/g,'').slice(0,12).toUpperCase()}
+if(!armyRoom){armyRoom=(crypto.randomUUID?crypto.randomUUID():Math.random().toString(36).slice(2)+Date.now().toString(36)).replace(/-/g,'').slice(0,12).toUpperCase();history.replaceState(null,'',location.pathname+location.search+'#purple-army='+encodeURIComponent(armyRoom))}
 const armyInvite=location.href.split('#')[0]+'#purple-army='+encodeURIComponent(armyRoom);
 document.getElementById('army-code').textContent='PURPLE ARMY · '+armyRoom;
 const armyKey='nishi-purple-army-preview-'+armyRoom;
