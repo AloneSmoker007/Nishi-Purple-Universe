@@ -354,20 +354,30 @@ function buildStarField() {
   if (!field) return;
   field.innerHTML = '';
 
-  // deterministic-ish scatter that avoids the HUD area (top 90px)
+  // 21 matching lights: 7 stars and 14 decoys. Shuffle the answer
+  // positions on every build so the visual pattern never gives them away.
   const spots = [
-    [12, 26], [28, 62], [45, 33], [61, 70], [76, 28], [88, 56], [33, 84], [68, 47], [20, 47]
+    [10, 20], [23, 20], [37, 20], [50, 20], [63, 20], [77, 20], [90, 20],
+    [10, 48], [23, 48], [37, 48], [50, 48], [63, 48], [77, 48], [90, 48],
+    [10, 76], [23, 76], [37, 76], [50, 76], [63, 76], [77, 76], [90, 76]
   ];
-  // first 7 are real stars, last 2 are decoys
+  const shuffled = spots.map((_, i) => i);
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  const realSpots = new Set(shuffled.slice(0, STAR_TOTAL));
+
   spots.forEach(([x, y], i) => {
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'star-btn';
     btn.style.left = `${x}%`;
     btn.style.top = `calc(90px + ${(y / 100) * 86}%)`;
-    btn.dataset.real = i < STAR_TOTAL ? '1' : '0';
+    btn.dataset.real = realSpots.has(i) ? '1' : '0';
     btn.setAttribute('aria-label', 'A glowing point of light. Activate to check it.');
-    btn.innerHTML = `<span class="glyph" aria-hidden="true">${i < STAR_TOTAL ? '⭐' : '✨'}</span>`;
+    // Identical glyphs prevent the correct answers being visually obvious.
+    btn.innerHTML = '<span class="glyph" aria-hidden="true">✦</span>';
     field.appendChild(btn);
   });
   game.built = true;
@@ -384,12 +394,16 @@ function initGame() {
     game.attempts++;
     if (btn.dataset.real === '1') {
       btn.classList.add('is-found');
+      btn.disabled = true;
       btn.setAttribute('aria-label', 'Star found.');
+      btn.querySelector('.glyph').textContent = '⭐';
       game.found++;
       sound.chime('star');
       announce(`Star found. ${game.found} of ${STAR_TOTAL}.`);
     } else {
-      btn.setAttribute('aria-label', 'Not a star. Try another light.');
+      btn.disabled = true;
+      btn.setAttribute('aria-label', 'Not a star. This light has been checked.');
+      btn.querySelector('.glyph').textContent = '·';
       sound.chime('chime');
       announce('That light was not a star. Keep looking.');
     }
