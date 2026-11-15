@@ -364,10 +364,9 @@ function buildStarField() {
     btn.type = 'button';
     btn.className = 'star-btn';
     btn.style.left = `${x}%`;
-    btn.style.top = `calc(90px + ${y}% * 0.86)`;
     btn.style.top = `calc(90px + ${(y / 100) * 86}%)`;
     btn.dataset.real = i < STAR_TOTAL ? '1' : '0';
-    btn.setAttribute('aria-label', i < STAR_TOTAL ? 'A hidden star. Activate to discover it.' : 'A twinkling light');
+    btn.setAttribute('aria-label', 'A glowing point of light. Activate to check it.');
     btn.innerHTML = `<span class="glyph" aria-hidden="true">${i < STAR_TOTAL ? '⭐' : '✨'}</span>`;
     field.appendChild(btn);
   });
@@ -385,10 +384,13 @@ function initGame() {
     game.attempts++;
     if (btn.dataset.real === '1') {
       btn.classList.add('is-found');
+      btn.setAttribute('aria-label', 'Star found.');
+      btn.setAttribute('aria-pressed', 'true');
       game.found++;
       sound.chime('star');
       announce(`Star found. ${game.found} of ${STAR_TOTAL}.`);
     } else {
+      btn.setAttribute('aria-label', 'Not a star. Try another light.');
       sound.chime('chime');
       announce('That light was not a star. Keep looking.');
     }
@@ -397,6 +399,8 @@ function initGame() {
 
   $('#game-restart')?.addEventListener('click', () => {
     game.found = 0; game.attempts = 0;
+    const hud = $('.game-hud');
+    if (hud) delete hud.dataset.won;
     buildStarField();
     updateGameHUD();
     toast('↻ The quest has been restarted.');
