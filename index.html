@@ -448,6 +448,10 @@ h1,h2,h3,h4{margin:0 0 .5em; line-height:1.15; font-weight:800; letter-spacing:.
   background:linear-gradient(160deg, rgba(123,44,191,.24), rgba(26,11,59,.62));
   border:1px solid var(--stroke);
 }
+.story-progress{margin:0 0 1.15rem; font-size:.86rem; letter-spacing:.14em; text-transform:uppercase}
+.story-ending-title{font-family:'Great Vibes',cursive; font-weight:400; font-size:clamp(1.7rem,4vw,2.35rem); color:var(--purple-glow); margin:.95rem 0 .35rem}
+.story-choice .btn{flex-direction:column}
+.story-choice .btn .bn{margin-top:.15em; font-size:.85rem; letter-spacing:.02em}
 .story-chapter{margin-top:1.85rem; padding-top:1.85rem; border-top:1px dashed var(--stroke-hot)}
 .story-chapter:first-of-type{margin-top:0; padding-top:0; border-top:0}
 .story-chapter h4{font-family:'Great Vibes',cursive; font-size:1.95rem; font-weight:400; color:var(--purple-glow); margin-bottom:.35em}
@@ -1218,6 +1222,9 @@ body:has(.nav-links.is-open) .float-controls{opacity:0; pointer-events:none}
     </div>
 
     <div class="story-card reveal" id="storybook">
+      <!-- The chapters below are the no-JS fallback. On boot, js/ui.js replaces
+           this stage with the interactive choose-your-path story (same text). -->
+      <div id="story-stage">
       <div class="story-chapter">
         <h4>Chapter I · A letter from the purple sky</h4>
         <p class="lead">
@@ -1238,6 +1245,7 @@ body:has(.nav-links.is-open) .float-controls{opacity:0; pointer-events:none}
           At the end of the road the sky turns violet, and you understand — you were never
           walking alone. You were always under the same purple sky.
         </p>
+      </div>
       </div>
       <div class="story-choice">
         <button class="btn pink" id="open-letter" type="button">Open the letter 💌</button>

@@ -443,9 +443,259 @@ function updateGameHUD() {
 }
 
 /* ---------------------------------------------------------------
-   storybook
+   storybook — interactive choose-your-path story (Phase 5)
+
+   State lives in localStorage under a versioned key ('nishi-story-v1') and
+   is strictly validated on restore. Every user-facing story string is
+   rendered through DOM/text APIs (createElement/textContent) — never
+   innerHTML — so nothing can ever be interpreted as markup.
 --------------------------------------------------------------- */
+const STORY_KEY = 'nishi-story-v1';
+const STORY_VERSION = 1;
+const STORY_CHOICE_IDS = ['open', 'follow', 'song', 'memory', 'promise', 'dream'];
+
+const STORY_NODES = {
+  letter: {
+    part: 1,
+    title: {
+      en: 'Chapter I · A letter from the purple sky',
+      bn: 'অধ্যায় I · বেগুনি আকাশ থেকে একটি চিঠি',
+    },
+    body: {
+      en: 'One quiet evening, seven stars appear above a moonlit castle. A little glowing envelope lands at your feet. It has your name on it.',
+      bn: 'একটি শান্ত সন্ধ্যায়, চাঁদ-স্নাত দুর্গের উপর সাতটি তারা জ্বলে ওঠে। তোমার পায়ের কাছে একটি ছোট্ট উজ্জ্বল খাম নেমে আসে। তার ওপর তোমার নাম লেখা।',
+    },
+    choices: [
+      { id: 'open', to: 'letter-open', en: 'Open the glowing envelope ✉️', bn: 'উজ্জ্বল খামটি খোলো ✉️' },
+      { id: 'follow', to: 'road-stars', en: 'Follow the seven stars ✨', bn: 'সাতটি তারার পিছু চলো ✨' },
+    ],
+  },
+  'letter-open': {
+    part: 2,
+    title: {
+      en: 'Chapter II · The voice in the letter',
+      bn: 'অধ্যায় II · চিঠির ভেতরের কণ্ঠ',
+    },
+    body: {
+      en: 'Inside the envelope a single violet line glows — “You are doing better than you think.” The words feel like a song you already know by heart.',
+      bn: 'খামের ভেতরে একটিমাত্র বেগুনি লাইন জ্বলে — “তুমি ভাবো তার চেয়ে অনেক ভালো করছ।” কথাগুলো এমন একটি গানের মতো, যা তুমি আগেই মুখস্থ করে ফেলেছ।',
+    },
+    choices: [
+      { id: 'song', to: 'home', en: 'Keep the song it sings 🎧', bn: 'যে গানটি গায় তা রাখো 🎧' },
+      { id: 'memory', to: 'home', en: 'Keep the memory it holds 🌙', bn: 'যে স্মৃতিটি ধরে রাখে তা রাখো 🌙' },
+    ],
+  },
+  'road-stars': {
+    part: 2,
+    title: {
+      en: 'Chapter II · The seven-star road',
+      bn: 'অধ্যায় II · সাত-তারার রাস্তা',
+    },
+    body: {
+      en: 'You follow the light. Every star becomes a song you love, a memory you kept, and a promise you never had to say out loud.',
+      bn: 'তুমি আলোর পিছু চলো। প্রতিটি তারা হয়ে ওঠে তোমার প্রিয় একটি গান, তুমি যে স্মৃতিটি সংরক্ষণ করেছ, আর একটি প্রতিশ্রুতি — যে কথা তোমাকে কখনো জোরে বলতে হয়নি।',
+    },
+    choices: [
+      { id: 'promise', to: 'home', en: 'Make the purple promise 💜', bn: 'বেগুনি প্রতিশ্রুতি দাও 💜' },
+      { id: 'dream', to: 'home', en: 'Chase the bigger dream ⭐', bn: 'আরও বড় স্বপ্নের পিছু যাও ⭐' },
+    ],
+  },
+  home: {
+    part: 3,
+    title: {
+      en: 'Chapter III · Home is a purple sky',
+      bn: 'অধ্যায় III · বাড়ি মানে বেগুনি আকাশ',
+    },
+    body: {
+      en: 'At the end of the road the sky turns violet, and you understand — you were never walking alone. You were always under the same purple sky.',
+      bn: 'রাস্তার শেষে আকাশ বেগুনি হয়ে ওঠে, আর তুমি বুঝে যাও — তুমি কখনো একা হেঁটে যাওনি। তুমি সবসময় একই বেগুনি আকাশের নিচে ছিলে।',
+    },
+    choices: [],
+  },
+};
+
+/* Three endings, composed from the path tags (memory + promise share the
+   “heart” ending, so all four routes land in three distinct endings). */
+const STORY_ENDINGS = {
+  song: {
+    title: { en: 'The Songkeeper’s Sky', bn: 'গান-রক্ষকের আকাশ' },
+    line: {
+      en: 'Of everything the universe offered, you chose the song. May every road you walk keep humming its melody.',
+      bn: 'মহাকাশ যা কিছু দিয়েছিল, তুমি বেছে নিয়েছ গানটি। তুমি যে পথেই হাঁটুক না কেন, সেখানে সুরটি বাজতে থাকুক।',
+    },
+  },
+  dream: {
+    title: { en: 'The Dreamkeeper’s Sky', bn: 'স্বপ্ন-রক্ষকের আকাশ' },
+    line: {
+      en: 'You looked up and chose the bigger dream. The sky kept every wish you ever made on it.',
+      bn: 'তুমি উপরে তাকিয়ে বড় স্বপ্নটি বেছে নিয়েছ। আকাশ তোমার প্রতিটি প্রার্থনা ধরে রেখেছে।',
+    },
+  },
+  heart: {
+    title: { en: 'The Heartkeeper’s Sky', bn: 'হৃদয়-রক্ষকের আকাশ' },
+    line: {
+      en: 'You kept what matters quietly — a memory, a promise, a heart that stays. That is the bravest kind of magic.',
+      bn: 'তুমি যা সত্যিকারের গুরুত্বপূর্ণ তা নিঃশব্দে ধরে রেখেছ — একটি স্মৃতি, একটি প্রতিশ্রুতি, একটি থেকে যাওয়া হৃদয়। এটাই সবচেয়ে সাহসী জাদু।',
+    },
+  },
+};
+const STORY_ENDING_FOR_TAG = { song: 'song', memory: 'heart', promise: 'heart', dream: 'dream' };
+
+const storyState = { node: 'letter', path: [] };
+
+function storyTag() {
+  const last = storyState.path[storyState.path.length - 1];
+  return STORY_ENDING_FOR_TAG[last] ? last : null;
+}
+
+function saveStory() {
+  try {
+    localStorage.setItem(STORY_KEY, JSON.stringify({
+      v: STORY_VERSION,
+      node: storyState.node,
+      path: storyState.path,
+    }));
+  } catch { /* private mode — the story still works, just not persisted */ }
+}
+
+function wipeStoryData() {
+  try { localStorage.removeItem(STORY_KEY); } catch { /* ignore */ }
+}
+
+/** Strict restore: corrupted, tampered or outdated payloads start clean. */
+function loadStory() {
+  storyState.node = 'letter';
+  storyState.path = [];
+  try {
+    const raw = localStorage.getItem(STORY_KEY);
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    const expectedPathLen = data && data.node === 'letter' ? 0 : data.node === 'home' ? 2 : 1;
+    const valid = !!data
+      && typeof data === 'object'
+      && data.v === STORY_VERSION
+      && typeof data.node === 'string'
+      && Object.prototype.hasOwnProperty.call(STORY_NODES, data.node)
+      && Array.isArray(data.path)
+      && data.path.length <= 2
+      && data.path.every((id) => STORY_CHOICE_IDS.includes(id))
+      && data.path.length === expectedPathLen;
+    if (!valid) { wipeStoryData(); return; }
+    storyState.node = data.node;
+    storyState.path = data.path.slice();
+  } catch {
+    wipeStoryData();
+  }
+}
+
+/** Tiny DOM builder — text only, never innerHTML. */
+function storyEl(tag, className, text) {
+  const el = document.createElement(tag);
+  if (className) el.className = className;
+  if (text != null) el.textContent = text;
+  return el;
+}
+
+function renderStory(focusHeading) {
+  const stage = $('#story-stage');
+  const node = STORY_NODES[storyState.node];
+  if (!stage || !node) return;
+  stage.textContent = '';
+
+  const progress = storyEl('p', 'story-progress dim', `Part ${node.part} of 3`);
+  progress.appendChild(storyEl('span', 'bn', `গল্পের ${node.part} / ৩`));
+  stage.appendChild(progress);
+
+  const chapter = storyEl('div', 'story-chapter');
+  const heading = storyEl('h4', null, node.title.en);
+  heading.setAttribute('tabindex', '-1');
+  chapter.appendChild(heading);
+  chapter.appendChild(storyEl('p', 'bn', node.title.bn));
+  const body = storyEl('p', 'lead', node.body.en);
+  body.appendChild(storyEl('span', 'bn', node.body.bn));
+  chapter.appendChild(body);
+  stage.appendChild(chapter);
+
+  if (storyState.node === 'home') {
+    const tag = storyTag();
+    const ending = STORY_ENDINGS[STORY_ENDING_FOR_TAG[tag] || 'heart'];
+    const wrap = storyEl('div', 'story-ending');
+    wrap.appendChild(storyEl('p', 'script story-ending-title', ending.title.en));
+    wrap.appendChild(storyEl('p', 'bn', ending.title.bn));
+    const line = storyEl('p', 'lead', ending.line.en);
+    line.appendChild(storyEl('span', 'bn', ending.line.bn));
+    wrap.appendChild(line);
+
+    // bilingual path summary from the actual chosen choices
+    const labels = { en: [], bn: [] };
+    for (const id of storyState.path) {
+      for (const n of Object.values(STORY_NODES)) {
+        const c = n.choices.find((x) => x.id === id);
+        if (c) { labels.en.push(c.en); labels.bn.push(c.bn); }
+      }
+    }
+    wrap.appendChild(storyEl('p', 'dim', `Your path: ${labels.en.join(' → ')}`));
+    wrap.appendChild(storyEl('p', 'bn', `তোমার পথ: ${labels.bn.join(' → ')}`));
+
+    const restart = storyEl('button', 'btn ghost sm', null);
+    restart.type = 'button';
+    restart.id = 'story-restart';
+    restart.appendChild(storyEl('span', null, 'Start the story again'));
+    restart.appendChild(storyEl('span', 'bn', 'গল্প আবার শুরু করো'));
+    restart.addEventListener('click', restartStory);
+    wrap.appendChild(restart);
+    stage.appendChild(wrap);
+  } else {
+    const row = storyEl('div', 'story-choice');
+    for (const c of node.choices) {
+      const btn = storyEl('button', 'btn', null);
+      btn.type = 'button';
+      btn.appendChild(storyEl('span', null, c.en));
+      btn.appendChild(storyEl('span', 'bn', c.bn));
+      btn.addEventListener('click', () => advanceStory(c));
+      row.appendChild(btn);
+    }
+    stage.appendChild(row);
+  }
+
+  if (focusHeading) {
+    try { heading.focus({ preventScroll: true }); } catch { /* ignore */ }
+  }
+}
+
+function announceStory() {
+  const node = STORY_NODES[storyState.node];
+  if (node) announce(`${node.title.en} — part ${node.part} of 3. ${node.title.bn}`);
+}
+
+function advanceStory(choice) {
+  if (!choice || storyState.node === 'home') return;
+  storyState.path.push(choice.id);
+  storyState.node = choice.to;
+  saveStory();
+  renderStory(true);
+  try { sound.chime(storyState.node === 'home' ? 'reveal' : 'chime'); } catch { /* non-fatal */ }
+  announceStory();
+}
+
+function restartStory() {
+  const ok = window.confirm('Start the story again from the beginning? / গল্প আবার শুরু থেকে শুরু করবে?');
+  if (!ok) return;
+  wipeStoryData();
+  storyState.node = 'letter';
+  storyState.path = [];
+  renderStory(true);
+  announceStory();
+  toast('↻ The story has been reset. / গল্প আবার শুরু হয়েছে।');
+}
+
 function initStory() {
+  const stage = $('#story-stage');
+  if (!stage) return;
+  loadStory();
+  renderStory(false);
+
+  // Existing CTAs — behaviour preserved exactly.
   $('#open-letter')?.addEventListener('click', () => {
     sound.chime('chime');
     $('#final-letter')?.scrollIntoView({ behavior: REDUCED ? 'auto' : 'smooth', block: 'center' });
