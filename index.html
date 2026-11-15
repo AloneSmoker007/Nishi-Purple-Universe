@@ -43,8 +43,64 @@
 .skip-link:focus{transform:translateY(0);outline:3px solid #d9a7ff;outline-offset:3px}
 a:focus-visible,button:focus-visible,[tabindex]:focus-visible{outline:2px solid #f2c7ff;outline-offset:4px;border-radius:6px}
 </style>
+
+<style id="purple-cinema-upgrade">
+:root{--cinema-violet:#a96bff;--cinema-pink:#f5b9ff;--cinema-gold:#ffe6b7}
+body{background-color:#070310}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;background:radial-gradient(ellipse at 50% 50%,transparent 20%,#05020bbd 100%);opacity:.7}
+.cinema-intro{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;overflow:hidden;background:radial-gradient(ellipse at 50% 45%,#48206e 0%,#180a30 42%,#05020c 100%);transition:opacity 1s ease,visibility 1s ease}
+.cinema-intro.dismissed{opacity:0;visibility:hidden;pointer-events:none}
+.cinema-intro:before,.cinema-intro:after{content:"";position:absolute;width:min(90vw,780px);aspect-ratio:1;border:1px solid #e5c0ff44;border-radius:50%;box-shadow:0 0 80px #a85aff33,inset 0 0 80px #a85aff22;animation:portalOrbit 24s linear infinite}
+.cinema-intro:after{width:min(68vw,560px);border-style:dashed;animation-direction:reverse;animation-duration:36s}
+.cinema-intro-inner{position:relative;z-index:2;width:min(720px,90vw);text-align:center;padding:32px 18px}
+.cinema-emblem{font-size:clamp(3rem,10vw,6rem);filter:drop-shadow(0 0 28px #e6baff);animation:emblemFloat 4s ease-in-out infinite}
+.cinema-intro h1{font:clamp(2.5rem,8vw,5.8rem)/.98 Georgia,serif;margin:14px 0;background:linear-gradient(110deg,#fff,#e3baff,#ffc9ed);color:transparent;background-clip:text;text-shadow:0 0 38px #d9a4ff55}
+.cinema-intro p{color:#ead8ff;letter-spacing:.07em;max-width:540px;margin:18px auto 26px}
+.cinema-enter{border:1px solid #f3d8ff;border-radius:999px;padding:14px 26px;background:linear-gradient(110deg,#9b55d6,#54227e);box-shadow:0 0 38px #c17aff77;font-weight:750;letter-spacing:.06em;transition:transform .25s,box-shadow .25s}
+.cinema-enter:hover{transform:translateY(-3px) scale(1.03);box-shadow:0 0 55px #e1aaffaa}
+.cinema-skip{display:block;margin:16px auto 0;background:none;border:0;color:#d4b8ed;text-decoration:underline;font-size:.82rem}
+.cinema-orbit-star{position:absolute;color:#fff1c9;text-shadow:0 0 18px #fff;animation:starDrift 8s ease-in-out infinite}
+.cinema-orbit-star:nth-child(1){top:18%;left:15%}.cinema-orbit-star:nth-child(2){top:24%;right:16%;animation-delay:-3s}.cinema-orbit-star:nth-child(3){bottom:18%;left:20%;animation-delay:-5s}.cinema-orbit-star:nth-child(4){bottom:16%;right:18%;animation-delay:-2s}
+body.cinema-entered .top{animation:navArrive .8s both}
+body.cinema-entered .hero{animation:heroArrive 1.2s both}
+.reveal-scene{opacity:0;transform:translateY(34px) scale(.985);transition:opacity .9s ease,transform .9s cubic-bezier(.2,.7,.2,1)}
+.reveal-scene.scene-visible{opacity:1;transform:none}
+.section{backdrop-filter:blur(8px);box-shadow:0 22px 75px #02000799, inset 0 1px #ffffff0c}
+.section:after{content:"";position:absolute;pointer-events:none;inset:1px;border-radius:inherit;background:linear-gradient(120deg,#ffffff08,transparent 30%,transparent 70%,#c88aff08)}
+.member,.song,.feature,.ot7-art{position:relative;overflow:hidden}
+.member:after,.song:after,.feature:after{content:"";position:absolute;inset:-80% -40%;background:linear-gradient(110deg,transparent 42%,#ffffff12 50%,transparent 58%);transform:translateX(-70%) rotate(12deg);transition:transform .8s;pointer-events:none}
+.member:hover:after,.song:hover:after,.feature:hover:after{transform:translateX(70%) rotate(12deg)}
+.hero .eyebrow{animation:softGlow 3s ease-in-out infinite alternate}
+.hero .cta{position:relative;overflow:hidden}
+.hero .cta:after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent,#ffffff44,transparent);transform:translateX(-120%);animation:ctaShine 4s ease-in-out infinite}
+.ot7-art{cursor:default}
+.ot7-art svg{transition:transform .5s,filter .5s}
+.ot7-art:hover svg{transform:scale(1.06) translateY(-4px);filter:drop-shadow(0 0 18px #e4baff88)}
+.concert-photo-image{box-shadow:0 0 35px #a75de933}
+.story-stage{min-height:300px;display:flex;flex-direction:column;justify-content:center}
+.story-actions button{transition:transform .2s,box-shadow .2s}
+.story-actions button:hover{transform:translateY(-2px)}
+.starbtn{position:relative;overflow:hidden}
+.starbtn.found:after{content:"";position:absolute;inset:-30%;border:1px solid #fff8;border-radius:50%;animation:starBurst .65s ease-out}
+.float{transition:transform .2s}.float:hover{transform:translateY(-4px) scale(1.06)}
+@keyframes portalOrbit{to{transform:rotate(360deg) scale(1.04)}}
+@keyframes emblemFloat{50%{transform:translateY(-12px) rotate(4deg)}}
+@keyframes starDrift{50%{transform:translate3d(10px,-16px,0) scale(1.3);opacity:.55}}
+@keyframes navArrive{from{opacity:0;transform:translateY(-15px)}to{opacity:1;transform:none}}
+@keyframes heroArrive{from{opacity:.4;transform:scale(.97)}to{opacity:1;transform:none}}
+@keyframes softGlow{to{text-shadow:0 0 18px #ffb9ee}}
+@keyframes ctaShine{0%,55%{transform:translateX(-120%)}80%,100%{transform:translateX(120%)}}
+@keyframes starBurst{from{transform:scale(.2);opacity:1}to{transform:scale(1.8);opacity:0}}
+@media(prefers-reduced-motion:reduce){.cinema-intro:before,.cinema-intro:after,.cinema-emblem,.cinema-orbit-star,.hero .eyebrow,.hero .cta:after{animation:none!important}.reveal-scene{opacity:1;transform:none;transition:none}}
+</style>
 </head>
 <body>
+
+<div class="cinema-intro" id="cinema-intro" role="dialog" aria-modal="true" aria-labelledby="cinema-title">
+ <span class="cinema-orbit-star">✦</span><span class="cinema-orbit-star">✧</span><span class="cinema-orbit-star">✦</span><span class="cinema-orbit-star">✧</span>
+ <div class="cinema-intro-inner"><div class="cinema-emblem" aria-hidden="true">🌌💜</div><div class="eyebrow">A PRIVATE LITTLE GALAXY FOR NISHI</div><h1 id="cinema-title">Your Purple<br>Universe Awaits</h1><p>Seven stars. One sky. A thousand little dreams. Your journey begins beyond this portal.</p><button class="cinema-enter" id="cinema-enter" type="button">ENTER THE UNIVERSE ✨</button><button class="cinema-skip" id="cinema-skip" type="button">Skip intro</button></div>
+</div>
+
 <a class="skip-link" href="#main-content">Skip to main content</a>
 <canvas id="sky" aria-hidden="true"></canvas>
 <header class="top"><div class="brand">✦ NISHI'S PURPLE UNIVERSE</div><nav class="nav" aria-label="Main navigation"><a href="#home"><span class="en">Home</span><span class="bn">হোম</span></a><a href="#ot7">OT7</a><a href="#songs"><span class="en">Songs</span><span class="bn">গান</span></a><a href="#journey"><span class="en">Story</span><span class="bn">গল্প</span></a><a href="#concert"><span class="en">Concert</span><span class="bn">কনসার্ট</span></a><a href="#game"><span class="en">Game</span><span class="bn">খেলা</span></a><a href="#surprise"><span class="en">Surprise</span><span class="bn">চমক</span></a><button id="lang" type="button">বাংলা</button></nav></header>
@@ -115,6 +171,18 @@ let audioCtx=null,master=null,oscillators=[],ambienceOn=false;
 function stopAmbience(){if(master){master.gain.setTargetAtTime(0,audioCtx.currentTime,.18);setTimeout(()=>{oscillators.forEach(o=>{try{o.stop()}catch{}});oscillators=[];master=null},900)}ambienceOn=false;document.getElementById('ambience').textContent=document.body.classList.contains('bangla')?'♫ স্বপ্নময় সুর চালাও':'♫ Play dreamy ambience';document.getElementById('ambience').setAttribute('aria-pressed','false');document.getElementById('sound-status').textContent=document.body.classList.contains('bangla')?'সুর থামানো হয়েছে':'Soundscape paused';}
 document.getElementById('ambience').addEventListener('click',()=>{if(ambienceOn){stopAmbience();return}const AC=window.AudioContext||window.webkitAudioContext;if(!AC){document.getElementById('sound-status').textContent='Audio is not supported in this browser.';return}audioCtx=audioCtx||new AC();audioCtx.resume();master=audioCtx.createGain();master.gain.value=.0001;master.connect(audioCtx.destination);master.gain.setTargetAtTime(.045,audioCtx.currentTime,.7);[110,164.81,220,329.63].forEach((f,i)=>{const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type=i===1?'sine':'triangle';o.frequency.value=f;o.detune.value=(i-1.5)*4;g.gain.value=i===0?.42:.13;o.connect(g);g.connect(master);o.start();oscillators.push(o)});ambienceOn=true;document.getElementById('ambience').textContent=document.body.classList.contains('bangla')?'Ⅱ সুর থামাও':'Ⅱ Pause dreamy ambience';document.getElementById('ambience').setAttribute('aria-pressed','true');document.getElementById('sound-status').textContent=document.body.classList.contains('bangla')?'মহাকাশের মতো কোমল নিজস্ব সুর বাজছে':'A soft original cosmic tone is playing';});
 document.getElementById('lang').addEventListener('click',()=>{document.body.classList.toggle('bangla');document.documentElement.lang=document.body.classList.contains('bangla')?'bn':'en';document.getElementById('lang').textContent=document.body.classList.contains('bangla')?'English':'বাংলা';if(ambienceOn){document.getElementById('ambience').textContent=document.body.classList.contains('bangla')?'Ⅱ সুর থামাও':'Ⅱ Pause dreamy ambience'}else{document.getElementById('ambience').textContent=document.body.classList.contains('bangla')?'♫ স্বপ্নময় সুর চালাও':'♫ Play dreamy ambience'};score.innerHTML=document.body.classList.contains('bangla')?['০','১','২','৩','৪','৫','৬','৭'][found]+' / ৭টি তারা খুঁজে পাওয়া গেছে':found+' / 7 stars discovered';renderStory()});document.getElementById('top').addEventListener('click',()=>scrollTo({top:0,behavior:reduced?'auto':'smooth'}));
+
+// Cinematic opening and scroll-reveal scene direction
+const introGate=document.getElementById('cinema-intro');
+const enterGate=()=>{if(!introGate||introGate.classList.contains('dismissed'))return;introGate.classList.add('dismissed');document.body.classList.add('cinema-entered');try{sessionStorage.setItem('nishi-purple-intro-seen','1')}catch{};setTimeout(()=>introGate.remove(),1100);document.getElementById('home')?.scrollIntoView({behavior:reduced?'auto':'smooth',block:'start'});};
+document.getElementById('cinema-enter')?.addEventListener('click',enterGate);
+document.getElementById('cinema-skip')?.addEventListener('click',enterGate);
+try{if(sessionStorage.getItem('nishi-purple-intro-seen')==='1'){introGate?.classList.add('dismissed');introGate?.remove();document.body.classList.add('cinema-entered')}}catch{}
+if(introGate&&!introGate.classList.contains('dismissed')){document.getElementById('cinema-enter')?.focus()}
+const sceneSections=[...document.querySelectorAll('main .section')];
+sceneSections.forEach(el=>el.classList.add('reveal-scene'));
+if('IntersectionObserver' in window&&!reduced){const sceneObserver=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add('scene-visible');sceneObserver.unobserve(entry.target)}}),{threshold:.12,rootMargin:'0px 0px -35px 0px'});sceneSections.forEach(el=>sceneObserver.observe(el))}else sceneSections.forEach(el=>el.classList.add('scene-visible'));
+
 })();
 </script>
 </body></html>
