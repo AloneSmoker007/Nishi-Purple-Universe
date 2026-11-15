@@ -82,6 +82,11 @@
 @media(max-width:650px){.realm-portals{grid-template-columns:repeat(2,minmax(0,1fr))}.realm-sky{height:290px}.realm-island{width:28%;height:22%}.island-left{left:1%}.island-right{right:1%}.realm-rainbow{width:85%;left:7.5%}}
 @media(prefers-reduced-motion:reduce){.realm-island,.realm-star{animation:none}}
 
+/* Mobile touch comfort: keep navigation and key controls easy to tap. */
+.nav a,.nav button,.pill{display:inline-flex;align-items:center;justify-content:center;min-height:44px}
+.story-actions button,.soundbar button{min-height:44px}
+.starbtn{min-width:44px;min-height:44px}
+@media(max-width:700px){.nav a,.nav button{padding:9px 10px}.top{gap:8px}}
 </style>
 <style>
 .skip-link{position:fixed;z-index:10000;top:12px;left:12px;padding:12px 16px;border-radius:12px;background:#fff;color:#281039;font-weight:700;transform:translateY(-160%);transition:transform .2s}
