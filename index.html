@@ -220,8 +220,24 @@ const story=[
  {k:"Chapter 3 · Seven Lights, One Sky",t:"The universe shines together",p:"Seven lights gather above the castle — each different, all equally bright. The sky opens into a galaxy made of friendship, dreams, and purple happiness. Your final surprise is waiting in the Star Quest.",choices:[["quest","Go to the Seven-Star Quest ⭐"],["again","Read the story again ↺"]]}
 ];
 const storyBn=[{"k":"অধ্যায় ১ · প্রথম তারা","t":"বেগুনি আকাশের চিঠি","p":"এক শান্ত সন্ধ্যায় চাঁদের আলোয় ভেজা দুর্গের ওপরে সাতটি তারা দেখা দিল। একটি জ্বলজ্বলে খাম এসে পড়ল তোমার সামনে। খামের গায়ে লেখা — নিশি।","choices":[["open","চিঠিটি খোলো 💌"],["follow","সাতটি তারার পথ ধরো ✨"]]},{"k":"অধ্যায় ২ · রংধনুর সেতু","t":"প্রতিটি রঙে এক প্রতিশ্রুতি","p":"তারারা তোমাকে নিয়ে গেল রংধনুর সেতুতে। সেতুর শেষে জ্বলছে একটি বার্তা: I Purple You। দূরত্ব যতই হোক, গান আর স্মৃতি মানুষকে কাছে রাখতে পারে।","choices":[["music","গানের সুর অনুসরণ করো 🎧"],["rainbow","একটি ইচ্ছে করো 🌈"]]},{"k":"অধ্যায় ৩ · সাত আলো, এক আকাশ","t":"একসাথে জ্বলে ওঠে মহাবিশ্ব","p":"দুর্গের ওপরে জড়ো হলো সাতটি আলো — প্রত্যেকটি আলাদা, প্রত্যেকটি সমান উজ্জ্বল। আকাশ খুলে গেল স্বপ্ন, বন্ধুত্ব আর বেগুনি আনন্দের এক ছায়াপথে। শেষ চমকটি অপেক্ষা করছে Seven-Star Quest-এ।","choices":[["quest","সাত-তারার অভিযানে যাও ⭐"],["again","গল্পটি আবার পড়ো ↺"]]}];
-let chapter=0;
-function renderStory(){const s=document.body.classList.contains('bangla')?storyBn[chapter]:story[chapter];document.getElementById('story-kicker').textContent=s.k;document.getElementById('story-title').textContent=s.t;document.getElementById('story-copy').textContent=s.p;const dots=document.querySelectorAll('#story-dots i');dots.forEach((d,i)=>d.classList.toggle('active',i===chapter));const box=document.getElementById('story-actions');box.innerHTML='';s.choices.forEach(([id,label])=>{const b=document.createElement('button');b.type='button';b.textContent=label;b.addEventListener('click',()=>{if(id==='quest'){document.getElementById('game').scrollIntoView({behavior:reduced?'auto':'smooth'});return}if(id==='again'){chapter=0}else{chapter=Math.min(2,chapter+1)}renderStory()});box.appendChild(b)})}
+let chapter=0,storyPath='open',storyRoute='music';
+const storyBranches={
+ en:{
+  open:"You unfold the letter. Inside is a tiny map drawn in silver ink, and one sentence: “The brightest journeys begin with a kind heart.” The map points toward a rainbow bridge.",
+  follow:"You follow seven lights through a quiet galaxy. They form a gentle constellation above you, then reveal a hidden rainbow bridge.",
+  music:"A soft melody leads you to a moonlit music room. Every note becomes a little star, reminding you that songs can keep precious memories close.",
+  rainbow:"You close your eyes and make a wish beneath the rainbow. A warm purple light answers, carrying your wish toward the seven-star castle.",
+  finish:"At the castle, all seven lights welcome you. Your path was shaped by curiosity, kindness, and the things that make you smile. Your final surprise waits in the Star Quest."
+ },
+ bn:{
+  open:"তুমি চিঠিটি খুললে। ভেতরে রুপালি কালিতে আঁকা একটি ছোট মানচিত্র, আর লেখা: “সুন্দর যাত্রা শুরু হয় একটি সুন্দর মন থেকে।” মানচিত্রটি রংধনুর সেতুর দিকে নিয়ে যায়।",
+  follow:"তুমি সাতটি আলোর পিছু নিলে। তারা শান্ত ছায়াপথ পেরিয়ে তোমার মাথার ওপর একটি নক্ষত্রমণ্ডল তৈরি করল, তারপর দেখাল লুকানো রংধনুর সেতু।",
+  music:"একটি কোমল সুর তোমাকে চাঁদের আলোয় ভরা সঙ্গীতকক্ষে নিয়ে গেল। প্রতিটি সুর ছোট্ট তারায় পরিণত হলো, মনে করিয়ে দিল গান সুন্দর স্মৃতি কাছে রাখে।",
+  rainbow:"রংধনুর নিচে চোখ বন্ধ করে তুমি একটি ইচ্ছে করলে। উষ্ণ বেগুনি আলো উত্তর দিল, আর তোমার ইচ্ছেকে সাত-তারার দুর্গের দিকে নিয়ে গেল।",
+  finish:"দুর্গে সাতটি আলো তোমাকে স্বাগত জানাল। তোমার পথ তৈরি হয়েছে কৌতূহল, মমতা আর আনন্দের ছোট ছোট মুহূর্ত দিয়ে। শেষ চমকটি অপেক্ষা করছে Star Quest-এ।"
+ }
+};
+function renderStory(){const bn=document.body.classList.contains('bangla'),s=bn?storyBn[chapter]:story[chapter];document.getElementById('story-kicker').textContent=s.k;document.getElementById('story-title').textContent=s.t;document.getElementById('story-copy').textContent=chapter===1?storyBranches[bn?'bn':'en'][storyPath]:chapter===2?storyBranches[bn?'bn':'en'].finish:s.p;const dots=document.querySelectorAll('#story-dots i');dots.forEach((d,i)=>d.classList.toggle('active',i===chapter));const box=document.getElementById('story-actions');box.innerHTML='';s.choices.forEach(([id,label])=>{const b=document.createElement('button');b.type='button';b.textContent=label;b.addEventListener('click',()=>{if(id==='quest'){document.getElementById('game').scrollIntoView({behavior:reduced?'auto':'smooth'});return}if(id==='again'){chapter=0;storyPath='open';storyRoute='music'}else{if(chapter===0)storyPath=id;if(chapter===1)storyRoute=id;chapter=Math.min(2,chapter+1)}renderStory()});box.appendChild(b)})}
 renderStory();
 
 // Language and navigation controls
