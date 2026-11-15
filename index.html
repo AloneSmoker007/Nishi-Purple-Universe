@@ -47,6 +47,32 @@
 .secret.show{animation:reveal .8s both,secretGlow 3s ease-in-out infinite alternate}
 @keyframes secretGlow{to{box-shadow:0 0 34px #e5aaff99}}
 @media(prefers-reduced-motion:reduce){.secret.show{animation:none}}
+
+/* Original floating-island world map */
+.realm-section{background:radial-gradient(ellipse at 50% 20%,#4c2473aa,transparent 55%),linear-gradient(150deg,#1d0d32,#090512)}
+.realm-sky{height:clamp(270px,42vw,440px);position:relative;overflow:hidden;margin:24px 0 28px;border:1px solid #d9aaff66;border-radius:24px;background:radial-gradient(ellipse at 50% 95%,#8a4fc566,transparent 45%),radial-gradient(ellipse at 50% 25%,#5c318d 0,#26113f 48%,#090512 100%);isolation:isolate}
+.realm-nebula{position:absolute;inset:0;background:radial-gradient(ellipse at 20% 35%,#d68cff22,transparent 34%),radial-gradient(ellipse at 80% 60%,#ffb8e522,transparent 28%);filter:blur(8px)}
+.realm-moon{position:absolute;width:clamp(90px,14vw,150px);aspect-ratio:1;border-radius:50%;right:14%;top:10%;background:radial-gradient(circle at 35% 32%,#fff,#f0d4ff 14%,#b879e5 55%,#7545a0 75%);box-shadow:0 0 55px #d7a0ff88}
+.realm-island{position:absolute;z-index:2;width:24%;height:24%;top:50%;background:linear-gradient(145deg,#8f64b7,#3d205f 58%,#170d2b);clip-path:polygon(0 0,100% 0,78% 38%,56% 100%,39% 56%,18% 38%);filter:drop-shadow(0 14px 12px #05010c);animation:islandFloat 7s ease-in-out infinite}
+.realm-island span{position:absolute;top:0;left:46%;color:#ffe7b5;font-size:1.4rem}.realm-island i{position:absolute;top:22%;left:20%;width:60%;height:2px;background:#e8c7ff88;box-shadow:0 0 16px #e8c7ff}
+.island-left{left:7%;transform:rotate(-7deg)}.island-right{right:6%;top:59%;transform:rotate(7deg);animation-delay:-3s}
+.realm-rainbow{position:absolute;z-index:1;width:66%;height:58%;left:17%;top:29%;border:clamp(7px,1.2vw,13px) solid transparent;border-top-color:#ffc0f1;border-left-color:#bba2ff;border-right-color:#ffdc9a;border-radius:50% 50% 0 0;filter:drop-shadow(0 0 12px #e7b8ff88);opacity:.8}
+.realm-castle{position:absolute;z-index:3;left:50%;bottom:18%;width:clamp(110px,19vw,190px);height:48%;transform:translateX(-50%);filter:drop-shadow(0 0 24px #d9a4ff88)}
+.castle-glow{position:absolute;inset:10% -35% 0;border-radius:50%;background:#d29aff33;filter:blur(24px)}
+.castle-core{position:absolute;bottom:18%;left:16%;width:68%;height:58%;background:linear-gradient(90deg,#6e4a9a,#e0c4ff 48%,#7651a3);clip-path:polygon(0 28%,20% 28%,20% 0,36% 0,36% 28%,64% 28%,64% 0,80% 0,80% 28%,100% 28%,100% 100%,0 100%);border:1px solid #f4ddff}
+.castle-core i{position:absolute;bottom:0;width:10%;height:34%;background:#241238;border-radius:50% 50% 0 0;left:20%}.castle-core i:nth-child(2){left:45%}.castle-core i:nth-child(3){left:70%}.castle-core b{position:absolute;left:42%;top:30%;width:16%;height:25%;background:#fff0b5;box-shadow:0 0 18px #fff0b5;border-radius:50% 50% 0 0}
+.castle-base{position:absolute;bottom:0;left:4%;width:92%;height:22%;background:linear-gradient(90deg,#583875,#d9b4f3,#563276);clip-path:polygon(0 0,100% 0,82% 100%,18% 100%)}
+.realm-star{position:absolute;color:#fff3c9;text-shadow:0 0 18px #fff;font-size:1.4rem;animation:realmTwinkle 2.8s ease-in-out infinite alternate}.star-a{left:22%;top:18%}.star-b{right:28%;top:33%;animation-delay:-1s}.star-c{left:38%;top:13%;animation-delay:-2s}.star-d{right:15%;top:45%;animation-delay:-.5s}
+.realm-caption{position:absolute;bottom:7%;left:0;right:0;text-align:center;letter-spacing:.24em;font-size:.68rem;color:#f0d6ff;text-shadow:0 0 12px #d7a0ff}
+.realm-portals{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.realm-portal{display:flex;flex-direction:column;align-items:center;gap:5px;padding:17px 10px;border:1px solid #b987e866;border-radius:18px;background:linear-gradient(145deg,#35194e,#150b25);text-decoration:none;transition:transform .25s,border-color .25s,box-shadow .25s}
+.realm-portal:hover,.realm-portal:focus-visible{transform:translateY(-5px);border-color:#f0caff;box-shadow:0 0 26px #bc78ef66}
+.realm-portal span{font-size:1.8rem;filter:drop-shadow(0 0 10px #e3b2ff)}.realm-portal strong{color:#f2dcff;font-size:.94rem}.realm-portal small{color:#cbb9df;font-size:.76rem}
+@keyframes islandFloat{0%,100%{translate:0 0}50%{translate:0 -13px}}
+@keyframes realmTwinkle{from{opacity:.4;transform:scale(.8)}to{opacity:1;transform:scale(1.2)}}
+@media(max-width:650px){.realm-portals{grid-template-columns:repeat(2,minmax(0,1fr))}.realm-sky{height:290px}.realm-island{width:28%;height:22%}.island-left{left:1%}.island-right{right:1%}.realm-rainbow{width:85%;left:7.5%}}
+@media(prefers-reduced-motion:reduce){.realm-island,.realm-star{animation:none}}
+
 </style>
 <style>
 .skip-link{position:fixed;z-index:10000;top:12px;left:12px;padding:12px 16px;border-radius:12px;background:#fff;color:#281039;font-weight:700;transform:translateY(-160%);transition:transform .2s}
@@ -113,9 +139,31 @@ body.cinema-entered .hero{animation:heroArrive 1.2s both}
 
 <a class="skip-link" href="#main-content">Skip to main content</a>
 <canvas id="sky" aria-hidden="true"></canvas>
-<header class="top"><div class="brand">✦ NISHI'S PURPLE UNIVERSE</div><nav class="nav" aria-label="Main navigation"><a href="#home"><span class="en">Home</span><span class="bn">হোম</span></a><a href="#ot7">OT7</a><a href="#songs"><span class="en">Songs</span><span class="bn">গান</span></a><a href="#journey"><span class="en">Story</span><span class="bn">গল্প</span></a><a href="#concert"><span class="en">Concert</span><span class="bn">কনসার্ট</span></a><a href="#game"><span class="en">Game</span><span class="bn">খেলা</span></a><a href="#surprise"><span class="en">Surprise</span><span class="bn">চমক</span></a><button id="lang" type="button">বাংলা</button></nav></header>
+<header class="top"><div class="brand">✦ NISHI'S PURPLE UNIVERSE</div><nav class="nav" aria-label="Main navigation"><a href="#home"><span class="en">Home</span><span class="bn">হোম</span></a><a href="#realms"><span class="en">Realms</span><span class="bn">জগৎ</span></a><a href="#ot7">OT7</a><a href="#songs"><span class="en">Songs</span><span class="bn">গান</span></a><a href="#journey"><span class="en">Story</span><span class="bn">গল্প</span></a><a href="#concert"><span class="en">Concert</span><span class="bn">কনসার্ট</span></a><a href="#game"><span class="en">Game</span><span class="bn">খেলা</span></a><a href="#surprise"><span class="en">Surprise</span><span class="bn">চমক</span></a><button id="lang" type="button">বাংলা</button></nav></header>
 <main class="wrap" id="main-content" tabindex="-1">
 <section class="hero" id="home"><img class="hero-art" src="assets/purple-galaxy.svg" alt="Purple moonlit galaxy, fantasy castle and seven glowing stars" loading="eager" decoding="async" fetchpriority="high"><div class="moon"></div><div><div class="eyebrow">A little galaxy made just for Nishi</div><h1>Welcome, Nishi 💜</h1><p class="en">Step into a dreamy purple world where seven stars shine together, music fills the sky, and a little surprise is waiting just for you.</p><p class="bn">নিশি, তোমার নিজের বেগুনি জগতে স্বাগতম। এখানে সাতটি তারা একসাথে জ্বলে, আর তোমার জন্য অপেক্ষা করছে ছোট্ট এক চমক।</p><a class="cta" href="#ot7"><span class="en">Enter the universe ✨</span><span class="bn">মহাবিশ্বে প্রবেশ করো ✨</span></a><div class="soundbar"><button id="ambience" type="button" aria-pressed="false">♫ Play dreamy ambience</button><span class="tiny" id="sound-status">An original little space-inspired soundscape</span></div><div class="rainbow"></div><span class="scrollhint"><span class="en">SCROLL TO EXPLORE · ✦ · SCROLL TO EXPLORE</span><span class="bn">ঘুরে দেখো · ✦ · ঘুরে দেখো</span></span></div></section>
+<section class="section realm-section center" id="realms">
+ <div class="eyebrow">CHOOSE YOUR DESTINATION · ✦</div>
+ <h2 class="en">Beyond the Purple Portal</h2><h2 class="bn">বেগুনি দরজার ওপারে</h2>
+ <p class="sub en">A little map of Nishi's universe. Choose a glowing realm and travel straight to its story.</p>
+ <p class="sub bn">নিশির মহাবিশ্বের ছোট্ট মানচিত্র। একটি আলোকিত জগৎ বেছে নিয়ে তার গল্পে চলে যাও।</p>
+ <div class="realm-sky" aria-label="Original fantasy illustration of a moon, floating islands, rainbow bridge and a glowing castle">
+  <div class="realm-moon"></div><div class="realm-nebula"></div>
+  <div class="realm-island island-left"><span>✦</span><i></i></div><div class="realm-island island-right"><span>✧</span><i></i></div>
+  <div class="realm-rainbow"></div>
+  <div class="realm-castle"><div class="castle-glow"></div><div class="castle-core"><i></i><i></i><i></i><b></b></div><div class="castle-base"></div></div>
+  <div class="realm-star star-a">✦</div><div class="realm-star star-b">✧</div><div class="realm-star star-c">✦</div><div class="realm-star star-d">✧</div>
+  <div class="realm-caption">NISHI'S PURPLE KINGDOM</div>
+ </div>
+ <div class="realm-portals">
+  <a class="realm-portal" href="#ot7"><span>🌟</span><strong>Seven-Star Constellation</strong><small>Meet all seven lights</small></a>
+  <a class="realm-portal" href="#songs"><span>🎧</span><strong>Melody Moon</strong><small>Enter the music room</small></a>
+  <a class="realm-portal" href="#concert"><span>🎤</span><strong>Memory Island</strong><small>Visit the Busan keepsake</small></a>
+  <a class="realm-portal" href="#journey"><span>📖</span><strong>Storybook Valley</strong><small>Choose your adventure</small></a>
+  <a class="realm-portal" href="#game"><span>✨</span><strong>Star Quest Gate</strong><small>Unlock the hidden letter</small></a>
+  <a class="realm-portal" href="#surprise"><span>🚘</span><strong>Dream Road</strong><small>Follow a beautiful dream</small></a>
+ </div>
+</section>
 <section class="section center"><h2>The Purple Promise 🌈</h2><p class="sub en">Purple is the last colour of the rainbow. “I Purple You” became a beautiful ARMY promise — trust, love, and staying beside one another.</p><p class="sub bn">রংধনুর শেষ রং বেগুনি। “I Purple You” ARMY-র কাছে বিশ্বাস, ভালোবাসা আর পাশে থাকার সুন্দর প্রতিশ্রুতি।</p><div class="promise">“I Purple You” 💜</div><p class="tiny en">A little reminder of the bond between BTS and ARMY.</p><p class="tiny bn">BTS ও ARMY-র বন্ধনের ছোট্ট এক স্মারক।</p></section>
 <section class="section" id="ot7"><div class="center"><h2>Seven Stars · One Sky ✨</h2><p class="sub en">OT7 — seven unique lights, together in one beautiful universe.</p><p class="sub bn">OT7 — সাতটি আলাদা আলো, একসাথে এক সুন্দর মহাবিশ্ব।</p></div><div class="ot7-gallery" aria-label="Seven original fantasy portrait illustrations, one for each BTS member">
 <figure class="ot7-art"><svg viewBox="0 0 140 150" role="img" aria-label="Abstract purple cosmic portrait for RM"><defs><linearGradient id="p1" x2="1" y2="1"><stop stop-color="#b7a4ff"/><stop offset="1" stop-color="#54308c"/></linearGradient></defs><circle cx="70" cy="67" r="59" fill="#6843a0" opacity=".32"/><path d="M22 150Q25 105 70 105T118 150" fill="url(#p1)"/><path d="M42 64Q36 17 75 20Q111 23 99 69L91 54Q75 38 53 55Z" fill="#21182f"/><ellipse cx="70" cy="69" rx="29" ry="37" fill="#d9a987"/><path d="M42 56Q45 13 81 22Q105 28 99 57Q81 39 59 46Z" fill="#29203c"/><path d="M56 70h7m15 0h7" stroke="#39243d" stroke-width="3" stroke-linecap="round"/><path d="M65 88q6 5 12 0" stroke="#8d5263" fill="none" stroke-width="2"/><circle cx="111" cy="32" r="4" fill="#fff0b8"/></svg><figcaption>RM</figcaption></figure>
