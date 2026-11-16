@@ -272,22 +272,30 @@ function makeRibbonTexture() {
 }
 
 function makeFallSheetTexture() {
-  const w = 32;
-  const h = 128;
+  const w = 64;
+  const h = 512;
   const c = document.createElement('canvas');
   c.width = w;
   c.height = h;
   const ctx = c.getContext('2d');
   const g = ctx.createLinearGradient(0, 0, 0, h);
-  g.addColorStop(0, 'rgba(230,210,255,0.85)');
-  g.addColorStop(0.55, 'rgba(199,125,255,0.35)');
+  g.addColorStop(0, 'rgba(220,195,255,0.0)');
+  g.addColorStop(0.06, 'rgba(230,210,255,0.75)');
+  g.addColorStop(0.35, 'rgba(240,225,255,0.88)');
+  g.addColorStop(0.65, 'rgba(220,195,255,0.65)');
+  g.addColorStop(0.92, 'rgba(199,125,255,0.28)');
   g.addColorStop(1, 'rgba(199,125,255,0)');
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, w, h);
   const rng = makeRng(31);
-  for (let i = 0; i < 14; i++) {
-    ctx.fillStyle = `rgba(255,255,255,${0.06 + rng() * 0.2})`;
-    ctx.fillRect(rng() * w, 0, 1 + rng() * 3, h);
+  for (let i = 0; i < 28; i++) {
+    ctx.fillStyle = `rgba(240,230,255,${0.05 + rng() * 0.22})`;
+    ctx.fillRect(rng() * w, 0, 1 + rng() * 4, h);
+  }
+  for (let i = 0; i < 10; i++) {
+    const y = rng() * h;
+    ctx.fillStyle = `rgba(250,245,255,${0.04 + rng() * 0.10})`;
+    ctx.fillRect(0, y, w, 2 + rng() * 8);
   }
   return trackTexture(new THREE.CanvasTexture(c));
 }
@@ -549,7 +557,7 @@ function buildMoon() {
   });
   const halo = new THREE.Sprite(haloMat);
   halo.position.copy(moonPos);
-  halo.scale.set(1150, 1150, 1);
+  halo.scale.set(1350, 1350, 1);
   state.scene.add(halo);
   state.moonHalo = halo;
   state.disposables.push(haloMat);
