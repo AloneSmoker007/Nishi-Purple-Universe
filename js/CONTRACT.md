@@ -1,9 +1,9 @@
 # Module Contract — Nishi's Purple Universe (cinematic 3D upgrade)
 
-**Repo root:** `/home/work/.openclaw/workspace/nishi-build`
+**Repo root:** repository root (GitHub Pages, static hosting)
 **Architecture:** modular ES modules. `index.html` imports them. NO build step, NO bundler.
 
-## Files & ownership (do NOT write outside your assigned file)
+## Current files & responsibilities
 
 | File | Owner | Purpose |
 |---|---|---|
@@ -11,7 +11,9 @@
 | `js/world.js` | agent `world3d` | Three.js 3D world |
 | `js/audio.js` | agent `audio` | WebAudio ambient engine |
 | `js/ui.js` | integrator | DOM interactions, game, storybook, i18n |
-| `js/quest.js` | integrator | "Nishi, Tell Me Your Universe" Q&A + personalised reveal (Phase 3-4) |
+| `js/quest.js` | integrator | "Nishi, Tell Me Your Universe" Q&A + personalised reveal |
+| `js/player.js` | integrator | Official YouTube playback + private, local-device audio files |
+| `js/wishes.js` | integrator | Purple Wishing Stars — catch shooting stars, make wishes |
 | `js/wishes.js` | integrator | Purple Wishing Stars — catch shooting stars, make wishes (Phase 6) |
 | `vendor/three.module.min.js` | (locked) | Three.js r169, MIT, already vendored |
 | `assets/*` | (locked) | existing assets — do not modify |
@@ -66,6 +68,25 @@ export function dispose()
 Destinations (camera presets) — implement at least:
 `'portal'`, `'ot7'`, `'music'`, `'busan'`, `'quest'`, `'violet'`, `'road'`, `'promise'`
 
+## Music playback rules — `js/player.js`
+
+- BTS music/videos must remain official embeds or links; never download, mirror, or re-host copyrighted tracks.
+- The visitor may select their own audio files (including MP3). Files must be played locally with browser object URLs and must never be uploaded or persisted.
+- Revoke temporary object URLs when the page is leaving; do not put local file contents in localStorage, IndexedDB, analytics, or network requests.
+- If YouTube/API initialization fails or times out, explain the fallback and keep local audio selection available. Ambient audio is optional and must start only after a user gesture.
+- Build playlist labels with DOM text nodes; treat local filenames as untrusted text.
+
+## Mobile 3D policy
+
+- Mobile defaults to the safe CSS fallback to protect weaker devices from WebGL crashes and battery drain.
+- Do not force WebGL on every phone. Any mobile 3D opt-in must be explicit, low-quality by default, respect Save-Data and reduced-motion, and have a visible way back to the CSS fallback.
+- The existence of desktop WebGL support does not prove mobile Safari compatibility; test on physical devices before claiming support.
+
+## Media rights
+
+- Do not scrape or bundle BTS/member photographs, logos, lyrics, or audio without permission or a suitable licence.
+- Use user-supplied photos only with the owner's permission, or verified assets whose licence explicitly permits the intended reuse. Do not generate fake member faces.
+
 ## Public API — `js/audio.js` (agent `audio`)
 
 ```js
@@ -103,10 +124,15 @@ Hard rules for the quest module:
 4. **Visible reset + delete controls** at all times, with a confirm step on delete.
 5. **Sharing is opt-in only** ("Copy my universe"), never automatic.
 
-## Verification each agent must run before reporting done
+## Verification before reporting done
 
 ```bash
 cd /home/work/.openclaw/workspace/nishi-build
 node --input-type=module -e "import('./js/<yours>.js').then(()=>console.log('OK')).catch(e=>{console.error('FAIL',e.message);process.exit(1)})"
 ```
 Also run `node --check` equivalent and report the exact output you saw.
+
+
+## Current CI checks
+
+GitHub Actions runs `node --check` for every shipped JavaScript module (`ui.js`, `quest.js`, `world.js`, `audio.js`, `player.js`, `wishes.js`) and validates the sitemap, robots file, and 404 fallback. These are syntax/static checks, not end-to-end browser, playback, or physical iPhone Safari tests.
