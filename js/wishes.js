@@ -38,6 +38,7 @@ const STR = {
     toastAdded: 'Your wish is now a star ⭐',
     toastCleared: 'All wishes cleared',
     toastTooShort: 'Write at least 2 characters',
+    toastSaveFail: 'Could not save — storage may be full. Your wish was not kept.',
     label: 'Your wishes among the stars',
     wishLabel: 'Wish',
     caught: '⭐ Star caught!',
@@ -54,6 +55,7 @@ const STR = {
     toastAdded: 'তোমার কামনা এখন একটি তারা ⭐',
     toastCleared: 'সব কামনা মুছে ফেলা হয়েছে',
     toastTooShort: 'কমপক্ষে ২টি অক্ষর লেখো',
+    toastSaveFail: 'সংরক্ষণ করা যায়নি — স্টোরেজ পূর্ণ হতে পারে। তোমার কামনা রাখা হয়নি।',
     label: 'তারার মাঝে তোমার কামনাগুলো',
     wishLabel: 'কামনা',
     caught: '⭐ তারা ধরা হয়েছে!',
@@ -79,14 +81,31 @@ function loadWishes() {
     if (!raw) return [];
     const data = JSON.parse(raw);
     if (!data || data.version !== WISH_VERSION || !Array.isArray(data.wishes)) return [];
-    return data.wishes.filter((w) => w && typeof w.text === 'string' && w.text.length > 0).slice(-60);
-  } catch { return []; }
+    return data.wishes
+      .filter((w) => {
+        if (!w || typeof w !== 'object') return false;
+        if (typeof w.text !== 'string') return false;
+        const txt = w.text.trim();
+        return txt.length >= 2 && txt.length <= MAX_WISH_TEXT;
+      })
+      .map((w) => ({
+        id: typeof w.id === 'number' && isFinite(w.id) ? w.id : Date.now(),
+        text: w.text.trim().slice(0, MAX_WISH_TEXT),
+        ts: typeof w.ts === 'string' ? w.ts : new Date().toISOString(),
+      }))
+      .slice(-MAX_WISHES);
+  } catch {
+    return [];
+  }
 }
 
 function saveWishes() {
   try {
     localStorage.setItem(WISH_KEY, JSON.stringify({ version: WISH_VERSION, wishes: _wishes }));
-  } catch { /* quota — silently ignore */ }
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 /* ---- shooting-star canvas ---- */
@@ -297,17 +316,30 @@ function toast(msg) {
 
 /* ---- actions ---- */
 function addWish(text) {
-  const clean = text.trim();
+  const clean = text.trim().slice(0, MAX_WISH_TEXT);
   if (clean.length < 2) {
     toast(t('toastTooShort'));
+    announce(t('toastTooShort'));
     return;
   }
-  _wishes.push({ id: Date.now(), text: clean, ts: new Date().toISOString() });
-  if (_wishes.length > 60) _wishes = _wishes.slice(-60);
-  saveWishes();
+  const entry = { id: Date.now(), text: clean, ts: new Date().toISOString() };
+  _wishes.push(entry);
+  if (_wishes.length > MAX_WISHES) _wishes = _wishes.slice(-MAX_WISHES);
+  const saved = saveWishes();
   renderConstellation();
   updateCount();
-  toast(t('toastAdded'));
+
+  if (saved) {
+    toast(t('toastAdded'));
+    announce(t('toastAdded'));
+  } else {
+    toast(t('toastSaveFail'));
+    announce(t('toastSaveFail'));
+    // remove from memory since it was not persisted
+    _wishes = _wishes.filter((w) => w.id !== entry.id);
+    renderConstellation();
+    updateCount();
+  }
 
   // celebration: spawn 3 shooting stars
   for (let i = 0; i < 3; i++) spawnShootingStar();
@@ -321,10 +353,16 @@ function addWish(text) {
 function clearWishes() {
   if (!window.confirm(t('confirmClear'))) return;
   _wishes = [];
-  saveWishes();
+  const saved = saveWishes();
   renderConstellation();
   updateCount();
-  toast(t('toastCleared'));
+  if (saved) {
+    toast(t('toastCleared'));
+    announce(t('toastCleared'));
+  } else {
+    toast(t('toastSaveFail'));
+    announce(t('toastSaveFail'));
+  }
 }
 
 /* ---- language ---- */
