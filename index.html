@@ -656,7 +656,14 @@ h1,h2,h3,h4{margin:0 0 .5em; line-height:1.15; font-weight:800; letter-spacing:.
 .wish-scene{position:relative; min-height:420px; border-radius:var(--r-lg); overflow:hidden;
   background:linear-gradient(180deg, rgba(11,4,32,.92), rgba(26,11,59,.78));
   border:1px solid var(--stroke); box-shadow:var(--glow-md)}
-#wish-canvas{position:absolute; inset:0; width:100%; height:100%; pointer-events:none}
+#wish-canvas{position:absolute; inset:0; width:100%; height:100%; cursor:pointer; touch-action:manipulation}
+#wish-canvas:focus-visible{outline:3px solid var(--gold); outline-offset:-3px; border-radius:var(--r-lg)}
+.wish-catch-flash{position:absolute; z-index:1; width:80px; height:80px; border-radius:50%;
+  background:radial-gradient(circle, rgba(255,215,0,.7), rgba(199,125,255,.3) 50%, transparent 70%);
+  pointer-events:none; transform:translate(-50%,-50%) scale(0); opacity:0;
+  animation:catchFlash .45s var(--ease-out) forwards}
+@keyframes catchFlash{0%{transform:translate(-50%,-50%) scale(0); opacity:1}60%{transform:translate(-50%,-50%) scale(1.4); opacity:.7}100%{transform:translate(-50%,-50%) scale(1.8); opacity:0}}
+@media (prefers-reduced-motion: reduce){.wish-catch-flash{animation-duration:.01s; opacity:0}}
 .wish-form{position:relative; z-index:2; display:flex; gap:.75rem; padding:1.65rem 1.65rem 0; max-width:620px; margin-inline:auto}
 .wish-form input{flex:1; padding:.85rem 1.25rem; border-radius:var(--r-pill); border:1px solid var(--stroke-hot);
   background:rgba(11,4,32,.72); color:var(--text); font:inherit; font-size:1rem; outline:none;

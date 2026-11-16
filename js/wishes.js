@@ -7,6 +7,9 @@
 
 const WISH_KEY = 'nishi-wishes-v1';
 const WISH_VERSION = 1;
+const CATCH_RADIUS = 42;
+const MAX_WISH_TEXT = 120;
+const MAX_WISHES = 60;
 
 /* ---- state ---- */
 let _root = null;
@@ -37,6 +40,9 @@ const STR = {
     toastTooShort: 'Write at least 2 characters',
     label: 'Your wishes among the stars',
     wishLabel: 'Wish',
+    caught: '⭐ Star caught!',
+    noStars: 'No stars to catch right now — look for shooting stars!',
+    canvasLabel: 'Shooting star canvas — click or press Enter to catch a star',
   },
   bn: {
     placeholder: 'এখানে তোমার কামনা লেখো… ✨',
@@ -50,11 +56,20 @@ const STR = {
     toastTooShort: 'কমপক্ষে ২টি অক্ষর লেখো',
     label: 'তারার মাঝে তোমার কামনাগুলো',
     wishLabel: 'কামনা',
+    caught: '⭐ তারা ধরা হয়েছে!',
+    noStars: 'এখন ধরার মতো তারা নেই — উল্কা তারার জন্য দেখো!',
+    canvasLabel: 'উল্কা তারার ক্যানভাস — তারা ধরতে ক্লিক করো বা Enter চাপো',
   },
 };
 
 function t(key) {
   return STR[_lang]?.[key] ?? STR.en[key] ?? key;
+}
+
+/* ---- screen reader announcements ---- */
+function announce(msg) {
+  const el = document.getElementById('live-region');
+  if (el) { el.textContent = ''; setTimeout(() => { el.textContent = msg; }, 50); }
 }
 
 /* ---- persistence ---- */
@@ -165,6 +180,71 @@ function resizeCanvas() {
   _ctx?.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
 
+/* ---- star catching ---- */
+function catchNearestStar(x, y) {
+  let best = -1;
+  let bestDist = CATCH_RADIUS * CATCH_RADIUS;
+  for (let i = 0; i < _stars.length; i++) {
+    const s = _stars[i];
+    const dx = s.x - x;
+    const dy = s.y - y;
+    const d2 = dx * dx + dy * dy;
+    if (d2 < bestDist) { bestDist = d2; best = i; }
+  }
+  if (best === -1) return false;
+  const caught = _stars[best];
+  _stars.splice(best, 1);
+  showCatchFlash(caught.x, caught.y);
+  try { import('./audio.js').then((m) => m.chime?.('star')).catch(() => {}); } catch { /* ok */ }
+  announce(t('caught'));
+  toast(t('caught'));
+  return true;
+}
+
+function showCatchFlash(x, y) {
+  if (!_root) return;
+  const scene = _root.querySelector('#wish-scene');
+  if (!scene) return;
+  const flash = document.createElement('div');
+  flash.className = 'wish-catch-flash';
+  flash.style.left = x + 'px';
+  flash.style.top = y + 'px';
+  flash.setAttribute('aria-hidden', 'true');
+  scene.appendChild(flash);
+  flash.addEventListener('animationend', () => flash.remove(), { once: true });
+  setTimeout(() => flash.remove(), 600);
+}
+
+function handlePointerCatch(e) {
+  if (_stars.length === 0) return;
+  const rect = _canvas?.getBoundingClientRect();
+  if (!rect) return;
+  catchNearestStar(e.clientX - rect.left, e.clientY - rect.top);
+}
+
+function handleKeyCatch() {
+  if (_stars.length === 0) {
+    toast(t('noStars'));
+    announce(t('noStars'));
+    return;
+  }
+  const cx = _cssW / 2;
+  const cy = _cssH / 2;
+  let best = 0;
+  let bestD = Infinity;
+  for (let i = 0; i < _stars.length; i++) {
+    const s = _stars[i];
+    const d = (s.x - cx) ** 2 + (s.y - cy) ** 2;
+    if (d < bestD) { bestD = d; best = i; }
+  }
+  const caught = _stars[best];
+  _stars.splice(best, 1);
+  showCatchFlash(caught.x, caught.y);
+  try { import('./audio.js').then((m) => m.chime?.('star')).catch(() => {}); } catch { /* ok */ }
+  announce(t('caught'));
+  toast(t('caught'));
+}
+
 /* ---- constellation rendering ---- */
 function renderConstellation() {
   const el = _root.querySelector('#wish-constellation');
@@ -258,6 +338,8 @@ function setLanguage(lang) {
   if (send) send.textContent = t('send');
   if (clear) clear.textContent = t('clear');
   if (constellation) constellation.setAttribute('aria-label', t('label'));
+  const canvas = _root.querySelector('#wish-canvas');
+  if (canvas) canvas.setAttribute('aria-label', t('canvasLabel'));
   renderConstellation();
   updateCount();
 }
@@ -279,6 +361,19 @@ export function initWishes(rootEl, opts = {}) {
     _orientationHandler = () => { setTimeout(resizeCanvas, 120); };
     window.addEventListener('resize', _resizeHandler, { passive: true });
     window.addEventListener('orientationchange', _orientationHandler, { passive: true });
+
+    // star-catching interactions
+    _canvas.setAttribute('tabindex', '0');
+    _canvas.setAttribute('role', 'application');
+    _canvas.setAttribute('aria-label', t('canvasLabel'));
+    _canvas.addEventListener('pointerdown', handlePointerCatch, { passive: true });
+    _canvas.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        handleKeyCatch();
+      }
+    });
+
     if (!_reducedMotion) startAnimation();
   }
 
