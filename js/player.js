@@ -142,27 +142,36 @@ function setStatus(text) {
 async function ensurePlayer() {
   if (state.player) return state.player;
   const YT = await loadYouTubeAPI();
-  return new Promise((resolve) => {
-    state.player = new YT.Player('player-frame', {
-      videoId: TRACKS[state.current].id,
-      playerVars: {
-        autoplay: 0, controls: 0, modestbranding: 1, rel: 0,
-        playsinline: 1, iv_load_policy: 3, disablekb: 1,
-      },
-      events: {
-        onReady: () => { state.ready = true; syncUI(); resolve(state.player); },
-        onStateChange: (e) => {
-          state.playing = e.data === 1 /* playing */;
-          syncUI();
-          if (e.data === 0 /* ended */) nextTrack(true);
+  return new Promise((resolve, reject) => {
+    let settled = false;
+    const timer = setTimeout(() => {
+      if (!settled) { settled = true; reject(new Error('YouTube player initialisation timed out')); }
+    }, 12000);
+    const finish = (error) => {
+      if (settled) return;
+      settled = true; clearTimeout(timer);
+      if (error) reject(error); else resolve(state.player);
+    };
+    try {
+      state.player = new YT.Player('player-frame', {
+        videoId: TRACKS[state.current].id,
+        playerVars: { autoplay: 0, controls: 0, modestbranding: 1, rel: 0, playsinline: 1, iv_load_policy: 3, disablekb: 1 },
+        events: {
+          onReady: () => { state.ready = true; syncUI(); finish(); },
+          onStateChange: (event) => {
+            state.playing = event.data === 1;
+            syncUI();
+            if (event.data === 0) nextTrack(true);
+          },
+          onError: () => {
+            state.player = null; state.ready = false;
+            finish(new Error('YouTube video is unavailable'));
+            startFallback('This video is unavailable. Ambient sound or your own MP3 is ready.');
+          },
         },
-        onError: () => {
-          setStatus('This video is unavailable right here.');
-          nextTrack(true);
-        },
-      },
-    });
-  });
+      });
+    } catch (error) { finish(error); }
+  }).catch((error) => { state.player = null; state.ready = false; throw error; });
 }
 
 async function startFallback(msg) {
