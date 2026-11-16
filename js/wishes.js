@@ -25,6 +25,8 @@ let _cssW = 0;           // logical CSS width of canvas
 let _cssH = 0;           // logical CSS height of canvas
 let _resizeHandler = null;
 let _orientationHandler = null;
+let _rmQuery = null;
+let _rmHandler = null;
 
 /* ---- i18n ---- */
 const STR = {
@@ -282,6 +284,7 @@ function renderConstellation() {
     const star = document.createElement('div');
     star.className = 'wish-star';
     star.setAttribute('role', 'listitem');
+    star.setAttribute('tabindex', '0');
     star.setAttribute('aria-label', `${t('wishLabel')}: ${w.text}`);
 
     const icon = document.createElement('span');
@@ -415,6 +418,15 @@ export function initWishes(rootEl, opts = {}) {
     if (!_reducedMotion) startAnimation();
   }
 
+  // dynamic prefers-reduced-motion listener
+  if (typeof window.matchMedia === 'function') {
+    _rmQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    _rmHandler = (e) => setReducedMotion(e.matches);
+    _rmQuery.addEventListener?.('change', _rmHandler) ??
+      _rmQuery.addListener?.(_rmHandler);
+    _reducedMotion = _rmQuery.matches;
+  }
+
   // load persisted wishes
   _wishes = loadWishes();
   renderConstellation();
@@ -476,6 +488,12 @@ export function destroy() {
   if (_orientationHandler) window.removeEventListener('orientationchange', _orientationHandler);
   _resizeHandler = null;
   _orientationHandler = null;
+  if (_rmQuery && _rmHandler) {
+    _rmQuery.removeEventListener?.('change', _rmHandler) ??
+      _rmQuery.removeListener?.(_rmHandler);
+  }
+  _rmQuery = null;
+  _rmHandler = null;
   _stars = [];
   _root = null;
   _canvas = null;
