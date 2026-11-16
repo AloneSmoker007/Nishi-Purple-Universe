@@ -1920,9 +1920,20 @@ function tick() {
  *  Post-processing: Bloom + Vignette + Chromatic Aberration
  *  Pure Three.js core — no external modules needed.
  * ------------------------------------------------------------------ */
+function disposePostProcessing() {
+  const c = state.composer;
+  if (!c) return;
+  state.composer = null;
+  for (const resource of [c.renderTarget, c.material, c.geo]) {
+    try { resource?.dispose(); } catch (e) { /* ignore */ }
+    const index = state.disposables.indexOf(resource);
+    if (index !== -1) state.disposables.splice(index, 1);
+  }
+}
+
 function setupPostProcessing() {
   if (!state.renderer || !state.scene || !state.camera) return;
-  if (state.composer) { state.composer.renderTarget1?.dispose(); state.composer.renderTarget2?.dispose(); state.composer = null; }
+  disposePostProcessing();
 
   const w = state.renderer.domElement.width;
   const h = state.renderer.domElement.height;
@@ -2121,6 +2132,7 @@ function swapAntialias(wantAA) {
   try {
     const fresh = state.canvas.cloneNode(false); // keeps id/class/style attributes
     parent.replaceChild(fresh, state.canvas);
+    disposePostProcessing();
     try {
       state.renderer.dispose();
     } catch (e) {
@@ -2224,13 +2236,13 @@ export function initWorld(canvas, opts = {}) {
     state.canvas = canvas;
 
     state.renderer = createRenderer(canvas, state.quality === 'high');
-    setupPostProcessing();
     state.scene = new THREE.Scene();
     state.scene.background = new THREE.Color(TOKENS.inkAbyss);
     state.scene.fog = new THREE.FogExp2(TOKENS.inkDeep, FOG_DENSITY);
 
     state.camera = new THREE.PerspectiveCamera(62, 1, 0.5, 4000);
     setPoseInstant(INTRO_START.pos, INTRO_START.look, INTRO_START.fov);
+    setupPostProcessing();
 
     buildSky();
     buildStars();
@@ -2375,6 +2387,7 @@ export function resize() {
     state.camera.aspect = w / h;
     state.camera.updateProjectionMatrix();
     state.renderer.setSize(w, h, false);
+    resizePostProcessing();
   } catch (e) {
     /* never throw from resize */
   }
