@@ -335,10 +335,22 @@ function initNav() {
 function initReveal() {
   const items = $$('.reveal');
   if (!items.length) return;
+
+  const revealAll = () => items.forEach(el => el.classList.add('is-in'));
+
   if (REDUCED || !('IntersectionObserver' in window)) {
-    items.forEach(el => el.classList.add('is-in'));
+    revealAll();
     return;
   }
+
+  // Reveal anything already at or above the fold immediately, so the visitor
+  // never lands on a blank first screen waiting for an observer callback.
+  const vh = window.innerHeight || 800;
+  items.forEach(el => {
+    const b = el.getBoundingClientRect();
+    if (b.top < vh * 1.05) el.classList.add('is-in');
+  });
+
   const io = new IntersectionObserver((entries) => {
     entries.forEach(en => {
       if (en.isIntersecting) {
@@ -346,8 +358,48 @@ function initReveal() {
         io.unobserve(en.target);
       }
     });
-  }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
-  items.forEach(el => io.observe(el));
+  }, {
+    threshold: 0.01,
+    // Start fading in slightly BEFORE the element reaches the viewport, so on a
+    // phone the content is already visible by the time the eye gets there.
+    rootMargin: '0px 0px 12% 0px',
+  });
+  items.forEach(el => { if (!el.classList.contains('is-in')) io.observe(el); });
+
+  // HARD SAFETY NETS. IntersectionObserver only reports elements it *saw*
+  // cross the viewport — a fast scroll or an anchor jump flies past sections
+  // and leaves them at opacity:0 forever. So we also sweep on scroll, and run
+  // two timers, and never let anything stay invisible.
+  const revealNearby = (marginPx) => {
+    const limit = window.innerHeight * marginPx;
+    items.forEach(el => {
+      if (el.classList.contains('is-in')) return;
+      const b = el.getBoundingClientRect();
+      // visible, about to be visible, or already scrolled past
+      if (b.top < limit || b.bottom < 0) el.classList.add('is-in');
+    });
+  };
+
+  let sweepQueued = false;
+  const onScroll = () => {
+    if (sweepQueued) return;
+    sweepQueued = true;
+    requestAnimationFrame(() => {
+      sweepQueued = false;
+      revealNearby(1.15);
+    });
+  };
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', onScroll, { passive: true });
+
+  setTimeout(() => revealNearby(1.2), 2500);
+  window.addEventListener('load', () => {
+    setTimeout(() => revealNearby(1.3), 400);
+  }, { once: true });
+  // Absolute last resort: nothing may still be invisible after 6s.
+  setTimeout(() => {
+    items.forEach(el => el.classList.add('is-in'));
+  }, 6000);
 }
 
 /* ---------------------------------------------------------------
@@ -750,6 +802,35 @@ function restartStory() {
 }
 
 /* ---------------------------------------------------------------
+   universal press feedback
+   Any tappable element gets a visible response within one frame, so the
+   interface never feels dead even when the handler is async (audio init,
+   player boot, lazy modules).
+--------------------------------------------------------------- */
+function initPressFeedback() {
+  const SEL = 'button, .btn, .realm, .song, .player-track';
+  const flash = (el) => {
+    if (!el) return;
+    el.classList.remove('is-pressed');
+    void el.offsetWidth;
+    el.classList.add('is-pressed');
+    clearTimeout(el._pressT);
+    el._pressT = setTimeout(() => el.classList.remove('is-pressed'), 420);
+  };
+  // pointerdown fires immediately on touch and mouse — much sooner than click
+  document.addEventListener('pointerdown', (e) => {
+    const el = e.target.closest(SEL);
+    if (el) flash(el);
+  }, { passive: true });
+  // keyboard activation (Space/Enter) has no pointerdown
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    const el = e.target.closest && e.target.closest(SEL);
+    if (el) flash(el);
+  }, { passive: true });
+}
+
+/* ---------------------------------------------------------------
    7-Star Secret Surprise (gift box)
 --------------------------------------------------------------- */
 function initGift() {
@@ -1009,6 +1090,7 @@ function boot() {
   initNav();
   initReveal();
   initRealms();
+  initPressFeedback();
   initGame();
   initGift();
   initStory();
