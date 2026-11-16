@@ -148,10 +148,9 @@ function canRunWebGL() {
     if (pref === 'off') return false;
   } catch { /* private mode */ }
 
-  // Phones and tablets: skip the 3D world entirely.
-  if (isPhoneLike()) return false;
-  // Only skip 3D on genuinely ancient hardware. Phones are already handled
-  // by isPhoneLike(); this is a last-resort safety net, not a spec sheet.
+  // Phones and tablets now receive the full 3D world with adaptive quality.
+  // detectQuality() and world.js cap DPR/effects for constrained devices.
+  // Keep only genuine hardware and explicit data-saver guards below.
   const mem = navigator.deviceMemory;
   const cores = navigator.hardwareConcurrency;
   if (typeof mem === 'number' && mem < 2) return false;
