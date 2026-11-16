@@ -27,6 +27,8 @@ let _resizeHandler = null;
 let _orientationHandler = null;
 let _rmQuery = null;
 let _rmHandler = null;
+let _pointerHandler = null;
+let _keyHandler = null;
 
 /* ---- i18n ---- */
 const STR = {
@@ -83,6 +85,7 @@ function loadWishes() {
     if (!raw) return [];
     const data = JSON.parse(raw);
     if (!data || data.version !== WISH_VERSION || !Array.isArray(data.wishes)) return [];
+    const seenIds = new Set();
     return data.wishes
       .filter((w) => {
         if (!w || typeof w !== 'object') return false;
@@ -90,11 +93,19 @@ function loadWishes() {
         const txt = w.text.trim();
         return txt.length >= 2 && txt.length <= MAX_WISH_TEXT;
       })
-      .map((w) => ({
-        id: typeof w.id === 'number' && isFinite(w.id) ? w.id : Date.now(),
-        text: w.text.trim().slice(0, MAX_WISH_TEXT),
-        ts: typeof w.ts === 'string' ? w.ts : new Date().toISOString(),
-      }))
+      .map((w) => {
+        // GAP FIX 4: Validate IDs (unique) and timestamps (valid ISO)
+        let id = typeof w.id === 'number' && isFinite(w.id) ? w.id : Date.now();
+        while (seenIds.has(id)) id += 1;
+        seenIds.add(id);
+        let ts = typeof w.ts === 'string' ? w.ts : new Date().toISOString();
+        if (!/^\d{4}-\d{2}-\d{2}T/.test(ts)) ts = new Date().toISOString();
+        return {
+          id,
+          text: w.text.trim().slice(0, MAX_WISH_TEXT),
+          ts,
+        };
+      })
       .slice(-MAX_WISHES);
   } catch {
     return [];
@@ -355,17 +366,23 @@ function addWish(text) {
 
 function clearWishes() {
   if (!window.confirm(t('confirmClear'))) return;
+  // GAP FIX 3: Save prior state so we can restore on failure
+  const priorWishes = [..._wishes];
   _wishes = [];
   const saved = saveWishes();
-  renderConstellation();
-  updateCount();
-  if (saved) {
-    toast(t('toastCleared'));
-    announce(t('toastCleared'));
-  } else {
+  if (!saved) {
+    // restore prior state — never falsely claim a clear
+    _wishes = priorWishes;
+    renderConstellation();
+    updateCount();
     toast(t('toastSaveFail'));
     announce(t('toastSaveFail'));
+    return;
   }
+  renderConstellation();
+  updateCount();
+  toast(t('toastCleared'));
+  announce(t('toastCleared'));
 }
 
 /* ---- language ---- */
@@ -394,6 +411,17 @@ export function initWishes(rootEl, opts = {}) {
   _lang = opts.lang === 'bn' ? 'bn' : 'en';
   _reducedMotion = !!opts.reducedMotion;
 
+  // GAP FIX 1: Check reduced-motion BEFORE any animation starts
+  if (typeof window.matchMedia === 'function') {
+    _rmQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    _rmHandler = (e) => setReducedMotion(e.matches);
+    _rmQuery.addEventListener?.('change', _rmHandler) ??
+      _rmQuery.addListener?.(_rmHandler);
+    _reducedMotion = _rmQuery.matches || !!opts.reducedMotion;
+  } else {
+    _reducedMotion = !!opts.reducedMotion;
+  }
+
   _canvas = _root.querySelector('#wish-canvas');
   if (_canvas) {
     _ctx = _canvas.getContext('2d');
@@ -403,28 +431,21 @@ export function initWishes(rootEl, opts = {}) {
     window.addEventListener('resize', _resizeHandler, { passive: true });
     window.addEventListener('orientationchange', _orientationHandler, { passive: true });
 
-    // star-catching interactions
-    _canvas.setAttribute('tabindex', '0');
-    _canvas.setAttribute('role', 'application');
-    _canvas.setAttribute('aria-label', t('canvasLabel'));
-    _canvas.addEventListener('pointerdown', handlePointerCatch, { passive: true });
-    _canvas.addEventListener('keydown', (e) => {
+    // GAP FIX 2: Store handlers for proper cleanup
+    _pointerHandler = handlePointerCatch;
+    _keyHandler = (e) => {
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
         handleKeyCatch();
       }
-    });
+    };
+    _canvas.setAttribute('tabindex', '0');
+    _canvas.setAttribute('role', 'application');
+    _canvas.setAttribute('aria-label', t('canvasLabel'));
+    _canvas.addEventListener('pointerdown', _pointerHandler, { passive: true });
+    _canvas.addEventListener('keydown', _keyHandler);
 
     if (!_reducedMotion) startAnimation();
-  }
-
-  // dynamic prefers-reduced-motion listener
-  if (typeof window.matchMedia === 'function') {
-    _rmQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    _rmHandler = (e) => setReducedMotion(e.matches);
-    _rmQuery.addEventListener?.('change', _rmHandler) ??
-      _rmQuery.addListener?.(_rmHandler);
-    _reducedMotion = _rmQuery.matches;
   }
 
   // load persisted wishes
@@ -488,6 +509,11 @@ export function destroy() {
   if (_orientationHandler) window.removeEventListener('orientationchange', _orientationHandler);
   _resizeHandler = null;
   _orientationHandler = null;
+  // GAP FIX 2: Remove canvas event listeners
+  if (_canvas && _pointerHandler) _canvas.removeEventListener('pointerdown', _pointerHandler);
+  if (_canvas && _keyHandler) _canvas.removeEventListener('keydown', _keyHandler);
+  _pointerHandler = null;
+  _keyHandler = null;
   if (_rmQuery && _rmHandler) {
     _rmQuery.removeEventListener?.('change', _rmHandler) ??
       _rmQuery.removeListener?.(_rmHandler);
