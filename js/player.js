@@ -86,21 +86,23 @@ function loadYouTubeAPI() {
 function renderPlaylist() {
   const list = $('#player-list');
   if (!list) return;
-  list.innerHTML = '';
-  TRACKS.forEach((t, i) => {
+  list.replaceChildren();
+  TRACKS.forEach((track, i) => {
     const li = document.createElement('li');
-    const b = document.createElement('button');
-    b.type = 'button';
-    b.className = 'player-track' + (i === state.current ? ' is-current' : '');
-    b.dataset.index = String(i);
-    b.setAttribute('aria-pressed', String(i === state.current && state.playing));
-    b.innerHTML =
-      `<span class="pt-note" aria-hidden="true">${t.note}</span>` +
-      `<span class="pt-body"><span class="pt-title">${t.title}</span>` +
-      `<span class="pt-sub">${t.localUrl ? 'Your device · local audio' : 'BTS · official video'}</span></span>` +
-      `<span class="pt-glyph" aria-hidden="true">${i === state.current && state.playing ? '❚❚' : '▶'}</span>`;
-    li.appendChild(b);
-    list.appendChild(li);
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'player-track' + (i === state.current ? ' is-current' : '');
+    button.dataset.index = String(i);
+    button.setAttribute('aria-pressed', String(i === state.current && state.playing));
+    const note = document.createElement('span');
+    note.className = 'pt-note'; note.setAttribute('aria-hidden', 'true'); note.textContent = track.note || '♫';
+    const body = document.createElement('span'); body.className = 'pt-body';
+    const title = document.createElement('span'); title.className = 'pt-title'; title.textContent = track.title;
+    const sub = document.createElement('span'); sub.className = 'pt-sub';
+    sub.textContent = track.localUrl ? 'Your device · local audio' : 'BTS · official video';
+    const glyph = document.createElement('span'); glyph.className = 'pt-glyph';
+    glyph.setAttribute('aria-hidden', 'true'); glyph.textContent = i === state.current && state.playing ? '❚❚' : '▶';
+    body.append(title, sub); button.append(note, body, glyph); li.appendChild(button); list.appendChild(li);
   });
 }
 
@@ -219,18 +221,19 @@ async function play(index) {
 
 function pause() {
   try {
-    if (state.player && typeof state.player.pauseVideo === 'function') state.player.pauseVideo();
+    if (TRACKS[state.current] && TRACKS[state.current].localUrl) state.localAudio && state.localAudio.pause();
+    else if (state.player && typeof state.player.pauseVideo === 'function') state.player.pauseVideo();
+    if (state.fallback && state.ambience) state.ambience.stopAmbience();
   } catch { /* ignore */ }
   state.playing = false;
   syncUI();
 }
 
 function toggle() {
-  if (state.fallback) {
+  if (state.fallback && !(TRACKS[state.current] && TRACKS[state.current].localUrl)) {
     if (state.playing) { state.ambience && state.ambience.stopAmbience(); state.playing = false; }
     else { state.ambience && state.ambience.startAmbience(); state.playing = true; }
-    syncUI();
-    return;
+    syncUI(); return;
   }
   if (state.playing) pause();
   else play(state.current);
