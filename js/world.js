@@ -1222,10 +1222,10 @@ function buildIslands() {
     emissiveIntensity: 0.35,
   });
   const topMat = new THREE.MeshStandardMaterial({
-    color: 0x4b2a72,
-    roughness: 0.9,
+    color: new THREE.Color(0x4b2a72).lerp(new THREE.Color(0x2a6b3a), 0.15),
+    roughness: 0.85,
     emissive: TOKENS.violetDeep,
-    emissiveIntensity: 0.35,
+    emissiveIntensity: 0.30,
     flatShading: true,
   });
   const trunkMat = new THREE.MeshStandardMaterial({ color: 0x301a4e, roughness: 1, flatShading: true });
@@ -1424,7 +1424,7 @@ function buildRainbowBridge() {
  *  Fireflies (shader-drifted points)
  * ------------------------------------------------------------------ */
 function buildFireflies() {
-  const MAX = 320;
+  const MAX = 480; // enhanced: more fireflies for cinematic atmosphere
   const rng = makeRng(90210);
   const pos = new Float32Array(MAX * 3);
   const aPhase = new Float32Array(MAX);
@@ -1654,6 +1654,7 @@ function updateButterflies() {
  *  Drifting clouds
  * ------------------------------------------------------------------ */
 function buildClouds() {
+  // Enhanced: additional cloud layers for atmospheric depth
   const tex = makeCloudTexture();
   for (let i = 0; i < 18; i++) {
     const mat = new THREE.SpriteMaterial({
