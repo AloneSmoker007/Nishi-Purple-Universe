@@ -200,6 +200,7 @@ async function play(index) {
   state.current = i;
   const selected = TRACKS[i];
   state.fallback = false;
+  if (state.ambience && state.playing) state.ambience.stopAmbience();
   if (state.localAudio) { state.localAudio.pause(); state.localAudio.removeAttribute('src'); state.localAudio.load(); }
   $('#music-room')?.classList.toggle('is-local', !!selected.localUrl);
   syncUI();
@@ -213,7 +214,6 @@ async function play(index) {
     } catch (err) { setStatus('Could not play this MP3. Try another audio file.'); toast('This audio file could not be played.'); }
     return;
   }
-  if (state.ambience && state.playing) state.ambience.stopAmbience();
   state.playing = false;
   try {
     const p = await ensurePlayer();
