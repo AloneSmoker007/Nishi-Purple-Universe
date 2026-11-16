@@ -27,6 +27,9 @@ const state = {
   apiLoaded: false,
   apiFailed: false,
   fallback: false,
+  ambience: null,
+  localAudio: null,
+  localUrls: new Set(),
 };
 
 const $  = (s, r = document) => r.querySelector(s);
@@ -94,7 +97,7 @@ function renderPlaylist() {
     b.innerHTML =
       `<span class="pt-note" aria-hidden="true">${t.note}</span>` +
       `<span class="pt-body"><span class="pt-title">${t.title}</span>` +
-      `<span class="pt-sub">BTS · official video</span></span>` +
+      `<span class="pt-sub">${t.localUrl ? 'Your device · local audio' : 'BTS · official video'}</span></span>` +
       `<span class="pt-glyph" aria-hidden="true">${i === state.current && state.playing ? '❚❚' : '▶'}</span>`;
     li.appendChild(b);
     list.appendChild(li);
@@ -109,15 +112,18 @@ function syncUI() {
   const glyph = $('#player-toggle-glyph');
   if (glyph) glyph.textContent = state.playing ? '❚❚' : '▶';
   const toggle = $('#player-toggle');
+  const open = $('#player-open-yt');
+  if (open) open.disabled = !t || !!t.localUrl;
   if (toggle) {
     toggle.setAttribute('aria-pressed', String(state.playing));
     toggle.setAttribute('aria-label', state.playing ? 'Pause' : 'Play');
   }
   const bar = $('#player-bar-fill');
-  if (bar && state.player && typeof state.player.getDuration === 'function') {
+  if (bar) {
     try {
-      const d = state.player.getDuration() || 0;
-      const c = state.player.getCurrentTime() || 0;
+      const local = TRACKS[state.current] && TRACKS[state.current].localUrl && state.localAudio;
+      const d = local ? (state.localAudio.duration || 0) : (state.player && state.player.getDuration ? state.player.getDuration() || 0 : 0);
+      const c = local ? (state.localAudio.currentTime || 0) : (state.player && state.player.getCurrentTime ? state.player.getCurrentTime() || 0 : 0);
       bar.style.width = d ? `${Math.min(100, (c / d) * 100)}%` : '0%';
     } catch { /* player not ready */ }
   }
@@ -157,18 +163,47 @@ async function ensurePlayer() {
   });
 }
 
-function startFallback(msg) {
+async function startFallback(msg) {
   state.fallback = true;
-  setStatus(msg || 'YouTube is unreachable — playing the local dreamy ambience instead.');
-  toast('♫ Playing the dreamy ambience instead');
-  document.dispatchEvent(new CustomEvent('nishi:audio-fallback'));
+  setStatus(msg || 'YouTube is unavailable. Ambient sound or your own MP3 is ready.');
+  try {
+    if (!state.ambience) {
+      const mod = await import('./audio.js');
+      const result = await mod.initAudio();
+      if (!result || !result.ok) throw new Error(result && result.reason || 'Ambient audio unavailable');
+      state.ambience = mod;
+    }
+    state.ambience.startAmbience();
+    state.playing = true;
+    setStatus('Dreamy purple ambience is ready · choose an MP3 for your own music');
+  } catch (err) {
+    state.playing = false;
+    setStatus('YouTube is unavailable. You can still add an MP3 from your device.');
+    console.warn('[nishi] ambient fallback unavailable:', err && err.message);
+  }
   syncUI();
 }
 
 async function play(index) {
   const i = ((index ?? state.current) + TRACKS.length) % TRACKS.length;
   state.current = i;
+  const selected = TRACKS[i];
+  state.fallback = false;
+  if (state.localAudio) { state.localAudio.pause(); state.localAudio.removeAttribute('src'); state.localAudio.load(); }
+  $('#music-room')?.classList.toggle('is-local', !!selected.localUrl);
   syncUI();
+  if (selected.localUrl) {
+    try {
+      state.localAudio.src = selected.localUrl;
+      await state.localAudio.play();
+      state.playing = true;
+      setStatus(`Playing from your device · ${selected.title}`);
+      syncUI();
+    } catch (err) { setStatus('Could not play this MP3. Try another audio file.'); toast('This audio file could not be played.'); }
+    return;
+  }
+  if (state.ambience && state.playing) state.ambience.stopAmbience();
+  state.playing = false;
   try {
     const p = await ensurePlayer();
     if (!p || typeof p.loadVideoById !== 'function') throw new Error('no-player');
@@ -192,7 +227,9 @@ function pause() {
 
 function toggle() {
   if (state.fallback) {
-    document.dispatchEvent(new CustomEvent('nishi:audio-toggle'));
+    if (state.playing) { state.ambience && state.ambience.stopAmbience(); state.playing = false; }
+    else { state.ambience && state.ambience.startAmbience(); state.playing = true; }
+    syncUI();
     return;
   }
   if (state.playing) pause();
@@ -214,6 +251,12 @@ function prevTrack() {
 export function initPlayer() {
   const room = $('#music-room');
   if (!room) return;
+  state.localAudio = new Audio();
+  state.localAudio.preload = 'none';
+  state.localAudio.addEventListener('ended', () => nextTrack(true));
+  state.localAudio.addEventListener('timeupdate', syncUI);
+  state.localAudio.addEventListener('play', () => { state.playing = true; syncUI(); });
+  state.localAudio.addEventListener('pause', () => { if (TRACKS[state.current] && TRACKS[state.current].localUrl) { state.playing = false; syncUI(); } });
 
   renderPlaylist();
   syncUI();
@@ -236,6 +279,25 @@ export function initPlayer() {
     window.open(`https://www.youtube.com/watch?v=${t.id}`, '_blank', 'noopener,noreferrer');
   });
 
+  const localInput = $('#player-local-files');
+  $('#player-add-local')?.addEventListener('click', () => localInput && localInput.click());
+  localInput?.addEventListener('change', () => {
+    const files = Array.from(localInput.files || []).filter(file => file.type.startsWith('audio/') || /\\.mp3$/i.test(file.name));
+    if (!files.length) { toast('Choose an audio file, such as an MP3.'); return; }
+    files.forEach(file => {
+      const url = URL.createObjectURL(file);
+      state.localUrls.add(url);
+      TRACKS.push({ id: null, title: file.name.replace(/\\.[^.]+$/, '') || 'My MP3', note: '♫', localUrl: url });
+    });
+    renderPlaylist();
+    setStatus(files.length + ' local track(s) added · files stay on this device');
+    toast(files.length + ' MP3 track(s) added');
+    localInput.value = '';
+  });
+  window.addEventListener('beforeunload', () => {
+    if (state.localAudio) { state.localAudio.pause(); state.localAudio.removeAttribute('src'); }
+    state.localUrls.forEach(url => URL.revokeObjectURL(url));
+  }, { once: true });
   // progress tick (cheap: one DOM write per second, only while playing)
   setInterval(() => { if (state.playing && !state.fallback) syncUI(); }, 1000);
 }
