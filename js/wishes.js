@@ -13,10 +13,15 @@ let _root = null;
 let _canvas = null;
 let _ctx = null;
 let _animId = 0;
+let _animRunning = false;
 let _stars = [];          // active shooting stars on canvas
 let _wishes = [];         // persisted wishes [{id, text, ts}]
 let _reducedMotion = false;
 let _lang = 'en';
+let _cssW = 0;           // logical CSS width of canvas
+let _cssH = 0;           // logical CSS height of canvas
+let _resizeHandler = null;
+let _orientationHandler = null;
 
 /* ---- i18n ---- */
 const STR = {
@@ -71,11 +76,10 @@ function saveWishes() {
 
 /* ---- shooting-star canvas ---- */
 function spawnShootingStar() {
-  const w = _canvas?.width || 800;
-  const h = _canvas?.height || 400;
+  if (_cssW <= 0 || _cssH <= 0) return;
   _stars.push({
-    x: Math.random() * w * 0.8,
-    y: Math.random() * h * 0.45,
+    x: Math.random() * _cssW * 0.8,
+    y: Math.random() * _cssH * 0.45,
     vx: 1.2 + Math.random() * 2.2,
     vy: 0.6 + Math.random() * 1.4,
     life: 1,
@@ -87,8 +91,9 @@ function spawnShootingStar() {
 
 function drawStars() {
   if (!_ctx || !_canvas) return;
-  const w = _canvas.width;
-  const h = _canvas.height;
+  const w = _cssW;
+  const h = _cssH;
+  if (w <= 0 || h <= 0) return;
   _ctx.clearRect(0, 0, w, h);
 
   for (let i = _stars.length - 1; i >= 0; i--) {
@@ -124,18 +129,40 @@ function drawStars() {
 }
 
 function animateLoop() {
+  if (!_animRunning) return;
   drawStars();
   _animId = requestAnimationFrame(animateLoop);
 }
 
+function startAnimation() {
+  if (_animRunning || _reducedMotion || !_canvas) return;
+  _animRunning = true;
+  _animId = requestAnimationFrame(animateLoop);
+}
+
+function stopAnimation() {
+  _animRunning = false;
+  if (_animId) {
+    cancelAnimationFrame(_animId);
+    _animId = 0;
+  }
+}
+
 function resizeCanvas() {
   if (!_canvas) return;
-  const rect = _canvas.parentElement?.getBoundingClientRect();
-  if (!rect) return;
+  const parent = _canvas.parentElement;
+  if (!parent) return;
+  const rect = parent.getBoundingClientRect();
+  if (rect.width <= 0 || rect.height <= 0) return;
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
-  _canvas.width = rect.width * dpr;
-  _canvas.height = rect.height * dpr;
-  _ctx?.scale(dpr, dpr);
+  _cssW = rect.width;
+  _cssH = rect.height;
+  // setTransform resets any previous scale — prevents cumulative DPR drift
+  _canvas.width = Math.round(rect.width * dpr);
+  _canvas.height = Math.round(rect.height * dpr);
+  _canvas.style.width = rect.width + 'px';
+  _canvas.style.height = rect.height + 'px';
+  _ctx?.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
 
 /* ---- constellation rendering ---- */
@@ -238,6 +265,8 @@ function setLanguage(lang) {
 /* ---- public API ---- */
 export function initWishes(rootEl, opts = {}) {
   if (!rootEl) return { ok: false, reason: 'no root element' };
+  // prevent double-init
+  if (_root) destroy();
   _root = rootEl;
   _lang = opts.lang === 'bn' ? 'bn' : 'en';
   _reducedMotion = !!opts.reducedMotion;
@@ -246,10 +275,11 @@ export function initWishes(rootEl, opts = {}) {
   if (_canvas) {
     _ctx = _canvas.getContext('2d');
     resizeCanvas();
-    window.addEventListener('resize', resizeCanvas, { passive: true });
-    if (!_reducedMotion) {
-      _animId = requestAnimationFrame(animateLoop);
-    }
+    _resizeHandler = () => resizeCanvas();
+    _orientationHandler = () => { setTimeout(resizeCanvas, 120); };
+    window.addEventListener('resize', _resizeHandler, { passive: true });
+    window.addEventListener('orientationchange', _orientationHandler, { passive: true });
+    if (!_reducedMotion) startAnimation();
   }
 
   // load persisted wishes
@@ -293,11 +323,13 @@ export function setLang(lang) {
 export function setReducedMotion(bool) {
   _reducedMotion = !!bool;
   if (_reducedMotion) {
-    cancelAnimationFrame(_animId);
+    stopAnimation();
     _stars = [];
-    _ctx?.clearRect(0, 0, _canvas?.width || 0, _canvas?.height || 0);
-  } else if (_canvas) {
-    _animId = requestAnimationFrame(animateLoop);
+    if (_ctx && _cssW > 0 && _cssH > 0) {
+      _ctx.clearRect(0, 0, _cssW, _cssH);
+    }
+  } else {
+    startAnimation();
   }
 }
 
@@ -306,10 +338,15 @@ export function getWishes() {
 }
 
 export function destroy() {
-  cancelAnimationFrame(_animId);
-  window.removeEventListener('resize', resizeCanvas);
+  stopAnimation();
+  if (_resizeHandler) window.removeEventListener('resize', _resizeHandler);
+  if (_orientationHandler) window.removeEventListener('orientationchange', _orientationHandler);
+  _resizeHandler = null;
+  _orientationHandler = null;
   _stars = [];
   _root = null;
   _canvas = null;
   _ctx = null;
+  _cssW = 0;
+  _cssH = 0;
 }
