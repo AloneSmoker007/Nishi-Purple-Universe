@@ -39,12 +39,23 @@ const world = {
   async boot() {
     this.canvas = $('#scene-canvas');
     if (!this.canvas) return;
+
+    // HARD GATE: the Three.js world pulls in 687 KB and keeps a permanent
+    // requestAnimationFrame loop alive. Mobile Safari has a tight GPU/memory
+    // budget and reloads or blanks the page when that runs alongside large
+    // backdrop-filter blurs. Phones therefore get the lightweight CSS/canvas
+    // layer, which is beautiful and cannot crash. The ✦ FAB can force 3D on.
+    if (!canRunWebGL()) {
+      document.body.classList.add('no-webgl');
+      return;
+    }
+
     // WebGL support probe before we even import the module
     try {
       const probe = document.createElement('canvas');
       const gl = probe.getContext('webgl2') || probe.getContext('webgl');
-      if (!gl) return; // CSS fallback layer stays visible
-    } catch { return; }
+      if (!gl) { document.body.classList.add('no-webgl'); return; } // CSS fallback layer stays visible
+    } catch { document.body.classList.add('no-webgl'); return; }
 
     try {
       const mod = await import('./world.js');
@@ -55,8 +66,13 @@ const world = {
       this.ready = true;
       // Reveal the canvas only once a real frame exists, so the visitor never
       // sees a blank/background-only canvas while the world is still building.
-      // The 2s timeout is a safety net: the canvas must never stay hidden.
-      const reveal = () => this.canvas.classList.add('is-live');
+      // NOTE: setQuality() can recreate the renderer on a fresh canvas clone
+      // (needed to change antialias), so always re-query by id — a captured
+      // reference may point at a detached node.
+      const reveal = () => {
+        const c = $('#scene-canvas');
+        if (c) c.classList.add('is-live');
+      };
       let revealed = false;
       const revealOnce = () => {
         if (revealed) return;
@@ -104,6 +120,9 @@ const world = {
   },
   resize() {
     try { this.api && this.api.resize && this.api.resize(); } catch { /* non-fatal */ }
+    // the canvas node may have been replaced by a quality change
+    const c = $('#scene-canvas');
+    if (c && this.ready) c.classList.add('is-live');
   }
 };
 
@@ -114,6 +133,47 @@ function detectQuality() {
   if (IS_TOUCH) return 'medium';
   if (mem <= 4 || cores <= 4) return 'medium';
   return 'high';
+}
+
+/**
+ * Whether the heavy Three.js world is safe to spin up.
+ * Conservative on purpose: a lighter, always-correct experience beats a
+ * spectacular one that reloads the page on a phone.
+ */
+function canRunWebGL() {
+  // Explicit choice from the ✦ FAB always wins.
+  try {
+    const pref = localStorage.getItem('nishi-webgl');
+    if (pref === 'on') return true;
+    if (pref === 'off') return false;
+  } catch { /* private mode */ }
+
+  // Phones and tablets: skip the 3D world entirely.
+  if (isPhoneLike()) return false;
+  // Only skip 3D on genuinely ancient hardware. Phones are already handled
+  // by isPhoneLike(); this is a last-resort safety net, not a spec sheet.
+  const mem = navigator.deviceMemory;
+  const cores = navigator.hardwareConcurrency;
+  if (typeof mem === 'number' && mem < 2) return false;
+  if (typeof cores === 'number' && cores < 2) return false;
+  // Save-Data visitors asked for less, not more.
+  const conn = navigator.connection;
+  if (conn && conn.saveData) return false;
+  return true;
+}
+
+/**
+ * A phone is a small viewport, or a coarse pointer with real touch and a
+ * modest width. `(hover: none)` alone is unreliable — headless browsers and
+ * some desktop setups report it even with a mouse — so it is not used here.
+ * A touchscreen laptop at 1440px is *not* a phone and should get the 3D world.
+ */
+function isPhoneLike() {
+  const coarse = window.matchMedia('(pointer: coarse)').matches;
+  const touch = (navigator.maxTouchPoints || 0) > 0;
+  if (window.innerWidth < 900) return true;
+  if (coarse && touch && window.innerWidth < 1200) return true;
+  return false;
 }
 
 /* ---------------------------------------------------------------
@@ -689,6 +749,41 @@ function restartStory() {
   toast('↻ The story has been reset. / গল্প আবার শুরু হয়েছে।');
 }
 
+/* ---------------------------------------------------------------
+   7-Star Secret Surprise (gift box)
+--------------------------------------------------------------- */
+function initGift() {
+  const btn = $('#gift-btn');
+  const reveal = $('#gift-reveal');
+  const burst = $('#gift-burst');
+  const hint = $('#gift-hint');
+  if (!btn || !reveal) return;
+
+  let opened = false;
+  btn.addEventListener('click', () => {
+    if (opened) return;
+    opened = true;
+    btn.classList.add('is-open');
+    btn.setAttribute('aria-expanded', 'true');
+    reveal.classList.add('is-open');
+    if (hint) hint.textContent = '💜 Your secret letter is open';
+
+    if (burst && !REDUCED) {
+      burst.classList.remove('is-go');
+      void burst.offsetWidth; // reflow so the animation restarts on repeat clicks
+      burst.classList.add('is-go');
+    }
+
+    sound.chime('reveal');
+    announce('The secret letter is now open.');
+    toast('💜 7-star surprise unlocked!');
+
+    setTimeout(() => {
+      reveal.scrollIntoView({ behavior: REDUCED ? 'auto' : 'smooth', block: 'center' });
+    }, REDUCED ? 0 : 620);
+  });
+}
+
 function initStory() {
   const stage = $('#story-stage');
   if (!stage) return;
@@ -915,7 +1010,11 @@ function boot() {
   initReveal();
   initRealms();
   initGame();
+  initGift();
   initStory();
+  import('./player.js').then(m => {
+    try { m.initPlayer(); } catch (e) { console.warn('[nishi] player unavailable:', e && e.message); }
+  }).catch(() => { /* player is optional */ });
   initLang();
   initFabs();
   initPointer();
