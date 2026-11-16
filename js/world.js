@@ -142,6 +142,10 @@ const state = {
   butterflies: [],
   clouds: [],
   waterfalls: [],
+  composer: null,
+  bloomStrength: 0.45,
+  vignetteAmount: 0.42,
+  chromaticAmount: 0.0012,
   shooters: [],
   shooterTimer: 3.5,
   windowMat: null,
@@ -1908,8 +1912,150 @@ function tick() {
     updateClouds();
   }
 
-  state.renderer.render(state.scene, state.camera);
+  renderWithPostProcessing();
   signalFirstFrame();
+}
+
+/* ------------------------------------------------------------------ *
+ *  Post-processing: Bloom + Vignette + Chromatic Aberration
+ *  Pure Three.js core — no external modules needed.
+ * ------------------------------------------------------------------ */
+function setupPostProcessing() {
+  if (!state.renderer || !state.scene || !state.camera) return;
+  if (state.composer) { state.composer.renderTarget1?.dispose(); state.composer.renderTarget2?.dispose(); state.composer = null; }
+
+  const w = state.renderer.domElement.width;
+  const h = state.renderer.domElement.height;
+
+  // Offscreen render target (scene renders here first)
+  const rt = new THREE.WebGLRenderTarget(w, h, {
+    minFilter: THREE.LinearFilter,
+    magFilter: THREE.LinearFilter,
+    format: THREE.RGBAFormat,
+    type: state.quality === 'high' ? THREE.HalfFloatType : THREE.UnsignedByteType,
+  });
+
+  // Fullscreen quad with post-processing shader
+  const postScene = new THREE.Scene();
+  const postCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+  const postGeo = new THREE.PlaneGeometry(2, 2);
+
+  const postMat = new THREE.ShaderMaterial({
+    uniforms: {
+      tDiffuse: { value: rt.texture },
+      uResolution: { value: new THREE.Vector2(w, h) },
+      uBloomStrength: { value: state.bloomStrength },
+      uVignetteAmount: { value: state.vignetteAmount },
+      uChromaticAmount: { value: state.chromaticAmount },
+      uTime: { value: 0 },
+    },
+    vertexShader: /* glsl */ `
+      varying vec2 vUv;
+      void main() {
+        vUv = uv;
+        gl_Position = vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: /* glsl */ `
+      uniform sampler2D tDiffuse;
+      uniform vec2 uResolution;
+      uniform float uBloomStrength;
+      uniform float uVignetteAmount;
+      uniform float uChromaticAmount;
+      uniform float uTime;
+      varying vec2 vUv;
+
+      // Simple box blur for bloom
+      vec3 sampleBlur(vec2 uv, float radius) {
+        vec3 sum = vec3(0.0);
+        float total = 0.0;
+        for (float x = -3.0; x <= 3.0; x += 1.0) {
+          for (float y = -3.0; y <= 3.0; y += 1.0) {
+            vec2 offset = vec2(x, y) * radius / uResolution;
+            sum += texture2D(tDiffuse, uv + offset).rgb;
+            total += 1.0;
+          }
+        }
+        return sum / total;
+      }
+
+      void main() {
+        vec2 uv = vUv;
+
+        // Chromatic aberration (subtle RGB channel offset)
+        float ca = uChromaticAmount * length(uv - 0.5);
+        vec3 color;
+        color.r = texture2D(tDiffuse, uv + vec2(ca, 0.0)).r;
+        color.g = texture2D(tDiffuse, uv).g;
+        color.b = texture2D(tDiffuse, uv - vec2(ca, 0.0)).b;
+
+        // Bloom: blur bright areas and add them back
+        vec3 blur1 = sampleBlur(uv, 4.0);
+        vec3 blur2 = sampleBlur(uv, 8.0);
+        vec3 blur3 = sampleBlur(uv, 16.0);
+        vec3 bloom = blur1 * 0.5 + blur2 * 0.3 + blur3 * 0.2;
+        // Extract bright parts (highlights)
+        float brightness = dot(bloom, vec3(0.2126, 0.7152, 0.0722));
+        vec3 bloomHighlights = bloom * smoothstep(0.45, 1.2, brightness);
+        color += bloomHighlights * uBloomStrength;
+
+        // Vignette
+        float dist = length(uv - 0.5) * 1.42;
+        float vignette = 1.0 - smoothstep(0.55, 1.25, dist) * uVignetteAmount;
+        color *= vignette;
+
+        // Subtle warm-cool tone shift for cinematic feel
+        color.r *= 1.02;
+        color.b *= 0.98;
+
+        gl_FragColor = vec4(color, 1.0);
+      }
+    `,
+    depthTest: false,
+    depthWrite: false,
+  });
+
+  const postMesh = new THREE.Mesh(postGeo, postMat);
+  postScene.add(postMesh);
+
+  state.composer = {
+    renderTarget: rt,
+    scene: postScene,
+    camera: postCamera,
+    material: postMat,
+    mesh: postMesh,
+    geo: postGeo,
+  };
+  state.disposables.push(rt, postMat, postGeo);
+}
+
+function renderWithPostProcessing() {
+  if (!state.composer || !state.renderer) {
+    // fallback: direct render
+    state.renderer?.render(state.scene, state.camera);
+    return;
+  }
+  const c = state.composer;
+
+  // Update time uniform
+  c.material.uniforms.uTime.value = performance.now() * 0.001;
+
+  // 1. Render scene to offscreen target
+  state.renderer.setRenderTarget(c.renderTarget);
+  state.renderer.clear();
+  state.renderer.render(state.scene, state.camera);
+
+  // 2. Render post-processing quad to screen
+  state.renderer.setRenderTarget(null);
+  state.renderer.render(c.scene, c.camera);
+}
+
+function resizePostProcessing() {
+  if (!state.composer || !state.renderer) return;
+  const w = state.renderer.domElement.width;
+  const h = state.renderer.domElement.height;
+  state.composer.renderTarget.setSize(w, h);
+  state.composer.material.uniforms.uResolution.value.set(w, h);
 }
 
 /* ------------------------------------------------------------------ *
@@ -1982,8 +2128,10 @@ function swapAntialias(wantAA) {
     }
     state.canvas = fresh;
     state.renderer = createRenderer(fresh, wantAA);
+  setupPostProcessing();
     attachContextHandlers(fresh);
     state.renderer.setPixelRatio(dprForQuality());
+    resizePostProcessing();
     return true;
   } catch (e) {
     return false;
@@ -2076,6 +2224,7 @@ export function initWorld(canvas, opts = {}) {
     state.canvas = canvas;
 
     state.renderer = createRenderer(canvas, state.quality === 'high');
+    setupPostProcessing();
     state.scene = new THREE.Scene();
     state.scene.background = new THREE.Color(TOKENS.inkAbyss);
     state.scene.fog = new THREE.FogExp2(TOKENS.inkDeep, FOG_DENSITY);
