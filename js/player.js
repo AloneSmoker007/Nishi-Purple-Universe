@@ -294,12 +294,12 @@ export function initPlayer() {
   const localInput = $('#player-local-files');
   $('#player-add-local')?.addEventListener('click', () => localInput && localInput.click());
   localInput?.addEventListener('change', () => {
-    const files = Array.from(localInput.files || []).filter(file => file.type.startsWith('audio/') || /\\.mp3$/i.test(file.name));
+    const files = Array.from(localInput.files || []).filter(file => file.type.startsWith('audio/') || /\.mp3$/i.test(file.name));
     if (!files.length) { toast('Choose an audio file, such as an MP3.'); return; }
     files.forEach(file => {
       const url = URL.createObjectURL(file);
       state.localUrls.add(url);
-      TRACKS.push({ id: null, title: file.name.replace(/\\.[^.]+$/, '') || 'My MP3', note: '♫', localUrl: url });
+      TRACKS.push({ id: null, title: file.name.replace(/\.[^.]+$/, '') || 'My MP3', note: '♫', localUrl: url });
     });
     renderPlaylist();
     setStatus(files.length + ' local track(s) added · files stay on this device');
