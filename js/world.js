@@ -619,199 +619,379 @@ function buildCastle() {
   const g = new THREE.Group();
   g.position.set(0, 2, -260);
 
-  // palette-derived stone: mist lifted toward purple-core for moonlit contrast
-  const stoneColor = new THREE.Color(TOKENS.mist).lerp(new THREE.Color(TOKENS.purpleCore), 0.24);
+  // === MATERIALS (enhanced for cinematic quality) ===
+  const stoneColor = new THREE.Color(TOKENS.mist).lerp(new THREE.Color(TOKENS.purpleCore), 0.20);
   const stoneMat = new THREE.MeshStandardMaterial({
-    color: stoneColor,
-    roughness: 0.88,
-    metalness: 0.08,
-    emissive: TOKENS.violetDeep,
-    emissiveIntensity: 0.22,
+    color: stoneColor, roughness: 0.82, metalness: 0.10,
+    emissive: TOKENS.violetDeep, emissiveIntensity: 0.18,
+  });
+  const stoneLightMat = new THREE.MeshStandardMaterial({
+    color: new THREE.Color(0x8a7a9e).lerp(new THREE.Color(TOKENS.purpleGlow), 0.15),
+    roughness: 0.78, metalness: 0.12,
+    emissive: TOKENS.violetDeep, emissiveIntensity: 0.12,
   });
   const roofMat = new THREE.MeshStandardMaterial({
-    color: TOKENS.purpleCore,
-    roughness: 0.5,
-    metalness: 0.3,
-    emissive: TOKENS.purpleCore,
-    emissiveIntensity: 0.5,
+    color: new THREE.Color(TOKENS.purpleCore).lerp(new THREE.Color(0x2a1050), 0.35),
+    roughness: 0.45, metalness: 0.35,
+    emissive: TOKENS.purpleCore, emissiveIntensity: 0.40,
+  });
+  const roofDarkMat = new THREE.MeshStandardMaterial({
+    color: new THREE.Color(0x3a1870), roughness: 0.50, metalness: 0.28,
+    emissive: TOKENS.violetDeep, emissiveIntensity: 0.30,
   });
   const trimMat = new THREE.MeshStandardMaterial({
-    color: TOKENS.gold,
-    roughness: 0.35,
-    metalness: 0.75,
-    emissive: TOKENS.gold,
-    emissiveIntensity: 0.75,
+    color: TOKENS.gold, roughness: 0.30, metalness: 0.80,
+    emissive: TOKENS.gold, emissiveIntensity: 0.70,
+  });
+  const goldDimMat = new THREE.MeshStandardMaterial({
+    color: new THREE.Color(TOKENS.gold).lerp(new THREE.Color(TOKENS.mist), 0.35),
+    roughness: 0.45, metalness: 0.65,
+    emissive: TOKENS.gold, emissiveIntensity: 0.35,
   });
   const rockMat = new THREE.MeshStandardMaterial({
-    color: 0x241238,
-    roughness: 1,
-    metalness: 0,
-    emissive: TOKENS.inkDeep,
-    emissiveIntensity: 0.4,
-    flatShading: true,
+    color: 0x1e0f35, roughness: 1, metalness: 0,
+    emissive: TOKENS.inkDeep, emissiveIntensity: 0.35, flatShading: true,
+  });
+  const bridgeStoneMat = new THREE.MeshStandardMaterial({
+    color: new THREE.Color(TOKENS.mist).lerp(new THREE.Color(0x9a8ab0), 0.30),
+    roughness: 0.85, metalness: 0.08,
+    emissive: TOKENS.violetDeep, emissiveIntensity: 0.15,
   });
   const winTex = makeWindowTexture();
   const windowMat = new THREE.MeshBasicMaterial({
-    map: winTex,
-    color: TOKENS.gold,
-    transparent: true,
-    opacity: 0.98,
-    fog: true,
-    side: THREE.DoubleSide,
+    map: winTex, color: TOKENS.gold, transparent: true,
+    opacity: 0.98, fog: true, side: THREE.DoubleSide,
+  });
+  const warmGlowMat = new THREE.MeshBasicMaterial({
+    color: 0xffcc66, transparent: true, opacity: 0.7,
+    blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide,
+    fog: false,
   });
   state.windowMat = windowMat;
-  state.disposables.push(stoneMat, roofMat, trimMat, rockMat, windowMat);
+  state.disposables.push(stoneMat, stoneLightMat, roofMat, roofDarkMat, trimMat, goldDimMat, rockMat, bridgeStoneMat, windowMat, warmGlowMat);
 
-  const shadowify = (m) => {
-    m.castShadow = true;
-    m.receiveShadow = true;
-    return m;
-  };
+  const shadowify = (m) => { m.castShadow = true; m.receiveShadow = true; return m; };
 
-  // rocky base — jittered cylinders read as natural stone
-  const rock = new THREE.Mesh(new THREE.CylinderGeometry(48, 74, 30, 12, 3), rockMat);
-  rock.position.y = -8;
-  jitterGeometry(rock.geometry, 5.5, 44);
+  // === ROCKY FLOATING BASE ===
+  const rock = new THREE.Mesh(new THREE.CylinderGeometry(50, 80, 34, 14, 4), rockMat);
+  rock.position.y = -10;
+  jitterGeometry(rock.geometry, 6.5, 44);
   shadowify(rock);
   g.add(rock);
+  // Underside stalactite-like rock formations
+  for (let i = 0; i < 7; i++) {
+    const a = (i / 7) * Math.PI * 2 + 0.3;
+    const r = 20 + Math.sin(a * 3.7) * 14;
+    const h = 18 + Math.sin(a * 2.3) * 12;
+    const stal = new THREE.Mesh(new THREE.ConeGeometry(4 + Math.sin(a * 5) * 2.5, h, 6), rockMat);
+    stal.position.set(Math.cos(a) * r, -22 - h / 2 + Math.sin(a * 4) * 5, Math.sin(a) * r);
+    stal.rotation.x = Math.PI;
+    jitterGeometry(stal.geometry, 1.8, 44 + i);
+    g.add(stal);
+  }
 
-  const terrace = shadowify(new THREE.Mesh(new THREE.CylinderGeometry(36, 44, 12, 12), stoneMat));
-  terrace.position.y = 9;
+  // === GRAND TERRACE (multi-tier) ===
+  const terrace = shadowify(new THREE.Mesh(new THREE.CylinderGeometry(38, 48, 14, 14), stoneLightMat));
+  terrace.position.y = 10;
   g.add(terrace);
+  const terrace2 = shadowify(new THREE.Mesh(new THREE.CylinderGeometry(30, 38, 10, 14), stoneMat));
+  terrace2.position.y = 20;
+  g.add(terrace2);
+  // Terrace trim ring
+  const terraceRing = new THREE.Mesh(new THREE.CylinderGeometry(38.5, 38.5, 1.5, 14), goldDimMat);
+  terraceRing.position.y = 17.5;
+  g.add(terraceRing);
 
-  // ring walls
-  for (let i = 0; i < 8; i++) {
-    const a = (i / 8) * Math.PI * 2 + Math.PI / 8;
-    const wall = shadowify(new THREE.Mesh(new THREE.BoxGeometry(30, 17, 4.5), stoneMat));
-    wall.position.set(Math.cos(a) * 31, 22, Math.sin(a) * 31);
+  // === ENHANCED RING WALLS with buttresses ===
+  for (let i = 0; i < 10; i++) {
+    const a = (i / 10) * Math.PI * 2 + Math.PI / 10;
+    const r = 33;
+    const wall = shadowify(new THREE.Mesh(new THREE.BoxGeometry(22, 20, 5), stoneMat));
+    wall.position.set(Math.cos(a) * r, 28, Math.sin(a) * r);
     wall.rotation.y = -a + Math.PI / 2;
     g.add(wall);
-    const parapet = shadowify(new THREE.Mesh(new THREE.BoxGeometry(31, 2.6, 6.4), stoneMat));
-    parapet.position.set(Math.cos(a) * 31, 31.5, Math.sin(a) * 31);
+    // Parapet
+    const parapet = shadowify(new THREE.Mesh(new THREE.BoxGeometry(23, 3, 7), stoneMat));
+    parapet.position.set(Math.cos(a) * r, 39, Math.sin(a) * r);
     parapet.rotation.y = -a + Math.PI / 2;
     g.add(parapet);
-    // crenellations
-    for (let c = 0; c < 5; c++) {
-      const merlon = new THREE.Mesh(new THREE.BoxGeometry(3.4, 3.2, 2.2), stoneMat);
-      const t = (c / 4 - 0.5) * 26;
+    // Crenellations
+    for (let c = 0; c < 6; c++) {
+      const merlon = new THREE.Mesh(new THREE.BoxGeometry(2.6, 3.5, 2.2), stoneLightMat);
+      const t = (c / 5 - 0.5) * 19;
       merlon.position.set(
-        Math.cos(a) * 31 + Math.cos(-a + Math.PI / 2) * t + Math.cos(a) * 3.4,
-        34.2,
-        Math.sin(a) * 31 + Math.sin(-a + Math.PI / 2) * t + Math.sin(a) * 3.4,
+        Math.cos(a) * r + Math.cos(-a + Math.PI / 2) * t + Math.cos(a) * 3.8,
+        42.2, Math.sin(a) * r + Math.sin(-a + Math.PI / 2) * t + Math.sin(a) * 3.8
       );
       merlon.rotation.y = -a + Math.PI / 2;
       g.add(merlon);
     }
+    // Buttress
+    if (i % 2 === 0) {
+      const butt = shadowify(new THREE.Mesh(new THREE.BoxGeometry(5, 24, 7), stoneMat));
+      butt.position.set(Math.cos(a) * (r + 3), 24, Math.sin(a) * (r + 3));
+      butt.rotation.y = -a;
+      g.add(butt);
+      const buttCap = new THREE.Mesh(new THREE.BoxGeometry(6, 2, 8), stoneLightMat);
+      buttCap.position.set(Math.cos(a) * (r + 3), 37, Math.sin(a) * (r + 3));
+      buttCap.rotation.y = -a;
+      g.add(buttCap);
+    }
+    // Arrow slit windows in walls
+    if (i % 3 === 0) {
+      for (let s = 0; s < 2; s++) {
+        const slit = new THREE.Mesh(new THREE.PlaneGeometry(0.8, 4), warmGlowMat);
+        slit.position.set(
+          Math.cos(a) * (r + 2.6) + Math.cos(-a + Math.PI / 2) * (s * 8 - 4),
+          30 + s * 5, Math.sin(a) * (r + 2.6) + Math.sin(-a + Math.PI / 2) * (s * 8 - 4)
+        );
+        slit.lookAt(Math.cos(a) * (r + 30), slit.position.y, Math.sin(a) * (r + 30));
+        g.add(slit);
+      }
+    }
   }
 
-  // central keep
-  const keep = shadowify(new THREE.Mesh(new THREE.CylinderGeometry(11.5, 13.5, 78, 12), stoneMat));
-  keep.position.y = 58;
-  g.add(keep);
-  const keepRoof = shadowify(new THREE.Mesh(new THREE.ConeGeometry(13.5, 26, 12), roofMat));
-  keepRoof.position.y = 110;
+  // === CENTRAL KEEP (enhanced — multi-tier with balconies) ===
+  // Base tier
+  const keepBase = shadowify(new THREE.Mesh(new THREE.CylinderGeometry(13, 15.5, 55, 12), stoneMat));
+  keepBase.position.y = 52;
+  g.add(keepBase);
+  // Mid tier (slightly narrower)
+  const keepMid = shadowify(new THREE.Mesh(new THREE.CylinderGeometry(10.5, 12, 32, 12), stoneLightMat));
+  keepMid.position.y = 95;
+  g.add(keepMid);
+  // Balcony ring
+  const balcony = new THREE.Mesh(new THREE.CylinderGeometry(13, 13, 2.5, 12), goldDimMat);
+  balcony.position.y = 81;
+  g.add(balcony);
+  const balconyRail = new THREE.Mesh(new THREE.TorusGeometry(12.5, 0.8, 6, 24), trimMat);
+  balconyRail.position.y = 83.5;
+  balconyRail.rotation.x = Math.PI / 2;
+  g.add(balconyRail);
+  // Upper tier
+  const keepUpper = shadowify(new THREE.Mesh(new THREE.CylinderGeometry(8, 10, 22, 12), stoneMat));
+  keepUpper.position.y = 122;
+  g.add(keepUpper);
+  // Crown ring
+  const crownRing = new THREE.Mesh(new THREE.CylinderGeometry(9, 9, 2, 12), goldDimMat);
+  crownRing.position.y = 134;
+  g.add(crownRing);
+  // Steep conical roof (multi-tier)
+  const keepRoof = shadowify(new THREE.Mesh(new THREE.ConeGeometry(11, 32, 12), roofMat));
+  keepRoof.position.y = 151;
   g.add(keepRoof);
-  const keepSpire = shadowify(new THREE.Mesh(new THREE.CylinderGeometry(0.7, 1.1, 14, 6), trimMat));
-  keepSpire.position.y = 130;
+  const keepRoof2 = shadowify(new THREE.Mesh(new THREE.ConeGeometry(6, 18, 8), roofDarkMat));
+  keepRoof2.position.y = 168;
+  g.add(keepRoof2);
+  // Gold finial
+  const keepSpire = shadowify(new THREE.Mesh(new THREE.CylinderGeometry(0.5, 1.2, 16, 6), trimMat));
+  keepSpire.position.y = 182;
   g.add(keepSpire);
-  const keepOrb = new THREE.Mesh(new THREE.SphereGeometry(2.6, 12, 10), trimMat);
-  keepOrb.position.y = 138;
+  const keepOrb = new THREE.Mesh(new THREE.SphereGeometry(3, 14, 12), trimMat);
+  keepOrb.position.y = 191;
   g.add(keepOrb);
-  addWindows(g, windowMat, 11.5, 58, 78, [26, 40, 54, 68], 6, 0.42);
+  // Crown spikes around top
+  for (let i = 0; i < 8; i++) {
+    const a = (i / 8) * Math.PI * 2;
+    const spike = new THREE.Mesh(new THREE.ConeGeometry(0.6, 8, 4), goldDimMat);
+    spike.position.set(Math.cos(a) * 9, 139, Math.sin(a) * 9);
+    g.add(spike);
+  }
+  // Keep windows (multiple rows)
+  addWindows(g, windowMat, 13, 52, 55, [12, 22, 32, 42, 50], 8, 0.42);
+  addWindows(g, windowMat, 10.5, 95, 32, [8, 18, 26], 7, 0.20);
+  addWindows(g, windowMat, 8, 122, 22, [6, 15], 6, 0.60);
 
-  // six surrounding towers -> 7 spires total (OT7 silhouette)
+  // === TOWERS (enhanced — varied shapes, detailed roofs) ===
   const towers = [
-    { a: 0.25, r: 27, h: 52, rad: 6.4 },
-    { a: 1.32, r: 25, h: 66, rad: 5.8 },
-    { a: 2.41, r: 28, h: 44, rad: 6.8 },
-    { a: 3.44, r: 24, h: 60, rad: 5.6 },
-    { a: 4.52, r: 29, h: 38, rad: 7 },
-    { a: 5.58, r: 26, h: 56, rad: 6.1 },
+    { a: 0.25, r: 30, h: 62, rad: 7.2, type: 'round' },
+    { a: 1.32, r: 28, h: 78, rad: 6.5, type: 'round' },
+    { a: 2.41, r: 31, h: 52, rad: 7.8, type: 'square' },
+    { a: 3.44, r: 27, h: 72, rad: 6.2, type: 'round' },
+    { a: 4.52, r: 32, h: 46, rad: 8.0, type: 'octagonal' },
+    { a: 5.58, r: 29, h: 65, rad: 6.8, type: 'round' },
+    // Additional smaller turrets
+    { a: 0.78, r: 22, h: 38, rad: 4.5, type: 'round' },
+    { a: 2.95, r: 21, h: 35, rad: 4.2, type: 'round' },
+    { a: 5.05, r: 23, h: 40, rad: 4.8, type: 'square' },
   ];
+
   for (const t of towers) {
     const x = Math.cos(t.a) * t.r;
     const z = Math.sin(t.a) * t.r;
-    const body = shadowify(new THREE.Mesh(new THREE.CylinderGeometry(t.rad, t.rad * 1.22, t.h, 10), stoneMat));
-    body.position.set(x, 15 + t.h / 2, z);
+    const segs = t.type === 'square' ? 4 : t.type === 'octagonal' ? 8 : 10;
+    const rotY = t.type === 'square' ? Math.PI / 4 : t.a;
+
+    // Tower body
+    const body = shadowify(new THREE.Mesh(new THREE.CylinderGeometry(t.rad, t.rad * 1.18, t.h, segs), stoneMat));
+    body.position.set(x, 25 + t.h / 2, z);
+    body.rotation.y = rotY;
     g.add(body);
-    const roof = shadowify(new THREE.Mesh(new THREE.ConeGeometry(t.rad * 1.32, t.rad * 3.2, 10), roofMat));
-    roof.position.set(x, 15 + t.h + t.rad * 1.5, z);
+
+    // Tower mid ring (decorative)
+    const midRing = new THREE.Mesh(new THREE.CylinderGeometry(t.rad * 1.12, t.rad * 1.12, 1.8, segs), goldDimMat);
+    midRing.position.set(x, 25 + t.h * 0.55, z);
+    midRing.rotation.y = rotY;
+    g.add(midRing);
+
+    // Steep conical roof
+    const roof = shadowify(new THREE.Mesh(new THREE.ConeGeometry(t.rad * 1.35, t.rad * 4.2, segs), roofMat));
+    roof.position.set(x, 25 + t.h + t.rad * 2, z);
+    roof.rotation.y = rotY;
     g.add(roof);
-    const tip = new THREE.Mesh(new THREE.SphereGeometry(t.rad * 0.28, 8, 8), trimMat);
-    tip.position.set(x, 15 + t.h + t.rad * 3.1, z);
+
+    // Roof finial
+    const tip = new THREE.Mesh(new THREE.SphereGeometry(t.rad * 0.3, 8, 8), trimMat);
+    tip.position.set(x, 25 + t.h + t.rad * 4, z);
     g.add(tip);
-    const ring = new THREE.Mesh(new THREE.CylinderGeometry(t.rad * 1.24, t.rad * 1.24, 1.6, 10), trimMat);
-    ring.position.set(x, 15 + t.h - 1, z);
+    const tipSpike = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.5, t.rad * 1.5, 5), goldDimMat);
+    tipSpike.position.set(x, 25 + t.h + t.rad * 4 + t.rad * 0.8, z);
+    g.add(tipSpike);
+
+    // Tower top ring
+    const ring = new THREE.Mesh(new THREE.CylinderGeometry(t.rad * 1.18, t.rad * 1.18, 1.8, segs), trimMat);
+    ring.position.set(x, 25 + t.h - 1, z);
+    ring.rotation.y = rotY;
     g.add(ring);
-    addWindows(g, windowMat, t.rad, 15 + t.h / 2, t.h * 0.72, [t.h * 0.18, t.h * 0.5], 4, t.a);
+
+    // Balcony on taller towers
+    if (t.h > 55) {
+      const balc = new THREE.Mesh(new THREE.CylinderGeometry(t.rad * 1.4, t.rad * 1.4, 1.5, segs), goldDimMat);
+      balc.position.set(x, 25 + t.h * 0.72, z);
+      balc.rotation.y = rotY;
+      g.add(balc);
+    }
+
+    // Windows
+    addWindows(g, windowMat, t.rad, 25 + t.h / 2, t.h * 0.68, [t.h * 0.12, t.h * 0.35, t.h * 0.58], segs > 6 ? 6 : segs, t.a);
   }
 
-  // gatehouse facing the bridge (+z side, toward the camera)
-  const gate = shadowify(new THREE.Mesh(new THREE.BoxGeometry(20, 30, 12), stoneMat));
-  gate.position.set(0, 26, 38);
+  // === GRAND STONE ARCH BRIDGE (extending toward camera) ===
+  const bridgeGroup = new THREE.Group();
+  // Bridge deck
+  const deck = shadowify(new THREE.Mesh(new THREE.BoxGeometry(14, 3, 80), bridgeStoneMat));
+  deck.position.set(0, 22, 80);
+  bridgeGroup.add(deck);
+  // Bridge arches (3 supporting arches)
+  for (let i = 0; i < 3; i++) {
+    const az = 50 + i * 26;
+    const archPillar1 = shadowify(new THREE.Mesh(new THREE.BoxGeometry(5, 25, 6), bridgeStoneMat));
+    archPillar1.position.set(-7, 10, az);
+    bridgeGroup.add(archPillar1);
+    const archPillar2 = shadowify(new THREE.Mesh(new THREE.BoxGeometry(5, 25, 6), bridgeStoneMat));
+    archPillar2.position.set(7, 10, az);
+    bridgeGroup.add(archPillar2);
+    // Arch top (curved beam)
+    const archBeam = shadowify(new THREE.Mesh(new THREE.BoxGeometry(18, 4, 5), bridgeStoneMat));
+    archBeam.position.set(0, 22, az);
+    bridgeGroup.add(archBeam);
+  }
+  // Bridge railings
+  for (const side of [-1, 1]) {
+    const rail = new THREE.Mesh(new THREE.BoxGeometry(1.2, 4, 80), bridgeStoneMat);
+    rail.position.set(side * 7.2, 25.5, 80);
+    bridgeGroup.add(rail);
+    // Railing posts
+    for (let i = 0; i < 11; i++) {
+      const post = new THREE.Mesh(new THREE.BoxGeometry(1.5, 5, 1.5), goldDimMat);
+      post.position.set(side * 7.2, 27, 42 + i * 7.5);
+      bridgeGroup.add(post);
+      // Lantern on every other post
+      if (i % 2 === 0) {
+        const lantern = new THREE.Mesh(new THREE.SphereGeometry(1.2, 8, 8), warmGlowMat);
+        lantern.position.set(side * 7.2, 30.5, 42 + i * 7.5);
+        bridgeGroup.add(lantern);
+        const lanternPole = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 3, 4), goldDimMat);
+        lanternPole.position.set(side * 7.2, 28.5, 42 + i * 7.5);
+        bridgeGroup.add(lanternPole);
+      }
+    }
+  }
+  // Bridge entrance arch (gatehouse end)
+  const bridgeArch = shadowify(new THREE.Mesh(new THREE.BoxGeometry(18, 22, 8), stoneMat));
+  bridgeArch.position.set(0, 32, 42);
+  bridgeGroup.add(bridgeArch);
+  const bridgeArchRoof = shadowify(new THREE.Mesh(new THREE.ConeGeometry(12, 10, 4), roofMat));
+  bridgeArchRoof.position.set(0, 48, 42);
+  bridgeArchRoof.rotation.y = Math.PI / 4;
+  bridgeGroup.add(bridgeArchRoof);
+  // Arch opening
+  const bridgeOpening = new THREE.Mesh(new THREE.PlaneGeometry(10, 16), warmGlowMat);
+  bridgeOpening.position.set(0, 30, 46.2);
+  bridgeGroup.add(bridgeOpening);
+  g.add(bridgeGroup);
+
+  // === GATEHOUSE (enhanced) ===
+  const gate = shadowify(new THREE.Mesh(new THREE.BoxGeometry(24, 36, 14), stoneMat));
+  gate.position.set(0, 38, 38);
   g.add(gate);
-  const gateRoof = shadowify(new THREE.Mesh(new THREE.ConeGeometry(14, 12, 4), roofMat));
-  gateRoof.position.set(0, 47, 38);
+  const gateRoof = shadowify(new THREE.Mesh(new THREE.ConeGeometry(16, 16, 4), roofMat));
+  gateRoof.position.set(0, 64, 38);
   gateRoof.rotation.y = Math.PI / 4;
   g.add(gateRoof);
-  const arch = new THREE.Mesh(new THREE.BoxGeometry(9, 15, 2), new THREE.MeshBasicMaterial({ color: TOKENS.inkAbyss }));
-  arch.position.set(0, 18.5, 44.2);
+  const gateFinial = new THREE.Mesh(new THREE.SphereGeometry(2, 8, 8), trimMat);
+  gateFinial.position.set(0, 73, 38);
+  g.add(gateFinial);
+  // Gate arch (proper arch shape using half-torus)
+  const archShape = new THREE.Mesh(new THREE.TorusGeometry(5, 1.5, 8, 16, Math.PI), stoneLightMat);
+  archShape.position.set(0, 26, 45.2);
+  archShape.rotation.x = 0;
+  g.add(archShape);
+  // Gate opening
+  const arch = new THREE.Mesh(new THREE.BoxGeometry(9, 16, 2), new THREE.MeshBasicMaterial({ color: TOKENS.inkAbyss }));
+  arch.position.set(0, 24, 45);
   g.add(arch);
-  const gateGlow = new THREE.Mesh(new THREE.PlaneGeometry(8, 13), new THREE.MeshBasicMaterial({
-    color: TOKENS.purpleGlow,
-    transparent: true,
-    opacity: 0.5,
-    blending: THREE.AdditiveBlending,
-    depthWrite: false,
-    side: THREE.DoubleSide,
+  const gateGlow = new THREE.Mesh(new THREE.PlaneGeometry(8, 14), new THREE.MeshBasicMaterial({
+    color: TOKENS.purpleGlow, transparent: true, opacity: 0.55,
+    blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide,
   }));
-  gateGlow.position.set(0, 18, 45.4);
+  gateGlow.position.set(0, 24, 46.2);
   g.add(gateGlow);
   state.disposables.push(arch.geometry, arch.material, gateGlow.geometry, gateGlow.material);
 
-  // pennant flags on the keep + two towers (gentle sway = frozen under reduced motion)
+  // === FLAGS AND BANNERS ===
   const flagMat = new THREE.MeshBasicMaterial({ color: TOKENS.pink, side: THREE.DoubleSide, transparent: true, opacity: 0.85 });
   const flagMat2 = new THREE.MeshBasicMaterial({ color: TOKENS.goldWarm, side: THREE.DoubleSide, transparent: true, opacity: 0.85 });
-  state.disposables.push(flagMat, flagMat2);
+  const flagMat3 = new THREE.MeshBasicMaterial({ color: TOKENS.purpleGlow, side: THREE.DoubleSide, transparent: true, opacity: 0.85 });
+  state.disposables.push(flagMat, flagMat2, flagMat3);
   const flagGeo = new THREE.BufferGeometry();
   flagGeo.setAttribute('position', new THREE.Float32BufferAttribute([0, 0, 0, 9, -1.6, 0, 0, -4.2, 0], 3));
   flagGeo.computeVertexNormals();
   state.disposables.push(flagGeo);
   const flagSpots = [
-    [0, 132, 0, flagMat],
-    [Math.cos(1.32) * 25, 15 + 66 + 5.8 * 3.1 + 3, Math.sin(1.32) * 25, flagMat2],
-    [Math.cos(3.44) * 24, 15 + 60 + 5.6 * 3.1 + 3, Math.sin(3.44) * 24, flagMat],
+    [0, 182, 0, flagMat],
+    [Math.cos(1.32) * 28, 25 + 78 + 6.5 * 4 + 4, Math.sin(1.32) * 28, flagMat2],
+    [Math.cos(3.44) * 27, 25 + 72 + 6.2 * 4 + 4, Math.sin(3.44) * 27, flagMat3],
+    [Math.cos(0.25) * 30, 25 + 62 + 7.2 * 4 + 4, Math.sin(0.25) * 30, flagMat2],
   ];
   state.flags = [];
   for (const [fx, fy, fz, fm] of flagSpots) {
-    const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.35, 10, 5), trimMat);
+    const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 12, 5), trimMat);
     pole.position.set(fx, fy, fz);
     g.add(pole);
     const flag = new THREE.Mesh(flagGeo, fm);
-    flag.position.set(fx, fy + 4, fz);
+    flag.position.set(fx, fy + 5, fz);
     g.add(flag);
     state.flags.push(flag);
   }
 
-  // soft additive glow blobs (fake bloom) around spires and window bands
+  // === WARM WINDOW GLOW SPRITES (fake bloom for emissive feel) ===
   const glowGold = makeGlowTexture(128, 'rgba(255,215,0,0.85)', 'rgba(255,200,80,0.25)', 'rgba(255,200,80,0)');
   const glowPurple = makeGlowTexture(128, 'rgba(199,125,255,0.8)', 'rgba(123,44,191,0.22)', 'rgba(123,44,191,0)');
+  const glowWarm = makeGlowTexture(128, 'rgba(255,180,60,0.9)', 'rgba(255,160,40,0.3)', 'rgba(255,160,40,0)');
   const glowSpots = [
-    [0, 118, 0, 60, glowPurple],
-    [0, 40, 40, 34, glowGold],
+    [0, 155, 0, 70, glowPurple],   // keep spire glow
+    [0, 55, 42, 38, glowWarm],     // gate glow
+    [0, 30, 50, 30, glowGold],     // bridge entrance
   ];
   for (const t of towers) {
-    glowSpots.push([Math.cos(t.a) * t.r, 15 + t.h * 0.72, Math.sin(t.a) * t.r, 22 + t.rad * 2, glowGold]);
-    glowSpots.push([Math.cos(t.a) * t.r, 15 + t.h + t.rad * 2, Math.sin(t.a) * t.r, 30, glowPurple]);
+    glowSpots.push([Math.cos(t.a) * t.r, 25 + t.h * 0.55, Math.sin(t.a) * t.r, 20 + t.rad * 2, glowWarm]);
+    glowSpots.push([Math.cos(t.a) * t.r, 25 + t.h + t.rad * 3, Math.sin(t.a) * t.r, 28, glowPurple]);
   }
   for (const [gx, gy, gz, gs, gmap] of glowSpots) {
     const sm = new THREE.SpriteMaterial({
-      map: gmap,
-      transparent: true,
-      depthWrite: false,
-      fog: false,
-      blending: THREE.AdditiveBlending,
-      opacity: 0.4,
+      map: gmap, transparent: true, depthWrite: false, fog: false,
+      blending: THREE.AdditiveBlending, opacity: 0.45,
     });
     const sp = new THREE.Sprite(sm);
     sp.position.set(gx, gy, gz);
@@ -819,6 +999,37 @@ function buildCastle() {
     g.add(sp);
     state.disposables.push(sm);
   }
+
+  // === ATMOSPHERIC FOG PLANES (depth layers) ===
+  const fogTex = makeCloudTexture();
+  const fogLayers = [
+    { z: -200, y: 0, w: 400, h: 80, opacity: 0.18 },
+    { z: -160, y: -10, w: 500, h: 100, opacity: 0.14 },
+    { z: -120, y: -20, w: 600, h: 120, opacity: 0.10 },
+    { z: 20, y: -5, w: 400, h: 60, opacity: 0.08 },
+  ];
+  for (const f of fogLayers) {
+    const fm = new THREE.MeshBasicMaterial({
+      map: fogTex, transparent: true, opacity: f.opacity,
+      depthWrite: false, side: THREE.DoubleSide,
+      color: new THREE.Color(TOKENS.purpleGlow).lerp(new THREE.Color(TOKENS.inkDeep), 0.4),
+    });
+    const fp = new THREE.Mesh(new THREE.PlaneGeometry(f.w, f.h), fm);
+    fp.position.set(0, f.y, f.z);
+    g.add(fp);
+    state.disposables.push(fm);
+  }
+
+  // === WARM POINT LIGHTS (key window illumination) ===
+  const warmLight1 = new THREE.PointLight(0xffaa44, 2.5, 120, 1.8);
+  warmLight1.position.set(0, 35, 45);
+  g.add(warmLight1);
+  const warmLight2 = new THREE.PointLight(0xffcc66, 1.8, 100, 1.8);
+  warmLight2.position.set(0, 85, 0);
+  g.add(warmLight2);
+  const purpleAccent = new THREE.PointLight(TOKENS.purpleGlow, 1.5, 150, 1.8);
+  purpleAccent.position.set(0, 140, 20);
+  g.add(purpleAccent);
 
   state.scene.add(g);
   state.castle = g;
