@@ -12,6 +12,7 @@
 | `js/audio.js` | agent `audio` | WebAudio ambient engine |
 | `js/ui.js` | integrator | DOM interactions, game, storybook, i18n |
 | `js/quest.js` | integrator | "Nishi, Tell Me Your Universe" Q&A + personalised reveal (Phase 3-4) |
+| `js/wishes.js` | integrator | Purple Wishing Stars — catch shooting stars, make wishes (Phase 6) |
 | `vendor/three.module.min.js` | (locked) | Three.js r169, MIT, already vendored |
 | `assets/*` | (locked) | existing assets — do not modify |
 

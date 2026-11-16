@@ -293,7 +293,7 @@ function initReveal() {
 /* ---------------------------------------------------------------
    realm progress (visited destinations)
 --------------------------------------------------------------- */
-const REALM_TOTAL = 6;
+const REALM_TOTAL = 7;
 const visited = new Set();
 
 function initRealms() {
@@ -323,7 +323,7 @@ function initRealms() {
         toast('✦ Realm discovered!');
       }
       // try to fly the 3D camera to the matching vantage point
-      const dest = { ot7: 'ot7', music: 'music', busan: 'busan', story: 'quest', quest: 'quest', road: 'road' }[key];
+      const dest = { ot7: 'ot7', music: 'music', busan: 'busan', story: 'quest', quest: 'quest', road: 'road', wishes: 'portal' }[key];
       if (dest) world.to(dest);
     });
   });
@@ -736,6 +736,12 @@ function initLang() {
         window.__nishiQuest.setLanguage(bn ? 'bn' : 'en');
       }
     } catch { /* ignore */ }
+    // keep the wishing stars in sync with the site language
+    try {
+      if (window.__nishiWishes && typeof window.__nishiWishes.setLang === 'function') {
+        window.__nishiWishes.setLang(bn ? 'bn' : 'en');
+      }
+    } catch { /* ignore */ }
   }
 
   // The quest portal has its own language toggle — keep this header toggle
@@ -877,6 +883,30 @@ async function initQuest() {
 }
 
 /* ---------------------------------------------------------------
+   wishes — Purple Wishing Stars (Phase 6)
+   Lazy-loaded. Wishes stay in localStorage only.
+--------------------------------------------------------------- */
+async function initWishes() {
+  const mount = $('#wish-scene');
+  if (!mount) return;
+  try {
+    const mod = await import('./wishes.js');
+    if (typeof mod.initWishes !== 'function') return;
+    let lang = 'en';
+    try { lang = localStorage.getItem('nishi-lang') === 'bn' ? 'bn' : 'en'; } catch { /* ignore */ }
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const res = mod.initWishes(mount, { lang, reducedMotion });
+    if (res && res.ok === false) {
+      console.warn('[nishi] wishes unavailable:', res.reason);
+      return;
+    }
+    window.__nishiWishes = mod;
+  } catch (err) {
+    console.warn('[nishi] wishes unavailable:', err && err.message);
+  }
+}
+
+/* ---------------------------------------------------------------
    boot
 --------------------------------------------------------------- */
 function boot() {
@@ -894,6 +924,7 @@ function boot() {
   initResize();
   syncAudioUI();
   initQuest();
+  initWishes();
 
   // 3D last — it must never block the page from becoming usable.
   world.boot();

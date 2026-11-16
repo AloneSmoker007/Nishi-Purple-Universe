@@ -652,6 +652,34 @@ h1,h2,h3,h4{margin:0 0 .5em; line-height:1.15; font-weight:800; letter-spacing:.
   background:linear-gradient(90deg,#FF6B6B,#FFB84D,#FFE66D,#6BE6A1,#5AA9FF,#9A6BFF,#C77DFF);
   box-shadow:0 0 30px rgba(199,125,255,.5); opacity:.9}
 
+/* ---------- purple wishing stars (Phase 6) ---------- */
+.wish-scene{position:relative; min-height:420px; border-radius:var(--r-lg); overflow:hidden;
+  background:linear-gradient(180deg, rgba(11,4,32,.92), rgba(26,11,59,.78));
+  border:1px solid var(--stroke); box-shadow:var(--glow-md)}
+#wish-canvas{position:absolute; inset:0; width:100%; height:100%; pointer-events:none}
+.wish-form{position:relative; z-index:2; display:flex; gap:.75rem; padding:1.65rem 1.65rem 0; max-width:620px; margin-inline:auto}
+.wish-form input{flex:1; padding:.85rem 1.25rem; border-radius:var(--r-pill); border:1px solid var(--stroke-hot);
+  background:rgba(11,4,32,.72); color:var(--text); font:inherit; font-size:1rem; outline:none;
+  transition:border-color .25s, box-shadow .25s}
+.wish-form input:focus{border-color:var(--purple-glow); box-shadow:var(--glow-sm)}
+.wish-form input::placeholder{color:var(--text-faint)}
+.wish-constellation{position:relative; z-index:2; display:flex; flex-wrap:wrap; gap:.65rem;
+  padding:1.5rem 1.65rem; max-width:680px; margin-inline:auto; min-height:80px}
+.wish-star{position:relative; display:inline-flex; align-items:center; gap:.45rem;
+  padding:.48rem 1rem .48rem .75rem; border-radius:var(--r-pill); font-size:.88rem;
+  background:rgba(123,44,191,.32); border:1px solid rgba(199,125,255,.3); color:var(--text);
+  cursor:default; user-select:none; transition:transform .3s var(--ease), box-shadow .3s;
+  animation:starAppear .55s var(--ease-out) both}
+.wish-star:hover{transform:translateY(-3px); box-shadow:var(--glow-sm)}
+.wish-star .star-icon{font-size:1.15rem; filter:drop-shadow(0 0 6px rgba(255,215,0,.55))}
+.wish-star .star-text{max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+@keyframes starAppear{from{opacity:0; transform:scale(.5) translateY(12px)}to{opacity:1; transform:scale(1) translateY(0)}}
+.wish-stats{position:relative; z-index:2; display:flex; align-items:center; justify-content:center;
+  gap:1.15rem; padding:0 1.65rem 1.65rem; flex-wrap:wrap}
+.wish-empty-msg{width:100%; text-align:center; color:var(--text-faint); font-size:.92rem; padding:.85rem 0}
+@media (max-width:560px){.wish-form{flex-direction:column; padding:1.15rem 1.15rem 0}
+  .wish-constellation{padding:1.15rem} .wish-stats{padding:0 1.15rem 1.15rem}}
+
 /* ---------- footer ---------- */
 footer{position:relative; z-index:2; padding:clamp(3rem,7vw,5.25rem) 0 clamp(2.25rem,5vw,3.5rem); border-top:1px solid rgba(199,125,255,.16); background:linear-gradient(180deg, transparent, rgba(11,4,32,.85))}
 .disclaimer{max-width:74ch; margin-inline:auto; text-align:center; font-size:.95rem; color:var(--text-faint); line-height:1.85}
@@ -890,6 +918,7 @@ body:has(.nav-links.is-open) .float-controls{opacity:0; pointer-events:none}
       <li><a href="#story">Story<span class="bn">গল্প</span></a></li>
       <li><a href="#concert">Concert<span class="bn">কনসার্ট</span></a></li>
       <li><a href="#game">Game<span class="bn">খেলা</span></a></li>
+      <li><a href="#wishes">Wishes<span class="bn">কামনা</span></a></li>
       <li><a href="#universe">Your Universe<span class="bn">তোমার মহাকাশ</span></a></li>
       <li><a href="#surprise">Surprise<span class="bn">চমক</span></a></li>
       <li><button class="btn ghost sm" id="lang-toggle" type="button">বাংলা</button></li>
@@ -994,10 +1023,18 @@ body:has(.nav-links.is-open) .float-controls{opacity:0; pointer-events:none}
         <p>Follow a beautiful dream.<span class="bn">সুন্দর স্বপ্নের পথে চলো</span></p>
         <span class="realm-go">Travel <span class="arrow" aria-hidden="true">→</span></span>
       </a>
+      <a class="realm reveal" href="#wishes" data-realm="wishes">
+        <span class="tick" aria-hidden="true">✓</span>
+        <span class="realm-icon" aria-hidden="true">🌟</span>
+        <h3>Wishing Stars</h3>
+        <span class="bn">কামনার তারা</span>
+        <p>Catch a star, make a wish.<span class="bn">তারা ধরো, কামনা করো</span></p>
+        <span class="realm-go">Travel <span class="arrow" aria-hidden="true">→</span></span>
+      </a>
     </div>
 
     <div class="meter reveal" role="status" aria-live="polite">
-      <span class="chip gold" id="realm-progress-text">✦ Realms explored: 0 / 6</span>
+      <span class="chip gold" id="realm-progress-text">✦ Realms explored: 0 / 7</span>
       <span class="meter-track"><span class="meter-fill" id="realm-progress-fill"></span></span>
     </div>
   </div>
@@ -1298,6 +1335,42 @@ body:has(.nav-links.is-open) .float-controls{opacity:0; pointer-events:none}
         <span class="bn">সামনের প্রতিটি পথ তোমাকে সুন্দর কোথাও নিয়ে যাক।</span>
       </p>
       <div class="rainbow" aria-hidden="true"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= PURPLE WISHING STARS (Phase 6) ================= -->
+<section class="section" id="wishes">
+  <div class="shell">
+    <div class="section-head reveal">
+      <p class="eyebrow" style="justify-content:center">Make a wish</p>
+      <h2 class="script">Purple Wishing Stars</h2>
+      <h3 class="display">Catch a star, leave a wish</h3>
+      <p class="lead" style="margin-inline:auto">
+        Every wish you make becomes a star in your own little constellation.
+        <span class="bn">তোমার প্রতিটি কামনা হয়ে ওঠে তোমার নিজের নক্ষত্রমণ্ডলের একটি তারা।</span>
+      </p>
+    </div>
+
+    <div class="wish-scene reveal" id="wish-scene">
+      <!-- shooting star canvas -->
+      <canvas id="wish-canvas" aria-hidden="true"></canvas>
+
+      <!-- wish form -->
+      <div class="wish-form" id="wish-form">
+        <label class="visually-hidden" for="wish-input">Write your wish</label>
+        <input type="text" id="wish-input" maxlength="120" placeholder="Write your wish here… ✨" autocomplete="off" spellcheck="false">
+        <button class="btn" id="wish-send" type="button">Send to the stars ⭐</button>
+      </div>
+
+      <!-- constellation -->
+      <div class="wish-constellation" id="wish-constellation" role="list" aria-label="Your wishes among the stars"></div>
+
+      <!-- stats -->
+      <div class="wish-stats" id="wish-stats">
+        <span class="chip gold" id="wish-count">✦ 0 wishes among the stars</span>
+        <button class="btn ghost sm" id="wish-clear" type="button">Clear all wishes</button>
+      </div>
     </div>
   </div>
 </section>

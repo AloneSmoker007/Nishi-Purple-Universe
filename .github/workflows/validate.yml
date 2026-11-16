@@ -27,6 +27,7 @@ jobs:
           node --check js/quest.js
           node --check js/world.js
           node --check js/audio.js
+          node --check js/wishes.js
       - name: Validate SEO and fallback files
         run: |
           test -s robots.txt
