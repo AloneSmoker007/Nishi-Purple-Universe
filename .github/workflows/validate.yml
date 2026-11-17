@@ -4,6 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -48,6 +49,13 @@ jobs:
                            'id="player-toggle"', 'id="player-local-files"', 'id="player-add-local"'):
               assert required in html, f"Missing music player element: {required}"
           print("Music player markup: PASS")
+          premium = html[html.index('class="section hero premium-hero"'):html.index('<!-- ================= REALMS ================= -->')]
+          for required in ('premium-hero-grid', 'premium-castle-card', 'premium-hero-footer',
+                           'assets/purple-galaxy.svg', 'Explore your universe'):
+              assert required in premium, f"Missing premium hero element: {required}"
+          assert '@media (max-width:900px)' in html and '@media (max-width:560px)' in html
+          assert html.count('id="home"') == 1
+          print("Premium hero structure and responsive breakpoints: PASS")
           player = open("js/player.js", encoding="utf-8").read()
           assert "function syncProgressTimer()" in player
           assert "&& !document.hidden" in player
