@@ -83,18 +83,23 @@ try {
       profile.name + ': horizontal overflow (' + layout.scrollWidth + ' > ' + layout.width + ')');
 
     const menu = page.locator('#nav-toggle');
-    if (await menu.isVisible()) {
+    const mobileMenu = await menu.isVisible();
+    if (mobileMenu) {
       await menu.click();
       assert.equal(await menu.getAttribute('aria-expanded'), 'true', profile.name + ': mobile menu did not open');
-      await menu.click();
-      assert.equal(await menu.getAttribute('aria-expanded'), 'false', profile.name + ': mobile menu did not close');
     }
 
+    // On narrow viewports the language control lives inside the collapsible menu.
     const initialLang = await page.locator('html').getAttribute('lang');
     await page.locator('#lang-toggle').click();
     const translatedLang = await page.locator('html').getAttribute('lang');
     assert.ok(['en', 'bn'].includes(translatedLang), profile.name + ': invalid language state');
     assert.notEqual(translatedLang, initialLang, profile.name + ': language toggle did not switch language');
+
+    if (mobileMenu) {
+      await menu.click();
+      assert.equal(await menu.getAttribute('aria-expanded'), 'false', profile.name + ': mobile menu did not close');
+    }
     assert.equal(pageErrors.length, 0, profile.name + ': uncaught browser errors: ' + pageErrors.join('; '));
     assert.equal(localFailures.length, 0, profile.name + ': failed local assets: ' + localFailures.join(', '));
 
