@@ -1607,8 +1607,9 @@ function buildButterflies() {
   wingGeoR.translate(-0.48, 0, 0);
   state.disposables.push(wingGeoL, wingGeoR);
 
-  for (let i = 0; i < 16; i++) {
-    const [base, accent] = colors[i % colors.length];
+  // Six palette materials are shared by all 16 butterflies. Rebuilding the
+  // same 128px canvas texture for every butterfly wastes CPU and GPU memory.
+  const wingMaterials = colors.map(([base, accent]) => {
     const tex = makeWingTexture(base, accent);
     const mat = new THREE.MeshBasicMaterial({
       map: tex,
@@ -1618,6 +1619,11 @@ function buildButterflies() {
       opacity: 0.92,
     });
     state.disposables.push(mat);
+    return mat;
+  });
+
+  for (let i = 0; i < 16; i++) {
+    const mat = wingMaterials[i % wingMaterials.length];
     const group = new THREE.Group();
     const wingL = new THREE.Mesh(wingGeoL, mat);
     const wingR = new THREE.Mesh(wingGeoR, mat);
