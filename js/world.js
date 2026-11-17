@@ -1959,6 +1959,7 @@ function setupPostProcessing() {
       uVignetteAmount: { value: state.vignetteAmount },
       uChromaticAmount: { value: state.chromaticAmount },
       uTime: { value: 0 },
+      uMobile: { value: state.isMobile ? 1 : 0 },
     },
     vertexShader: /* glsl */ `
       varying vec2 vUv;
@@ -1974,6 +1975,7 @@ function setupPostProcessing() {
       uniform float uVignetteAmount;
       uniform float uChromaticAmount;
       uniform float uTime;
+      uniform float uMobile;
       varying vec2 vUv;
 
       // Simple box blur for bloom
@@ -2000,11 +2002,24 @@ function setupPostProcessing() {
         color.g = texture2D(tDiffuse, uv).g;
         color.b = texture2D(tDiffuse, uv - vec2(ca, 0.0)).b;
 
-        // Bloom: blur bright areas and add them back
-        vec3 blur1 = sampleBlur(uv, 4.0);
-        vec3 blur2 = sampleBlur(uv, 8.0);
-        vec3 blur3 = sampleBlur(uv, 16.0);
-        vec3 bloom = blur1 * 0.5 + blur2 * 0.3 + blur3 * 0.2;
+        // Bloom: use a lightweight five-tap approximation on phones.
+        // Desktop keeps the wider multi-radius blur for richer highlights.
+        vec3 bloom;
+        if (uMobile > 0.5) {
+          vec2 px = 2.0 / uResolution;
+          bloom = (
+            texture2D(tDiffuse, uv).rgb +
+            texture2D(tDiffuse, uv + vec2(px.x, 0.0)).rgb +
+            texture2D(tDiffuse, uv - vec2(px.x, 0.0)).rgb +
+            texture2D(tDiffuse, uv + vec2(0.0, px.y)).rgb +
+            texture2D(tDiffuse, uv - vec2(0.0, px.y)).rgb
+          ) * 0.2;
+        } else {
+          vec3 blur1 = sampleBlur(uv, 4.0);
+          vec3 blur2 = sampleBlur(uv, 8.0);
+          vec3 blur3 = sampleBlur(uv, 16.0);
+          bloom = blur1 * 0.5 + blur2 * 0.3 + blur3 * 0.2;
+        }
         // Extract bright parts (highlights)
         float brightness = dot(bloom, vec3(0.2126, 0.7152, 0.0722));
         vec3 bloomHighlights = bloom * smoothstep(0.45, 1.2, brightness);
