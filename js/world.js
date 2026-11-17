@@ -110,6 +110,7 @@ const state = {
   ready: false,
   disposed: false,
   ctxLost: false,
+  ctxRecoveryPending: false,
   quality: 'high',
   isMobile: false,
   reducedMotion: false,
@@ -1914,6 +1915,15 @@ function tick() {
   }
 
   renderWithPostProcessing();
+  if (state.ctxRecoveryPending) {
+    state.ctxRecoveryPending = false;
+    if (state.canvas) state.canvas.classList.add('is-live');
+    try {
+      document.dispatchEvent(new CustomEvent('nishi:world-context-restored'));
+    } catch (e) {
+      /* recovery signal must never break rendering */
+    }
+  }
   signalFirstFrame();
 }
 
@@ -2202,9 +2212,14 @@ function attachContextHandlers(canvas) {
   const lost = (e) => {
     e.preventDefault();
     state.ctxLost = true;
+    state.ctxRecoveryPending = false;
+    if (canvas === state.canvas) canvas.classList.remove('is-live');
   };
   const restored = () => {
+    // Three.js restores its WebGL internals before this listener runs.
+    // Keep the CSS fallback visible until a real frame renders again.
     state.ctxLost = false;
+    state.ctxRecoveryPending = true;
   };
   state.contextHandlers = { lost, restored };
   canvas.addEventListener('webglcontextlost', lost);
