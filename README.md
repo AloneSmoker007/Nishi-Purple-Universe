@@ -19,3 +19,17 @@ This is an unofficial fan-made tribute and is not affiliated with BTS or BIGHIT 
 ### Mobile playback compatibility
 - The player uses YouTube's inline playback mode and keeps the native MP3 picker call inside the visitor's tap gesture for Android/iOS browser restrictions.
 - Android Chrome testing should cover file selection, MP3 decode/playback, source switching, background/lock-screen behavior, and low-memory recovery before release.
+
+## Easy content updates
+
+The editable site settings live in `content/site-config.js`.
+- Change the page title and description under `brand`.
+- Adjust the purple theme under `theme`.
+- Replace the hero art path under `artwork.hero`.
+- Edit the official YouTube video IDs, song names and emoji under `tracks`.
+
+The music player reads its playlist from this file, so adding or reordering tracks no longer requires editing player logic. Keep YouTube IDs for official videos; do not upload copyrighted audio.
+
+### AI-generated decorative artwork
+
+The `assets/ai/` folder contains instructions for the original fantasy artwork pack. Use the supplied WebP assets there; they depict a fictional purple castle and garden, not BTS members. The existing SVG remains the fallback until the artwork files are added.
