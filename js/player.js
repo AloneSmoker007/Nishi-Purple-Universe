@@ -169,6 +169,7 @@ async function ensurePlayer() {
           onError: () => {
             state.player = null; state.ready = false;
             finish(new Error('YouTube video is unavailable'));
+            if (state.activeSource === 'youtube') startFallback('This video is unavailable. Ambient sound or your own MP3 is ready.', state.requestId);
           },
         },
       });
@@ -300,9 +301,9 @@ export function initPlayer() {
   if (!room) return;
   state.localAudio = new Audio();
   state.localAudio.preload = 'none';
-  state.localAudio.addEventListener('ended', () => nextTrack(true));
+  state.localAudio.addEventListener('ended', () => { if (state.activeSource === 'local') nextTrack(true); });
   state.localAudio.addEventListener('timeupdate', syncUI);
-  state.localAudio.addEventListener('play', () => { state.playing = true; syncUI(); });
+  state.localAudio.addEventListener('play', () => { if (state.activeSource === 'local') { state.playing = true; syncUI(); } });
   state.localAudio.addEventListener('pause', () => { if (state.activeSource === 'local') { state.playing = false; syncUI(); } });
 
   renderPlaylist();
