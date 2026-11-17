@@ -89,7 +89,22 @@ const world = {
         if (st && st.renderedFrames > 0) revealOnce();
         else {
           document.addEventListener('nishi:world-firstframe', revealOnce, { once: true });
-          setTimeout(revealOnce, 2000);
+          // Never reveal a canvas merely because time elapsed. If no frame
+          // rendered, release the failed renderer and keep the CSS fallback.
+          setTimeout(() => {
+            const status = typeof mod.getWorldStatus === 'function' ? mod.getWorldStatus() : null;
+            if (status && status.renderedFrames > 0) {
+              revealOnce();
+              return;
+            }
+            document.body.classList.add('no-webgl');
+            const c = $('#scene-canvas');
+            if (c) c.classList.remove('is-live');
+            try { mod.dispose && mod.dispose(); } catch { /* non-fatal */ }
+            this.ready = false;
+            this.api = null;
+            console.warn('[nishi] 3D produced no frame; CSS fallback retained.');
+          }, 2000);
         }
       } catch (e) {
         revealOnce();
