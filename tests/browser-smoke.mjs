@@ -27,14 +27,13 @@ const server = http.createServer((req, res) => {
   });
 });
 
-const errors = [];
 let browser;
 try {
   await new Promise(resolve => server.listen(4173, '127.0.0.1', resolve));
   browser = await chromium.launch({ headless: true, args: ['--use-gl=angle', '--use-angle=swiftshader'] });
   const profiles = [
     { name: 'desktop', viewport: { width: 1365, height: 900 }, isMobile: false, hasTouch: false, dpr: 1 },
-    { name: 'iPhone-sized Safari emulation', viewport: { width: 375, height: 667 }, isMobile: true, hasTouch: true, dpr: 2 },
+    { name: 'iPhone-sized Chromium emulation', viewport: { width: 375, height: 667 }, isMobile: true, hasTouch: true, dpr: 2 },
     { name: 'Android-sized Chrome emulation', viewport: { width: 412, height: 915 }, isMobile: true, hasTouch: true, dpr: 2.625 },
     { name: 'tablet', viewport: { width: 768, height: 1024 }, isMobile: true, hasTouch: true, dpr: 2 }
   ];
@@ -67,7 +66,8 @@ try {
       await skip.click();
       await intro.waitFor({ state: 'hidden' });
     }
-    await page.waitForTimeout(1200);
+    // Allow either a real first WebGL frame or the explicit CSS fallback timeout.
+    await page.waitForTimeout(2300);
 
     const layout = await page.evaluate(() => ({
       width: document.documentElement.clientWidth,
@@ -75,10 +75,12 @@ try {
       title: document.title,
       lang: document.documentElement.lang,
       canvas: !!document.querySelector('#scene-canvas'),
+      canvasState: (() => { const c = document.querySelector('#scene-canvas'); return !!c && (c.classList.contains('is-live') || document.body.classList.contains('no-webgl')); })(),
       mainSections: ['music-room', 'story', 'quest-mount'].every(id => !!document.getElementById(id))
     }));
     assert.ok(layout.title.includes('Nishi'), profile.name + ': title missing');
     assert.ok(layout.mainSections, profile.name + ': core sections missing');
+    assert.ok(layout.canvas && layout.canvasState, profile.name + ': 3D canvas is neither rendering nor explicitly using CSS fallback');
     assert.ok(layout.scrollWidth <= layout.width + 2,
       profile.name + ': horizontal overflow (' + layout.scrollWidth + ' > ' + layout.width + ')');
 
@@ -103,7 +105,7 @@ try {
     assert.equal(pageErrors.length, 0, profile.name + ': uncaught browser errors: ' + pageErrors.join('; '));
     assert.equal(localFailures.length, 0, profile.name + ': failed local assets: ' + localFailures.join(', '));
 
-    console.log('PASS ' + profile.name + ': layout, core content, nav, language, no runtime errors');
+    console.log('PASS ' + profile.name + ': layout, visible 3D/CSS fallback, core content, nav, language, no runtime errors');
     await context.close();
   }
 } finally {
