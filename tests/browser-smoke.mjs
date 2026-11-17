@@ -16,7 +16,7 @@ const server = http.createServer((req, res) => {
   let pathname;
   try { pathname = decodeURIComponent(new URL(req.url, 'http://127.0.0.1').pathname); }
   catch { res.writeHead(400).end(); return; }
-  const relative = pathname === '/' ? 'index.html' : pathname.replace(/^\\/+/, '');
+  const relative = pathname === '/' ? 'index.html' : pathname.replace(/^\/+/, '');
   const target = path.resolve(root, relative);
   if (!target.startsWith(root + path.sep) && target !== path.join(root, 'index.html')) {
     res.writeHead(403).end(); return;
