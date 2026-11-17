@@ -141,10 +141,9 @@ const world = {
     } catch { return false; }
   },
   resize() {
+    // Resizing must never reveal a blank or context-lost canvas. The renderer's
+    // first-frame and context-restored signals own visibility transitions.
     try { this.api && this.api.resize && this.api.resize(); } catch { /* non-fatal */ }
-    // the canvas node may have been replaced by a quality change
-    const c = $('#scene-canvas');
-    if (c && this.ready) c.classList.add('is-live');
   }
 };
 
