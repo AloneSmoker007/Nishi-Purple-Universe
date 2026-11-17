@@ -57,6 +57,16 @@ try {
     await page.locator('#music-room').waitFor({ state: 'attached' });
     await page.locator('#story').waitFor({ state: 'attached' });
     await page.locator('#quest-mount').waitFor({ state: 'attached' });
+
+    // The first-visit cinematic intro intentionally blocks background controls.
+    // Dismiss it through its real user-facing action before testing the page UI.
+    const intro = page.locator('#intro');
+    if (await intro.isVisible()) {
+      const skip = page.locator('#skip-intro');
+      await skip.waitFor({ state: 'visible' });
+      await skip.click();
+      await intro.waitFor({ state: 'hidden' });
+    }
     await page.waitForTimeout(1200);
 
     const layout = await page.evaluate(() => ({
