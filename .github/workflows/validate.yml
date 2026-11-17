@@ -49,4 +49,16 @@ jobs:
                            'id="player-toggle"', 'id="player-local-files"', 'id="player-add-local"'):
               assert required in html, f"Missing music player element: {required}"
           print("Music player markup: PASS")
+          player = open("js/player.js", encoding="utf-8").read()
+          assert "function syncProgressTimer()" in player
+          assert "&& !document.hidden" in player
+          assert "window.addEventListener('pagehide'" in player
+          assert "window.addEventListener('pageshow'" in player
+          assert "setInterval(() => { if (state.playing" not in player
+          print("Music timer lifecycle: PASS")
+          world = open("js/world.js", encoding="utf-8").read()
+          assert "function postProcessingSize()" in world
+          assert "high: 0.85, medium: 0.7, low: 0.55" in world
+          assert "const shadowSize = state.isMobile ? 1024 : 2048" in world
+          print("Adaptive mobile GPU budgets: PASS")
           PY
