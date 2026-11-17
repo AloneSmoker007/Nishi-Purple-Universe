@@ -1366,8 +1366,9 @@ function buildIslands() {
 }
 
 function updateWaterfalls(dt) {
+  const activeFraction = QUALITY_COUNTS[state.quality].fall;
   for (const w of state.waterfalls) {
-    const n = w.seedY.length;
+    const n = Math.floor(w.seedY.length * activeFraction);
     for (let i = 0; i < n; i++) {
       w.fpos[i * 3 + 1] -= dt * 34 * w.seedY[i];
       if (w.fpos[i * 3 + 1] < w.oy - w.fall) {
@@ -1566,7 +1567,7 @@ function buildPetals() {
 function updatePetals(dt) {
   const d = state.petalData;
   if (!d) return;
-  const n = d.sway.length;
+  const n = Math.min(d.sway.length, QUALITY_COUNTS[state.quality].petals);
   for (let i = 0; i < n; i++) {
     d.pos[i * 3] += (d.vel[i * 3] + Math.sin(state.time * 0.8 + d.sway[i]) * 1.7) * dt;
     d.pos[i * 3 + 1] += d.vel[i * 3 + 1] * dt;
@@ -1641,7 +1642,9 @@ function buildButterflies() {
 }
 
 function updateButterflies() {
-  for (const b of state.butterflies) {
+  const count = QUALITY_COUNTS[state.quality].butterflies;
+  for (let i = 0; i < Math.min(count, state.butterflies.length); i++) {
+    const b = state.butterflies[i];
     const t = state.time * b.orbitSpeed + b.phase;
     b.group.position.set(
       b.cx + Math.sin(t) * b.orbitR,
@@ -1682,7 +1685,9 @@ function buildClouds() {
 }
 
 function updateClouds() {
-  for (const c of state.clouds) {
+  const count = QUALITY_COUNTS[state.quality].clouds;
+  for (let i = 0; i < Math.min(count, state.clouds.length); i++) {
+    const c = state.clouds[i];
     c.sprite.position.x = ((c.baseX + state.time * c.speed + c.phase + 700) % 1400) - 700;
     c.sprite.position.y += Math.sin(state.time * 0.07 + c.phase) * 0.02;
   }
