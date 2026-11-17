@@ -27,6 +27,11 @@ const state = {
   apiLoaded: false,
   apiFailed: false,
   fallback: false,
+  ambience: null,
+  localAudio: null,
+  localUrls: new Set(),
+  activeSource: 'youtube',
+  requestId: 0,
 };
 
 const $  = (s, r = document) => r.querySelector(s);
@@ -83,21 +88,23 @@ function loadYouTubeAPI() {
 function renderPlaylist() {
   const list = $('#player-list');
   if (!list) return;
-  list.innerHTML = '';
-  TRACKS.forEach((t, i) => {
+  list.replaceChildren();
+  TRACKS.forEach((track, i) => {
     const li = document.createElement('li');
-    const b = document.createElement('button');
-    b.type = 'button';
-    b.className = 'player-track' + (i === state.current ? ' is-current' : '');
-    b.dataset.index = String(i);
-    b.setAttribute('aria-pressed', String(i === state.current && state.playing));
-    b.innerHTML =
-      `<span class="pt-note" aria-hidden="true">${t.note}</span>` +
-      `<span class="pt-body"><span class="pt-title">${t.title}</span>` +
-      `<span class="pt-sub">BTS · official video</span></span>` +
-      `<span class="pt-glyph" aria-hidden="true">${i === state.current && state.playing ? '❚❚' : '▶'}</span>`;
-    li.appendChild(b);
-    list.appendChild(li);
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'player-track' + (i === state.current ? ' is-current' : '');
+    button.dataset.index = String(i);
+    button.setAttribute('aria-pressed', String(i === state.current && state.playing));
+    const note = document.createElement('span');
+    note.className = 'pt-note'; note.setAttribute('aria-hidden', 'true'); note.textContent = track.note || '♫';
+    const body = document.createElement('span'); body.className = 'pt-body';
+    const title = document.createElement('span'); title.className = 'pt-title'; title.textContent = track.title;
+    const sub = document.createElement('span'); sub.className = 'pt-sub';
+    sub.textContent = track.localUrl ? 'Your device · local audio' : 'BTS · official video';
+    const glyph = document.createElement('span'); glyph.className = 'pt-glyph';
+    glyph.setAttribute('aria-hidden', 'true'); glyph.textContent = i === state.current && state.playing ? '❚❚' : '▶';
+    body.append(title, sub); button.append(note, body, glyph); li.appendChild(button); list.appendChild(li);
   });
 }
 
@@ -109,15 +116,18 @@ function syncUI() {
   const glyph = $('#player-toggle-glyph');
   if (glyph) glyph.textContent = state.playing ? '❚❚' : '▶';
   const toggle = $('#player-toggle');
+  const open = $('#player-open-yt');
+  if (open) open.disabled = !t || !!t.localUrl;
   if (toggle) {
     toggle.setAttribute('aria-pressed', String(state.playing));
     toggle.setAttribute('aria-label', state.playing ? 'Pause' : 'Play');
   }
   const bar = $('#player-bar-fill');
-  if (bar && state.player && typeof state.player.getDuration === 'function') {
+  if (bar) {
     try {
-      const d = state.player.getDuration() || 0;
-      const c = state.player.getCurrentTime() || 0;
+      const local = TRACKS[state.current] && TRACKS[state.current].localUrl && state.localAudio;
+      const d = local ? (state.localAudio.duration || 0) : (state.player && state.player.getDuration ? state.player.getDuration() || 0 : 0);
+      const c = local ? (state.localAudio.currentTime || 0) : (state.player && state.player.getCurrentTime ? state.player.getCurrentTime() || 0 : 0);
       bar.style.width = d ? `${Math.min(100, (c / d) * 100)}%` : '0%';
     } catch { /* player not ready */ }
   }
@@ -134,65 +144,139 @@ function setStatus(text) {
 async function ensurePlayer() {
   if (state.player) return state.player;
   const YT = await loadYouTubeAPI();
-  return new Promise((resolve) => {
-    state.player = new YT.Player('player-frame', {
-      videoId: TRACKS[state.current].id,
-      playerVars: {
-        autoplay: 0, controls: 0, modestbranding: 1, rel: 0,
-        playsinline: 1, iv_load_policy: 3, disablekb: 1,
-      },
-      events: {
-        onReady: () => { state.ready = true; syncUI(); resolve(state.player); },
-        onStateChange: (e) => {
-          state.playing = e.data === 1 /* playing */;
-          syncUI();
-          if (e.data === 0 /* ended */) nextTrack(true);
+  return new Promise((resolve, reject) => {
+    let settled = false;
+    const timer = setTimeout(() => {
+      if (!settled) { settled = true; reject(new Error('YouTube player initialisation timed out')); }
+    }, 12000);
+    const finish = (error) => {
+      if (settled) return;
+      settled = true; clearTimeout(timer);
+      if (error) reject(error); else resolve(state.player);
+    };
+    try {
+      state.player = new YT.Player('player-frame', {
+        videoId: TRACKS[state.current].id,
+        playerVars: { autoplay: 0, controls: 0, modestbranding: 1, rel: 0, playsinline: 1, iv_load_policy: 3, disablekb: 1 },
+        events: {
+          onReady: () => { state.ready = true; syncUI(); finish(); },
+          onStateChange: (event) => {
+            if (state.activeSource !== 'youtube') return;
+            state.playing = event.data === 1;
+            syncUI();
+            if (event.data === 0) nextTrack(true);
+          },
+          onError: () => {
+            state.player = null; state.ready = false;
+            finish(new Error('YouTube video is unavailable'));
+          },
         },
-        onError: () => {
-          setStatus('This video is unavailable right here.');
-          nextTrack(true);
-        },
-      },
-    });
-  });
+      });
+    } catch (error) { finish(error); }
+  }).catch((error) => { state.player = null; state.ready = false; throw error; });
 }
 
-function startFallback(msg) {
+async function startFallback(msg, requestId = state.requestId) {
+  if (requestId !== state.requestId || state.activeSource !== 'youtube') return;
   state.fallback = true;
-  setStatus(msg || 'YouTube is unreachable — playing the local dreamy ambience instead.');
-  toast('♫ Playing the dreamy ambience instead');
-  document.dispatchEvent(new CustomEvent('nishi:audio-fallback'));
+  setStatus(msg || 'YouTube is unavailable. Ambient sound or your own MP3 is ready.');
+  try {
+    if (!state.ambience) {
+      const mod = await import('./audio.js');
+      const result = await mod.initAudio();
+      if (!result || !result.ok) throw new Error(result && result.reason || 'Ambient audio unavailable');
+      state.ambience = mod;
+    }
+    if (requestId !== state.requestId || state.activeSource !== 'youtube') return;
+    state.ambience.startAmbience();
+    state.playing = true;
+    setStatus('Dreamy purple ambience is ready · choose an MP3 for your own music');
+  } catch (err) {
+    if (requestId !== state.requestId || state.activeSource !== 'youtube') return;
+    state.playing = false;
+    setStatus('YouTube is unavailable. You can still add an MP3 from your device.');
+    console.warn('[nishi] ambient fallback unavailable:', err && err.message);
+  }
   syncUI();
 }
 
 async function play(index) {
   const i = ((index ?? state.current) + TRACKS.length) % TRACKS.length;
+  const requestId = ++state.requestId;
   state.current = i;
+  const selected = TRACKS[i];
+  state.activeSource = selected.localUrl ? 'local' : 'youtube';
+  state.fallback = false;
+
+  // Stop every other source before starting the selected one.
+  if (state.player && typeof state.player.pauseVideo === 'function') {
+    try { state.player.pauseVideo(); } catch { /* player may not be ready */ }
+  }
+  if (state.localAudio) {
+    state.localAudio.pause();
+    state.localAudio.removeAttribute('src');
+    state.localAudio.load();
+  }
+  if (state.ambience) state.ambience.stopAmbience();
+
+  $('#music-room')?.classList.toggle('is-local', !!selected.localUrl);
+  state.playing = false;
   syncUI();
+
+  if (selected.localUrl) {
+    try {
+      if (!state.localAudio) throw new Error('Local audio is not initialized');
+      state.localAudio.src = selected.localUrl;
+      await state.localAudio.play();
+      if (requestId !== state.requestId || state.activeSource !== 'local') {
+        state.localAudio.pause();
+        return;
+      }
+      state.playing = true;
+      setStatus('Playing from your device · ' + selected.title);
+      syncUI();
+    } catch (err) {
+      if (requestId !== state.requestId) return;
+      state.playing = false;
+      setStatus('Could not play this audio file. Try another MP3.');
+      toast('This audio file could not be played.');
+      syncUI();
+    }
+    return;
+  }
+
   try {
     const p = await ensurePlayer();
+    if (requestId !== state.requestId || state.activeSource !== 'youtube') return;
     if (!p || typeof p.loadVideoById !== 'function') throw new Error('no-player');
-    p.loadVideoById(TRACKS[i].id);
+    p.loadVideoById(selected.id);
     p.playVideo();
-    setStatus(`Now playing · ${TRACKS[i].title}`);
     state.playing = true;
+    setStatus('Now playing · ' + selected.title);
     syncUI();
   } catch (err) {
-    startFallback();
+    if (requestId === state.requestId && state.activeSource === 'youtube') {
+      await startFallback('YouTube is unavailable. Ambient sound or your own MP3 is ready.', requestId);
+    }
   }
 }
 
 function pause() {
+  ++state.requestId;
   try {
-    if (state.player && typeof state.player.pauseVideo === 'function') state.player.pauseVideo();
+    if (state.activeSource === 'local' && state.localAudio) state.localAudio.pause();
+    if (state.activeSource === 'youtube' && state.player && typeof state.player.pauseVideo === 'function') state.player.pauseVideo();
+    if (state.fallback && state.ambience) state.ambience.stopAmbience();
   } catch { /* ignore */ }
   state.playing = false;
   syncUI();
 }
 
 function toggle() {
-  if (state.fallback) {
-    document.dispatchEvent(new CustomEvent('nishi:audio-toggle'));
+  if (state.fallback && state.activeSource === 'youtube') {
+    if (state.playing) { state.ambience && state.ambience.stopAmbience(); state.playing = false; }
+    else { state.ambience && state.ambience.startAmbience(); state.playing = true; }
+    syncUI();
     return;
   }
   if (state.playing) pause();
@@ -214,6 +298,12 @@ function prevTrack() {
 export function initPlayer() {
   const room = $('#music-room');
   if (!room) return;
+  state.localAudio = new Audio();
+  state.localAudio.preload = 'none';
+  state.localAudio.addEventListener('ended', () => nextTrack(true));
+  state.localAudio.addEventListener('timeupdate', syncUI);
+  state.localAudio.addEventListener('play', () => { state.playing = true; syncUI(); });
+  state.localAudio.addEventListener('pause', () => { if (state.activeSource === 'local') { state.playing = false; syncUI(); } });
 
   renderPlaylist();
   syncUI();
@@ -236,6 +326,32 @@ export function initPlayer() {
     window.open(`https://www.youtube.com/watch?v=${t.id}`, '_blank', 'noopener,noreferrer');
   });
 
+  const localInput = $('#player-local-files');
+  $('#player-add-local')?.addEventListener('click', () => localInput && localInput.click());
+  localInput?.addEventListener('change', () => {
+    const selected = Array.from(localInput.files || []);
+    const accepted = selected.filter(file => file.type === 'audio/mpeg' || /\.mp3$/i.test(file.name));
+    const valid = accepted.filter(file => file.size > 0 && file.size <= 20 * 1024 * 1024);
+    const remaining = Math.max(0, 10 - state.localUrls.size);
+    const files = valid.slice(0, remaining);
+    if (selected.length !== accepted.length) toast('Only MP3 files are supported.');
+    if (accepted.length !== valid.length) toast('Each MP3 must be under 20 MB.');
+    if (valid.length > remaining) toast('You can add up to 10 local tracks.');
+    if (!files.length) { localInput.value = ''; return; }
+    files.forEach(file => {
+      const url = URL.createObjectURL(file);
+      state.localUrls.add(url);
+      TRACKS.push({ id: null, title: file.name.replace(/\.[^.]+$/, '') || 'My MP3', note: '♫', localUrl: url });
+    });
+    renderPlaylist();
+    setStatus(files.length + ' local MP3 track(s) added · files stay on this device');
+    toast(files.length + ' local MP3 track(s) added');
+    localInput.value = '';
+  });
+  window.addEventListener('beforeunload', () => {
+    if (state.localAudio) { state.localAudio.pause(); state.localAudio.removeAttribute('src'); }
+    state.localUrls.forEach(url => URL.revokeObjectURL(url));
+  }, { once: true });
   // progress tick (cheap: one DOM write per second, only while playing)
   setInterval(() => { if (state.playing && !state.fallback) syncUI(); }, 1000);
 }
