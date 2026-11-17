@@ -1132,7 +1132,7 @@ body:has(.nav-links.is-open) .float-controls{opacity:0; pointer-events:none}
 
 
 /* ---------- Nishi premium hero experience ---------- */
-.premium-hero{isolation:isolate; min-height:calc(100svh - 70px); padding-block:clamp(3.2rem,7vw,6.4rem) 2.5rem; overflow:clip}
+.premium-hero{display:block;isolation:isolate;min-height:calc(100svh - 70px);padding-block:clamp(3.2rem,7vw,6.4rem) 2.5rem;overflow:clip}
 .premium-hero::before{content:"";position:absolute;z-index:-1;inset:4% -12% 10%;pointer-events:none;background:radial-gradient(ellipse at 72% 42%,rgba(145,64,224,.25),transparent 52%),radial-gradient(ellipse at 14% 60%,rgba(88,34,154,.22),transparent 48%)}
 .premium-hero-grid{display:grid;grid-template-columns:minmax(0,.82fr) minmax(0,1.18fr);align-items:center;gap:clamp(1.8rem,5vw,5rem)}
 .premium-hero-copy{position:relative;z-index:2;padding-block:1.5rem}
@@ -1156,54 +1156,21 @@ body:has(.nav-links.is-open) .float-controls{opacity:0; pointer-events:none}
 .premium-orbit{position:absolute;border:1px solid rgba(215,165,255,.2);border-radius:50%;pointer-events:none}
 .premium-orbit-one{inset:-8% -5%;transform:rotate(-14deg)}
 .premium-orbit-two{inset:4% -11%;transform:rotate(18deg);border-color:rgba(255,198,235,.14)}
-.premium-floating-chip{position:absolute;z-index:3;display:grid;grid-template-columns:auto auto;align-items:center;column-gap:.45rem;padding:.7rem 1rem;border:1px solid rgba(224,184,255,.38);border-radius:18px;background:rgba(25,8,52,.76);back<section class="section hero premium-hero" id="home">
-  <div class="shell premium-hero-grid">
-    <div class="premium-hero-copy">
-      <p class="eyebrow">A little universe, made for you</p>
-      <p class="script premium-pretitle">Welcome, Nishi</p>
-      <h1 class="display glow-title premium-title">Your Purple<br><span>Universe</span> <span aria-hidden="true">♡</span></h1>
-      <p class="lead premium-lead">
-        Seven stars above you. A thousand memories waiting. One magical world made with love.
-        <span class="bn">সাতটি তারা তোমার আকাশে। হাজারো স্মৃতি অপেক্ষায়। ভালোবাসায় তৈরি এক জাদুকরী জগৎ।</span>
-      </p>
-      <div class="premium-hero-actions">
-        <a class="btn premium-primary" href="#realms">Explore your universe <span aria-hidden="true">✦</span></a>
-        <button class="btn ghost" id="ambience-btn" type="button" aria-pressed="false">♫ Play dreamy ambience</button>
-      </div>
-      <div class="premium-note"><span class="premium-note-dot"></span> OT7 forever · made especially for Nishi</div>
-    </div>
-
-    <div class="premium-hero-visual">
-      <div class="premium-orbit premium-orbit-one" aria-hidden="true"></div>
-      <div class="premium-orbit premium-orbit-two" aria-hidden="true"></div>
-      <figure class="premium-castle-card reveal">
-        <img class="hero-art premium-castle-art" src="assets/purple-galaxy.svg"
-             alt="A moonlit purple fantasy castle beneath seven glowing stars"
-             width="1200" height="520" fetchpriority="high" decoding="async">
-        <figcaption class="premium-castle-caption">
-          <span class="premium-caption-kicker">Your story begins here</span>
-          <span class="premium-caption-title">Beyond the stars <span aria-hidden="true">💜</span></span>
-        </figcaption>
-      </figure>
-      <div class="premium-floating-chip chip-stars"><span>✧</span><b>7</b><small>stars, one sky</small></div>
-      <div class="premium-floating-chip chip-love"><span>♡</span><b>∞</b><small>purple love</small></div>
-    </div>
-  </div>
-
-  <div class="shell premium-hero-footer">
-    <div class="premium-footer-item"><span aria-hidden="true">✦</span><b>OT7</b><small>One family</small></div>
-    <div class="premium-footer-item"><span aria-hidden="true">♫</span><b>Music</b><small>Your favorite songs</small></div>
-    <div class="premium-footer-item"><span aria-hidden="true">✿</span><b>Memories</b><small>Little moments</small></div>
-    <div class="premium-footer-item"><span aria-hidden="true">♡</span><b>For Nishi</b><small>Always, with love</small></div>
-  </div>
-  <div class="scroll-cue premium-scroll-cue" aria-hidden="true">
-    <span class="line"></span><span>Scroll to discover</span>
-  </div>
-</section>
-
-remium-hero-actions{justify-content:center}.premium-note{justify-content:center}.premium-hero-visual{width:min(100%,760px);margin-inline:auto}.premium-castle-card{transform:none}.chip-stars{left:0}.chip-love{right:0}.premium-hero-footer{margin-top:2.2rem}}
-@media(max-width:560px){.premium-hero{padding-block:2.4rem 1.5rem}.premium-title{font-size:clamp(2.7rem,13vw,4.2rem)}.premium-pretitle{font-size:2.35rem}.premium-hero-actions{flex-direction:column;align-items:stretch}.premium-hero-actions .btn{width:100%}.premium-hero-visual{padding:.2rem}.premium-castle-card{border-radius:20px}.premium-floating-chip{padding:.55rem .75rem;border-radius:14px}.chip-stars{top:-3%;left:-1%}.chip-love{right:-1%;bottom:4%}.premium-hero-footer{grid-template-columns:repeat(2,1fr)}.premium-footer-item:nth-child(2){border-right:0}.premium-footer-item:nth-child(-n+2){border-bottom:1px solid rgba(206,157,255,.18)}.premium-footer-item{padding:.85rem .6rem}.premium-footer-item>small{font-size:.65rem}.premium-scroll-cue{margin-top:1.1rem}}
-@media(prefers-reduced-motion:reduce){.premium-castle-art{transition:none}.premium-castle-card:hover .premium-castle-art{transform:none}.premium-orbit{display:none}}
+.premium-floating-chip{position:absolute;z-index:3;display:grid;grid-template-columns:auto auto;align-items:center;column-gap:.45rem;padding:.7rem 1rem;border:1px solid rgba(224,184,255,.38);border-radius:18px;background:rgba(25,8,52,.76);backdrop-filter:blur(16px);box-shadow:0 14px 40px rgba(4,1,20,.4),0 0 26px rgba(175,94,239,.2);color:#fff}
+.premium-floating-chip>span{grid-row:span 2;color:#e3b7ff;font-size:1.45rem}
+.premium-floating-chip>b{font-size:1.15rem;line-height:1}
+.premium-floating-chip>small{font-size:.65rem;color:#d2bde9;white-space:nowrap}
+.chip-stars{top:3%;left:-3%}.chip-love{right:-2%;bottom:8%}
+.premium-hero-footer{display:grid;grid-template-columns:repeat(4,1fr);margin-top:clamp(2.4rem,5vw,4rem);border-top:1px solid rgba(206,157,255,.2);border-bottom:1px solid rgba(206,157,255,.14);background:linear-gradient(90deg,transparent,rgba(70,28,113,.18),transparent)}
+.premium-footer-item{display:grid;grid-template-columns:auto 1fr;align-items:center;column-gap:.65rem;padding:1rem clamp(.4rem,2vw,1.3rem);border-right:1px solid rgba(206,157,255,.18)}
+.premium-footer-item:last-child{border:0}
+.premium-footer-item>span{grid-row:span 2;color:#d99cff;font-size:1.25rem}
+.premium-footer-item>b{font-size:.85rem;line-height:1.25;color:#fff}
+.premium-footer-item>small{font-size:.7rem;color:#bda8da;line-height:1.3}
+.premium-scroll-cue{margin-top:1.2rem}
+@media (max-width:900px){.premium-hero{min-height:auto;padding-top:3.3rem}.premium-hero-grid{grid-template-columns:1fr;gap:1.7rem}.premium-hero-copy{text-align:center}.premium-hero-copy .eyebrow{justify-content:center}.premium-lead{margin-inline:auto}.premium-hero-actions{justify-content:center}.premium-note{justify-content:center}.premium-hero-visual{width:min(100%,760px);margin-inline:auto}.premium-castle-card{transform:none}.chip-stars{left:0}.chip-love{right:0}.premium-hero-footer{margin-top:2.2rem}}
+@media (max-width:560px){.premium-hero{padding-block:2.4rem 1.5rem}.premium-title{font-size:clamp(2.7rem,13vw,4.2rem)}.premium-pretitle{font-size:2.35rem}.premium-hero-actions{flex-direction:column;align-items:stretch}.premium-hero-actions .btn{width:100%}.premium-hero-visual{padding:.2rem}.premium-castle-card{border-radius:20px}.premium-floating-chip{padding:.55rem .75rem;border-radius:14px}.chip-stars{top:-3%;left:-1%}.chip-love{right:-1%;bottom:4%}.premium-hero-footer{grid-template-columns:repeat(2,1fr)}.premium-footer-item:nth-child(2){border-right:0}.premium-footer-item:nth-child(-n+2){border-bottom:1px solid rgba(206,157,255,.18)}.premium-footer-item{padding:.85rem .6rem}.premium-footer-item>small{font-size:.65rem}.premium-scroll-cue{margin-top:1.1rem}}
+@media (prefers-reduced-motion:reduce){.premium-castle-art{transition:none}.premium-castle-card:hover .premium-castle-art{transform:none}.premium-orbit{display:none}}
 
 </style>
 </head>
@@ -1276,37 +1243,21 @@ remium-hero-actions{justify-content:center}.premium-note{justify-content:center}
 <main id="main-content">
 
 <!-- ================= HERO ================= -->
-<section class="section hero" id="home">
-  <div class="shell">
-    <div class="hero-inner">
-      <p class="eyebrow">Seven stars · one sky</p>
-      <h1 class="display glow-title">Welcome, Nishi <span aria-hidden="true">💜</span></h1>
-      <p class="script">Your Purple Universe</p>
-    </div>
-
-    <div class="hero-art-wrap reveal">
-      <img class="hero-art" src="assets/purple-galaxy.svg"
-           alt="A purple moonlit galaxy with a fantasy castle and seven glowing stars"
-           width="300" height="130" fetchpriority="high" decoding="async">
-    </div>
-
-    <div class="shell" style="max-width:72ch">
-      <p class="lead" style="margin-inline:auto; text-align:center">
-        <span class="dearest">To My Dearest Nishi&nbsp;💜</span>
-        Somewhere in this universe, there is a bestie who wishes you endless happiness.
-        Never stop smiling.
-        <span class="bn">কোথাও এই মহাবিশ্বে একজন বন্ধু আছে যে তোমার অসীম সুখ কামনা করে। কখনো হাসতে থাকো।</span>
-      </p>
-      <div class="hero-actions">
-        <a class="btn" href="#realms">Enter the universe ✨</a>
-        <button class="btn ghost" id="ambience-btn" type="button" aria-pressed="false">♫ Play dreamy ambience</button>
-      </div>
-      <div class="scroll-cue" aria-hidden="true">
-        <span class="line"></span>
-        <span>Scroll to explore</span>
-      </div>
-    </div>
-  </div>
+<section class="section hero premium-hero" id="home">
+<div class="shell premium-hero-grid">
+<div class="premium-hero-copy">
+<p class="eyebrow">A little universe, made for you</p><p class="script premium-pretitle">Welcome, Nishi</p>
+<h1 class="display glow-title premium-title">Your Purple<br><span>Universe</span> <span aria-hidden="true">♡</span></h1>
+<p class="lead premium-lead">Seven stars above you. A thousand memories waiting. One magical world made with love.<span class="bn">সাতটি তারা তোমার আকাশে। হাজারো স্মৃতি অপেক্ষায়। ভালোবাসায় তৈরি এক জাদুকরী জগৎ।</span></p>
+<div class="premium-hero-actions"><a class="btn premium-primary" href="#realms">Explore your universe <span aria-hidden="true">✦</span></a><button class="btn ghost" id="ambience-btn" type="button" aria-pressed="false">♫ Play dreamy ambience</button></div>
+<div class="premium-note"><span class="premium-note-dot"></span> OT7 forever · made especially for Nishi</div>
+</div>
+<div class="premium-hero-visual"><div class="premium-orbit premium-orbit-one" aria-hidden="true"></div><div class="premium-orbit premium-orbit-two" aria-hidden="true"></div>
+<figure class="premium-castle-card reveal"><img class="hero-art premium-castle-art" src="assets/purple-galaxy.svg" alt="A moonlit purple fantasy castle beneath seven glowing stars" width="1200" height="520" fetchpriority="high" decoding="async"><figcaption class="premium-castle-caption"><span class="premium-caption-kicker">Your story begins here</span><span class="premium-caption-title">Beyond the stars <span aria-hidden="true">💜</span></span></figcaption></figure>
+<div class="premium-floating-chip chip-stars"><span>✧</span><b>7</b><small>stars, one sky</small></div><div class="premium-floating-chip chip-love"><span>♡</span><b>∞</b><small>purple love</small></div>
+</div></div>
+<div class="shell premium-hero-footer"><div class="premium-footer-item"><span>✦</span><b>OT7</b><small>One family</small></div><div class="premium-footer-item"><span>♫</span><b>Music</b><small>Your favorite songs</small></div><div class="premium-footer-item"><span>✿</span><b>Memories</b><small>Little moments</small></div><div class="premium-footer-item"><span>♡</span><b>For Nishi</b><small>Always, with love</small></div></div>
+<div class="scroll-cue premium-scroll-cue" aria-hidden="true"><span class="line"></span><span>Scroll to discover</span></div>
 </section>
 
 <!-- ================= REALMS ================= -->
