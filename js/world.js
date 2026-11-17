@@ -2283,6 +2283,14 @@ export function initWorld(canvas, opts = {}) {
     state.renderer.setAnimationLoop(tick);
     return { ok: true };
   } catch (e) {
+    // Partial scene construction may already own GPU buffers, textures,
+    // render targets, listeners, and an animation loop. Release them before
+    // returning control to the CSS fallback; never leave a half-built world.
+    try {
+      dispose();
+    } catch (cleanupError) {
+      console.warn('[nishi] partial world cleanup failed:', cleanupError && cleanupError.message);
+    }
     state.ready = false;
     return { ok: false, reason: (e && e.message) || 'unknown error while building the world' };
   }
