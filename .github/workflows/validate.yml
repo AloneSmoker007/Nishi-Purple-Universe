@@ -53,6 +53,6 @@ jobs:
           for required in ('premium-hero-grid', 'premium-castle-card', 'premium-hero-footer',
                            'assets/purple-galaxy.svg', 'Explore your universe'):
               assert required in premium, f"Missing premium hero element: {required}"
-          assert '@media(max-width:900px)' in html and '@media(max-width:560px)' in html
+          assert '@media (max-width:900px)' in html and '@media(max-width:560px)' in html
           print("Premium hero and responsive breakpoints: PASS")
           PY
