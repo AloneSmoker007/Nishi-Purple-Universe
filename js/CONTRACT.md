@@ -10,6 +10,7 @@
 | `index.html` | integrator | structure + ALL CSS |
 | `js/world.js` | agent `world3d` | Three.js 3D world |
 | `js/audio.js` | agent `audio` | WebAudio ambient engine |
+| `js/player.js` | integrator | Official YouTube playback + local-device MP3 selection |
 | `js/ui.js` | integrator | DOM interactions, game, storybook, i18n |
 | `js/quest.js` | integrator | "Nishi, Tell Me Your Universe" Q&A + personalised reveal (Phase 3-4) |
 | `js/wishes.js` | integrator | Purple Wishing Stars — catch shooting stars, make wishes (Phase 6) |
@@ -110,3 +111,11 @@ cd /home/work/.openclaw/workspace/nishi-build
 node --input-type=module -e "import('./js/<yours>.js').then(()=>console.log('OK')).catch(e=>{console.error('FAIL',e.message);process.exit(1)})"
 ```
 Also run `node --check` equivalent and report the exact output you saw.
+
+## Music playback rules — `js/player.js`
+
+- BTS tracks must use official YouTube embeds/links; never download, mirror, or re-host copyrighted audio.
+- Visitors may select up to 10 local MP3 files, 20 MB maximum each. Files must remain in the browser session and never be uploaded or persisted.
+- Switching sources must pause the previous source immediately; stale asynchronous completions and inactive-source events must not restart playback or change UI state.
+- Revoke temporary object URLs when leaving the page. Treat filenames as untrusted text.
+- YouTube/API failure may use the existing Web Audio ambience, but ambience must start only after a user gesture.

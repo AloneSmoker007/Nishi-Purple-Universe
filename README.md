@@ -9,3 +9,13 @@ A small bilingual (English/Bangla) fan-made surprise website for Nishi.
 4. Wait for the Pages deployment. The site URL will appear in Settings → Pages.
 
 This is an unofficial fan-made tribute and is not affiliated with BTS or BIGHIT MUSIC. It uses no official BTS images, logos, audio, or lyrics.
+
+## Music room
+- BTS tracks are streamed through official YouTube embeds; copyrighted audio is not downloaded or re-hosted.
+- Visitors can select up to 10 MP3 files from their own device (20 MB maximum per file). Files remain local to the browser session and are never uploaded.
+- Local MP3 playback pauses YouTube first; switching back to a BTS track pauses local playback. Only the active source may update playback state.
+- Temporary object URLs are revoked when the page is closed or reloaded.
+
+### Mobile playback compatibility
+- The player uses YouTube's inline playback mode and keeps the native MP3 picker call inside the visitor's tap gesture for Android/iOS browser restrictions.
+- Android Chrome testing should cover file selection, MP3 decode/playback, source switching, background/lock-screen behavior, and low-memory recovery before release.
