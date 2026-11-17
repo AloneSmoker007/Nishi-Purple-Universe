@@ -329,10 +329,13 @@ export function initPlayer() {
   });
 
   const localInput = $('#player-local-files');
-  $('#player-add-local')?.addEventListener('click', () => localInput && localInput.click());
+  $('#player-add-local')?.addEventListener('click', (event) => {
+    // Keep the native file picker directly inside the user's tap/click gesture (Android/iOS browsers require this).
+    if (localInput) localInput.click();
+  });
   localInput?.addEventListener('change', () => {
     const selected = Array.from(localInput.files || []);
-    const accepted = selected.filter(file => file.type === 'audio/mpeg' || /\.mp3$/i.test(file.name));
+    const accepted = selected.filter(file => /\.mp3$/i.test(file.name) || ['audio/mpeg', 'audio/mp3', 'audio/x-mpeg'].includes((file.type || '').toLowerCase()));
     const valid = accepted.filter(file => file.size > 0 && file.size <= 20 * 1024 * 1024);
     const remaining = Math.max(0, 10 - state.localUrls.size);
     const files = valid.slice(0, remaining);
