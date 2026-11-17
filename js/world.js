@@ -143,6 +143,7 @@ const state = {
   clouds: [],
   waterfalls: [],
   composer: null,
+  contextHandlers: null,
   bloomStrength: 0.45,
   vignetteAmount: 0.42,
   chromaticAmount: 0.0012,
@@ -2145,8 +2146,10 @@ function swapAntialias(wantAA) {
   const parent = state.canvas && state.canvas.parentNode;
   if (!parent) return false;
   try {
-    const fresh = state.canvas.cloneNode(false); // keeps id/class/style attributes
-    parent.replaceChild(fresh, state.canvas);
+    const previousCanvas = state.canvas;
+    const fresh = previousCanvas.cloneNode(false); // keeps id/class/style attributes
+    detachContextHandlers(previousCanvas);
+    parent.replaceChild(fresh, previousCanvas);
     disposePostProcessing();
     try {
       state.renderer.dispose();
@@ -2186,14 +2189,26 @@ function createRenderer(canvas, antialias) {
   return renderer;
 }
 
+function detachContextHandlers(canvas = state.canvas) {
+  const handlers = state.contextHandlers;
+  if (!canvas || !handlers) return;
+  canvas.removeEventListener('webglcontextlost', handlers.lost);
+  canvas.removeEventListener('webglcontextrestored', handlers.restored);
+  state.contextHandlers = null;
+}
+
 function attachContextHandlers(canvas) {
-  canvas.addEventListener('webglcontextlost', (e) => {
+  detachContextHandlers();
+  const lost = (e) => {
     e.preventDefault();
     state.ctxLost = true;
-  });
-  canvas.addEventListener('webglcontextrestored', () => {
+  };
+  const restored = () => {
     state.ctxLost = false;
-  });
+  };
+  state.contextHandlers = { lost, restored };
+  canvas.addEventListener('webglcontextlost', lost);
+  canvas.addEventListener('webglcontextrestored', restored);
 }
 
 function webglAvailable() {
@@ -2451,6 +2466,7 @@ export function dispose() {
   if (state.disposed) return;
   state.disposed = true;
   cancelIntro();
+  detachContextHandlers();
   try {
     if (state.renderer) state.renderer.setAnimationLoop(null);
   } catch (e) {
