@@ -10,14 +10,9 @@
  * the player degrades to the local WebAudio ambience so the room is never silent.
  */
 
-const TRACKS = [
-  { id: '7C2z4GqqS5E', title: 'Fake Love',   note: '💜' },
-  { id: '0lapF4DQPKQ', title: 'Save Me',     note: '🌙' },
-  { id: 'GZjt_sA2eso', title: 'Black Swan',  note: '🦢' },
-  { id: 'mPVDGOVjRQ0', title: 'ON',          note: '⚡' },
-  { id: 'MBdVXkSdhwU', title: 'DNA',         note: '🧬' },
-  { id: 'tCX0oMf6XQY', title: 'FYA?',        note: '✨' },
-];
+import { siteConfig } from '../content/site-config.js';
+
+const TRACKS = siteConfig.tracks;
 
 const state = {
   ready: false,
