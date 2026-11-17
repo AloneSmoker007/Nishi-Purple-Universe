@@ -32,6 +32,8 @@ const state = {
   localUrls: new Set(),
   activeSource: 'youtube',
   requestId: 0,
+  initialized: false,
+  progressTimer: 0,
 };
 
 const $  = (s, r = document) => r.querySelector(s);
@@ -108,6 +110,19 @@ function renderPlaylist() {
   });
 }
 
+function syncProgressTimer() {
+  const shouldRun = state.playing && !state.fallback &&
+    state.activeSource === 'youtube' && !document.hidden;
+  if (shouldRun && !state.progressTimer) {
+    state.progressTimer = window.setInterval(() => {
+      if (state.playing && !state.fallback && state.activeSource === 'youtube') syncUI();
+    }, 1000);
+  } else if (!shouldRun && state.progressTimer) {
+    clearInterval(state.progressTimer);
+    state.progressTimer = 0;
+  }
+}
+
 function syncUI() {
   renderPlaylist();
   const t = TRACKS[state.current];
@@ -131,6 +146,7 @@ function syncUI() {
       bar.style.width = d ? `${Math.min(100, (c / d) * 100)}%` : '0%';
     } catch { /* player not ready */ }
   }
+  syncProgressTimer();
 }
 
 function setStatus(text) {
@@ -299,7 +315,8 @@ function prevTrack() {
  * ---------------------------------------------------------------- */
 export function initPlayer() {
   const room = $('#music-room');
-  if (!room) return;
+  if (!room || state.initialized) return;
+  state.initialized = true;
   state.localAudio = new Audio();
   state.localAudio.preload = 'none';
   state.localAudio.addEventListener('ended', () => { if (state.activeSource === 'local') nextTrack(true); });
@@ -353,12 +370,20 @@ export function initPlayer() {
     toast(files.length + ' local MP3 track(s) added');
     localInput.value = '';
   });
+  document.addEventListener('visibilitychange', syncUI);
+  window.addEventListener('pagehide', () => {
+    if (state.progressTimer) {
+      clearInterval(state.progressTimer);
+      state.progressTimer = 0;
+    }
+  });
+  window.addEventListener('pageshow', syncUI);
   window.addEventListener('beforeunload', () => {
+    if (state.progressTimer) clearInterval(state.progressTimer);
+    state.progressTimer = 0;
     if (state.localAudio) { state.localAudio.pause(); state.localAudio.removeAttribute('src'); }
     state.localUrls.forEach(url => URL.revokeObjectURL(url));
   }, { once: true });
-  // progress tick (cheap: one DOM write per second, only while playing)
-  setInterval(() => { if (state.playing && !state.fallback) syncUI(); }, 1000);
 }
 
 export function getPlayerState() {
