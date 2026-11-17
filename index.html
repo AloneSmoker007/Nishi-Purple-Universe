@@ -807,7 +807,8 @@ html.js .reveal.is-in{opacity:1; transform:none}
 }
 .player-stage iframe{position:absolute; inset:0; width:100%; height:100%; border:0}
 #music-room.is-local .player-stage{display:none}
-.player-local-tools{display:flex;justify-content:center;padding:0 1rem 1rem}
+.player-local-tools{display:flex;justify-content:center;padding:0 1rem 1rem;gap:.75rem;align-items:center;flex-wrap:wrap}
+.player-local-tools .btn{min-height:48px;touch-action:manipulation}
 #player-local-files{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 .player-bar{
   display:flex; flex-wrap:wrap; align-items:center; gap:.65rem .85rem;
@@ -819,6 +820,7 @@ html.js .reveal.is-in{opacity:1; transform:none}
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
 .pbtn{
+  touch-action:manipulation; user-select:none; -webkit-user-select:none;
   width:52px; height:52px; flex:0 0 52px; border-radius:50%; cursor:pointer;
   border:1px solid var(--stroke-hot); color:#fff; font-size:1.05rem;
   background:linear-gradient(150deg,#7F2CC4,#A75BE8);
@@ -842,6 +844,7 @@ html.js .reveal.is-in{opacity:1; transform:none}
 }
 .player-list{list-style:none; margin:0; padding:.65rem; display:grid; gap:.35rem}
 .player-track{
+  touch-action:manipulation;
   width:100%; display:flex; align-items:center; gap:.95rem; text-align:left;
   padding:.95rem 1.05rem; border-radius:var(--r-md); cursor:pointer;
   background:transparent; border:1px solid transparent; color:inherit;
