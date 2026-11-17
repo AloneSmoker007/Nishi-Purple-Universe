@@ -40,11 +40,8 @@ const world = {
     this.canvas = $('#scene-canvas');
     if (!this.canvas) return;
 
-    // HARD GATE: the Three.js world pulls in 687 KB and keeps a permanent
-    // requestAnimationFrame loop alive. Mobile Safari has a tight GPU/memory
-    // budget and reloads or blanks the page when that runs alongside large
-    // backdrop-filter blurs. Phones therefore get the lightweight CSS/canvas
-    // layer, which is beautiful and cannot crash. The ✦ FAB can force 3D on.
+    // Load the 3D world on capable phones as well as desktops. Quality is
+    // selected adaptively below; WebGL/import failures retain the CSS fallback.
     if (!canRunWebGL()) {
       document.body.classList.add('no-webgl');
       return;
@@ -148,10 +145,8 @@ function canRunWebGL() {
     if (pref === 'off') return false;
   } catch { /* private mode */ }
 
-  // Phones and tablets: skip the 3D world entirely.
-  if (isPhoneLike()) return false;
-  // Only skip 3D on genuinely ancient hardware. Phones are already handled
-  // by isPhoneLike(); this is a last-resort safety net, not a spec sheet.
+  // Keep the 3D experience available on mobile; reject only genuinely
+  // constrained hardware and visitors who explicitly request data saving.
   const mem = navigator.deviceMemory;
   const cores = navigator.hardwareConcurrency;
   if (typeof mem === 'number' && mem < 2) return false;
@@ -160,20 +155,6 @@ function canRunWebGL() {
   const conn = navigator.connection;
   if (conn && conn.saveData) return false;
   return true;
-}
-
-/**
- * A phone is a small viewport, or a coarse pointer with real touch and a
- * modest width. `(hover: none)` alone is unreliable — headless browsers and
- * some desktop setups report it even with a mouse — so it is not used here.
- * A touchscreen laptop at 1440px is *not* a phone and should get the 3D world.
- */
-function isPhoneLike() {
-  const coarse = window.matchMedia('(pointer: coarse)').matches;
-  const touch = (navigator.maxTouchPoints || 0) > 0;
-  if (window.innerWidth < 900) return true;
-  if (coarse && touch && window.innerWidth < 1200) return true;
-  return false;
 }
 
 /* ---------------------------------------------------------------
