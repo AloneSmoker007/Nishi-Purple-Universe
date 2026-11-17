@@ -47,6 +47,10 @@ try {
     const pageErrors = [];
     page.on('pageerror', error => pageErrors.push(error.message));
     const localFailures = [];
+    let contentConfigLoaded = false;
+    page.on('response', response => {
+      if (response.url().endsWith('/content/site-config.js') && response.ok()) contentConfigLoaded = true;
+    });
     page.on('requestfailed', request => {
       if (request.url().startsWith('http://127.0.0.1:4173/')) localFailures.push(request.url());
     });
@@ -79,6 +83,7 @@ try {
       mainSections: ['music-room', 'story', 'quest-mount'].every(id => !!document.getElementById(id))
     }));
     assert.ok(layout.title.includes('Nishi'), profile.name + ': title missing');
+    assert.ok(contentConfigLoaded, profile.name + ': central editable content config did not load');
     assert.ok(layout.mainSections, profile.name + ': core sections missing');
     assert.ok(layout.canvas && layout.canvasState, profile.name + ': 3D canvas is neither rendering nor explicitly using CSS fallback');
     assert.ok(layout.scrollWidth <= layout.width + 2,
