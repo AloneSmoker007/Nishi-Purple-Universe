@@ -84,6 +84,31 @@ try {
     assert.ok(layout.scrollWidth <= layout.width + 2,
       profile.name + ': horizontal overflow (' + layout.scrollWidth + ' > ' + layout.width + ')');
 
+    const premium = await page.evaluate(() => {
+      const hero = document.querySelector('#home');
+      const copy = document.querySelector('.premium-hero-copy');
+      const visual = document.querySelector('.premium-hero-visual');
+      const art = document.querySelector('.premium-castle-art');
+      if (!hero || !copy || !visual || !art) return { present: false };
+      const a = copy.getBoundingClientRect();
+      const b = visual.getBoundingClientRect();
+      return {
+        present: true,
+        heading: !!hero.querySelector('h1') && !!hero.querySelector('h1').textContent.trim(),
+        imageLoaded: art.complete && art.naturalWidth > 0,
+        copyVisible: a.width > 0 && a.height > 0,
+        visualVisible: b.width > 0 && b.height > 0,
+        desktopColumns: window.innerWidth <= 900 || b.left >= a.right - 8,
+        mobileStack: window.innerWidth > 900 || b.top >= a.bottom - 8
+      };
+    });
+    assert.ok(premium.present, profile.name + ': premium hero markup missing');
+    assert.ok(premium.heading, profile.name + ': hero heading missing');
+    assert.ok(premium.imageLoaded, profile.name + ': castle artwork failed to load');
+    assert.ok(premium.copyVisible && premium.visualVisible, profile.name + ': hero content is not visible');
+    assert.ok(premium.desktopColumns, profile.name + ': desktop hero columns overlap');
+    assert.ok(premium.mobileStack, profile.name + ': mobile hero columns do not stack');
+
     const menu = page.locator('#nav-toggle');
     const mobileMenu = await menu.isVisible();
     if (mobileMenu) {
