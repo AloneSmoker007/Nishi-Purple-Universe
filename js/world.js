@@ -615,7 +615,10 @@ function buildMoon() {
   state.scene.add(dir);
   state.scene.add(dir.target);
   dir.castShadow = true;
-  dir.shadow.mapSize.set(2048, 2048);
+  // A 2048² shadow map is costly on mobile GPUs; 1024² retains the castle
+  // silhouette while cutting shadow-map texel memory and fill work by 75%.
+  const shadowSize = state.isMobile ? 1024 : 2048;
+  dir.shadow.mapSize.set(shadowSize, shadowSize);
   dir.shadow.camera.near = 200;
   dir.shadow.camera.far = 1600;
   dir.shadow.camera.left = -320;
@@ -1953,12 +1956,24 @@ function disposePostProcessing() {
   }
 }
 
+function postProcessingSize() {
+  if (!state.renderer) return { w: 1, h: 1 };
+  // The post pass is a full-screen effect, so phones can render it below
+  // native DPR without reducing the main canvas' CSS dimensions.
+  const scale = state.isMobile
+    ? ({ high: 0.85, medium: 0.7, low: 0.55 }[state.quality] || 0.7)
+    : 1;
+  return {
+    w: Math.max(1, Math.floor(state.renderer.domElement.width * scale)),
+    h: Math.max(1, Math.floor(state.renderer.domElement.height * scale)),
+  };
+}
+
 function setupPostProcessing() {
   if (!state.renderer || !state.scene || !state.camera) return;
   disposePostProcessing();
 
-  const w = state.renderer.domElement.width;
-  const h = state.renderer.domElement.height;
+  const { w, h } = postProcessingSize();
 
   // Offscreen render target (scene renders here first)
   const rt = new THREE.WebGLRenderTarget(w, h, {
@@ -2100,9 +2115,10 @@ function renderWithPostProcessing() {
 
 function resizePostProcessing() {
   if (!state.composer || !state.renderer) return;
-  const w = state.renderer.domElement.width;
-  const h = state.renderer.domElement.height;
-  state.composer.renderTarget.setSize(w, h);
+  const { w, h } = postProcessingSize();
+  if (state.composer.renderTarget.width !== w || state.composer.renderTarget.height !== h) {
+    state.composer.renderTarget.setSize(w, h);
+  }
   state.composer.material.uniforms.uResolution.value.set(w, h);
 }
 
