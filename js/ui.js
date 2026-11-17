@@ -56,9 +56,17 @@ const world = {
 
     try {
       const mod = await import('./world.js');
-      if (typeof mod.initWorld !== 'function') return;
+      if (typeof mod.initWorld !== 'function') {
+        document.body.classList.add('no-webgl');
+        return;
+      }
       const res = mod.initWorld(this.canvas, { reducedMotion: REDUCED, touch: IS_TOUCH });
-      if (res && res.ok === false) return;
+      if (!res || res.ok === false) {
+        document.body.classList.add('no-webgl');
+        this.canvas.classList.remove('is-live');
+        console.warn('[nishi] 3D world fell back to CSS:', res && res.reason || 'initialisation failed');
+        return;
+      }
       this.api = mod;
       this.ready = true;
       // Reveal the canvas only once a real frame exists, so the visitor never
@@ -89,7 +97,9 @@ const world = {
       if (typeof mod.setReducedMotion === 'function') mod.setReducedMotion(REDUCED);
       this.applyQuality(detectQuality());
     } catch (err) {
-      console.warn('[nishi] 3D world unavailable:', err && err.message);
+      document.body.classList.add('no-webgl');
+      this.canvas?.classList.remove('is-live');
+      console.warn('[nishi] 3D world unavailable; CSS fallback enabled:', err && err.message);
     }
   },
   applyQuality(level) {
