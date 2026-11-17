@@ -8,14 +8,15 @@ const root = process.cwd();
 const mime = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8',
   '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png',
-  '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.woff2': 'font/woff2',
-  '.txt': 'text/plain; charset=utf-8', '.json': 'application/json'
+  '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp',
+  '.woff2': 'font/woff2', '.txt': 'text/plain; charset=utf-8',
+  '.json': 'application/json'
 };
 const server = http.createServer((req, res) => {
   let pathname;
   try { pathname = decodeURIComponent(new URL(req.url, 'http://127.0.0.1').pathname); }
   catch { res.writeHead(400).end(); return; }
-  const relative = pathname === '/' ? 'index.html' : pathname.replace(/^\/+/, '');
+  const relative = pathname === '/' ? 'index.html' : pathname.replace(/^\\/+/, '');
   const target = path.resolve(root, relative);
   if (!target.startsWith(root + path.sep) && target !== path.join(root, 'index.html')) {
     res.writeHead(403).end(); return;
