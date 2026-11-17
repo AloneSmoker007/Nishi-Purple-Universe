@@ -179,6 +179,7 @@ async function ensurePlayer() {
 
 async function startFallback(msg, requestId = state.requestId) {
   if (requestId !== state.requestId || state.activeSource !== 'youtube') return;
+  state.activeSource = 'ambient';
   state.fallback = true;
   setStatus(msg || 'YouTube is unavailable. Ambient sound or your own MP3 is ready.');
   try {
@@ -188,8 +189,7 @@ async function startFallback(msg, requestId = state.requestId) {
       if (!result || !result.ok) throw new Error(result && result.reason || 'Ambient audio unavailable');
       state.ambience = mod;
     }
-    if (requestId !== state.requestId || state.activeSource !== 'youtube') return;
-    state.activeSource = 'ambient';
+    if (requestId !== state.requestId || state.activeSource !== 'ambient') return;
     state.ambience.startAmbience();
     state.playing = true;
     setStatus('Dreamy purple ambience is ready · choose an MP3 for your own music');
