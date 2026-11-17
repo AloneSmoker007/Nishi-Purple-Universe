@@ -189,11 +189,12 @@ async function startFallback(msg, requestId = state.requestId) {
       state.ambience = mod;
     }
     if (requestId !== state.requestId || state.activeSource !== 'youtube') return;
+    state.activeSource = 'ambient';
     state.ambience.startAmbience();
     state.playing = true;
     setStatus('Dreamy purple ambience is ready · choose an MP3 for your own music');
   } catch (err) {
-    if (requestId !== state.requestId || state.activeSource !== 'youtube') return;
+    if (requestId !== state.requestId || state.activeSource !== 'ambient') return;
     state.playing = false;
     setStatus('YouTube is unavailable. You can still add an MP3 from your device.');
     console.warn('[nishi] ambient fallback unavailable:', err && err.message);
@@ -274,7 +275,7 @@ function pause() {
 }
 
 function toggle() {
-  if (state.fallback && state.activeSource === 'youtube') {
+  if (state.fallback && state.activeSource === 'ambient') {
     if (state.playing) { state.ambience && state.ambience.stopAmbience(); state.playing = false; }
     else { state.ambience && state.ambience.startAmbience(); state.playing = true; }
     syncUI();
