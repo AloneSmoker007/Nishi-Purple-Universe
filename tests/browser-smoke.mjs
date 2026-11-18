@@ -125,9 +125,9 @@ try {
     await secretWorld.locator('.nishi-photocard-pull').click();
     const pulledCard = secretWorld.locator('.nishi-photocard');
     await pulledCard.waitFor({ state: 'visible' });
-    assert.ok(['RM', 'Jin', 'SUGA', 'j-hope', 'Jimin', 'V', 'Jung Kook'].some(name =>
-      pulledCard.locator('.nishi-photocard-member').textContent().then(value => value.includes(name))),
-      profile.name + ': photocard should feature one OT7 member');
+    const pulledMember = (await pulledCard.locator('.nishi-photocard-member').textContent()).trim();
+    assert.ok(['RM', 'Jin', 'SUGA', 'j-hope', 'Jimin', 'V', 'Jung Kook'].includes(pulledMember),
+      profile.name + ': photocard should feature exactly one OT7 member');
 
     // Allow either a real first WebGL frame or the explicit CSS fallback timeout.
     await page.waitForTimeout(2300);
