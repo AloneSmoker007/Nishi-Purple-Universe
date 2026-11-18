@@ -62,6 +62,20 @@ try {
     await page.locator('#story').waitFor({ state: 'attached' });
     await page.locator('#quest-mount').waitFor({ state: 'attached' });
 
+    // The entire experience must stay behind the birthday PIN gate.
+    const pinLock = page.locator('#pin-lock');
+    await pinLock.waitFor({ state: 'visible' });
+    assert.equal(await page.locator('#main-content').evaluate(el => el.inert), true,
+      profile.name + ': site content should be inert before PIN unlock');
+    for (const digit of '11111111') await pinLock.locator('[data-pin-digit="' + digit + '"]').click();
+    await page.locator('#pin-lock-status').waitFor({ state: 'visible' });
+    assert.match(await page.locator('#pin-lock-status').textContent(), /Not quite/,
+      profile.name + ': incorrect PIN should be rejected');
+    for (const digit of '20062008') await pinLock.locator('[data-pin-digit="' + digit + '"]').click();
+    await pinLock.waitFor({ state: 'hidden' });
+    assert.equal(await page.locator('#main-content').evaluate(el => el.inert), false,
+      profile.name + ': site content should become interactive after correct PIN');
+
     // The first-visit cinematic intro intentionally blocks background controls.
     // Dismiss it through its real user-facing action before testing the page UI.
     const intro = page.locator('#intro');
