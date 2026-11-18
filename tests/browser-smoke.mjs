@@ -74,13 +74,15 @@ try {
     assert.equal(await mascot.getAttribute('data-mood'), 'thinking',
       profile.name + ': mascot should think while PIN digits are entered');
     await pinLock.locator('[data-pin-action="clear"]').click();
+    assert.equal(await mascot.getAttribute('data-mood'), 'idle',
+      profile.name + ': clearing PIN should reset the mascot to idle');
     for (const digit of '11111111') await pinLock.locator('[data-pin-digit="' + digit + '"]').click();
-    await page.waitForFunction(() => /Not quite/.test(document.querySelector('#pin-lock-status')?.textContent || ''));
+    await page.waitForFunction(() => /Oopsie/.test(document.querySelector('#pin-lock-status')?.textContent || ''));
     assert.equal(await mascot.getAttribute('data-mood'), 'sad',
       profile.name + ': first incorrect PIN should make the mascot sad');
     await page.waitForFunction(() => !document.querySelector('#pin-lock .pin-key')?.disabled);
     for (const digit of '11111111') await pinLock.locator('[data-pin-digit="' + digit + '"]').click();
-    await page.waitForFunction(() => /Not quite/.test(document.querySelector('#pin-lock-status')?.textContent || ''));
+    await page.waitForFunction(() => /crying/.test(document.querySelector('#pin-lock-status')?.textContent || ''));
     assert.equal(await mascot.getAttribute('data-mood'), 'crying',
       profile.name + ': repeated incorrect PIN should make the mascot cry');
     await page.waitForFunction(() => !document.querySelector('#pin-lock .pin-key')?.disabled);
