@@ -52,9 +52,9 @@ if (overlay) {
       dotsLabel?.setAttribute('aria-label', `Eight digit PIN, ${entered.length} digits entered`);
     };
 
-    const clear = () => {
+    const clear = (resetMood = true) => {
       entered = '';
-      setMood('idle');
+      if (resetMood) setMood('idle');
       render();
     };
 
@@ -74,7 +74,7 @@ if (overlay) {
             ? 'Oh nooo! Bubu & Dudu are crying 🥺 Try once more, Nishi!'
             : 'Oopsie! Bubu is a little sad. Try again 💜';
           status.classList.add('is-error');
-          clear();
+          clear(false);
           return;
         }
         try { sessionStorage.setItem(SESSION_KEY, '1'); } catch { /* unlock current page even if storage is blocked */ }
