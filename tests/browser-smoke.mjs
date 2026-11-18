@@ -68,9 +68,9 @@ try {
     assert.equal(await page.locator('#main-content').evaluate(el => el.inert), true,
       profile.name + ': site content should be inert before PIN unlock');
     for (const digit of '11111111') await pinLock.locator('[data-pin-digit="' + digit + '"]').click();
-    await page.locator('#pin-lock-status').waitFor({ state: 'visible' });
-    assert.match(await page.locator('#pin-lock-status').textContent(), /Not quite/,
-      profile.name + ': incorrect PIN should be rejected');
+    await page.waitForFunction(() => /Not quite/.test(document.querySelector('#pin-lock-status')?.textContent || ''));
+    await pinLock.locator('[data-pin-digit="2"]').waitFor({ state: 'visible' });
+    await page.waitForFunction(() => !document.querySelector('#pin-lock .pin-key')?.disabled);
     for (const digit of '20062008') await pinLock.locator('[data-pin-digit="' + digit + '"]').click();
     await pinLock.waitFor({ state: 'hidden' });
     assert.equal(await page.locator('#main-content').evaluate(el => el.inert), false,
