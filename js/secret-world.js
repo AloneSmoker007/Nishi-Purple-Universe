@@ -190,14 +190,73 @@ function initSecretWorld() {
   hugPanel.append(hugCopy, hugCopyBn, hugButton, hugStatus);
   shell.append(hugPanel);
 
+
+  // Magic Shop + photocard pull. Wish text stays in this browser and is never transmitted.
+  const magicPanel = el("section", "nishi-secret-panel nishi-magic-shop");
+  magicPanel.setAttribute("aria-labelledby", "nishi-magic-title");
+  const magicTitle = el("h3", null, config.magicShop.title);
+  magicTitle.id = "nishi-magic-title";
+  magicPanel.append(magicTitle, el("p", "nishi-secret-copy", config.magicShop.copy), el("p", "bn nishi-secret-bn", config.magicShop.copyBn));
+  const wishLabel = el("label", "nishi-magic-label", config.magicShop.wishLabel);
+  const wishInput = el("input", "nishi-magic-input");
+  wishInput.type = "text";
+  wishInput.maxLength = 160;
+  wishInput.autocomplete = "off";
+  wishInput.placeholder = config.magicShop.wishPlaceholder;
+  wishInput.setAttribute("aria-label", config.magicShop.wishLabel);
+  const wishButton = el("button", "btn nishi-magic-open", config.magicShop.openButton);
+  wishButton.type = "button";
+  const wishStatus = el("p", "nishi-magic-status");
+  wishStatus.setAttribute("role", "status");
+  wishButton.addEventListener("click", () => {
+    wishStatus.replaceChildren();
+    wishStatus.append(el("span", null, config.magicShop.comfortMessage));
+    wishStatus.append(el("span", "bn nishi-secret-bn", config.magicShop.comfortMessageBn));
+    if (wishInput.value.trim()) {
+      wishStatus.append(el("span", "nishi-magic-private-note", config.magicShop.privateNote));
+    }
+  });
+  const wishRow = el("div", "nishi-magic-wish-row");
+  wishLabel.htmlFor = "nishi-magic-wish";
+  wishInput.id = "nishi-magic-wish";
+  wishRow.append(wishInput, wishButton);
+  magicPanel.append(wishLabel, wishRow, wishStatus);
+
+  const gachaTitle = el("h4", "nishi-gacha-title", config.magicShop.gachaTitle);
+  const gachaCopy = el("p", "nishi-secret-copy", config.magicShop.gachaCopy);
+  const pullButton = el("button", "btn nishi-photocard-pull", config.magicShop.pullButton);
+  pullButton.type = "button";
+  const cardStage = el("div", "nishi-photocard-stage");
+  cardStage.setAttribute("aria-live", "polite");
+  const pullStatus = el("p", "nishi-photocard-status");
+  pullStatus.setAttribute("role", "status");
+  const members = config.magicShop.members;
+  pullButton.addEventListener("click", () => {
+    if (!Array.isArray(members) || !members.length) return;
+    const member = members[Math.floor(Math.random() * members.length)];
+    const rare = Math.random() < 1 / 21;
+    const card = el("article", "nishi-photocard" + (rare ? " is-rare" : ""));
+    card.setAttribute("aria-label", rare ? config.magicShop.rareLabel : config.magicShop.cardLabel);
+    card.append(el("span", "nishi-photocard-sparkle", rare ? "✦ ULTRA RARE ✦" : "✧ PURPLE COLLECTION ✧"));
+    card.append(el("span", "nishi-photocard-star", member.symbol || "✦"));
+    card.append(el("strong", "nishi-photocard-member", member.name));
+    card.append(el("span", "nishi-photocard-caption", rare ? config.magicShop.rareMessage : config.magicShop.cardMessage));
+    card.append(el("span", "bn nishi-secret-bn", rare ? config.magicShop.rareMessageBn : config.magicShop.cardMessageBn));
+    cardStage.replaceChildren(card);
+    pullStatus.textContent = rare ? config.magicShop.rareLabel : config.magicShop.cardLabel;
+  });
+  magicPanel.append(gachaTitle, gachaCopy, pullButton, cardStage, pullStatus);
+  shell.append(magicPanel);
+
   section.append(shell);
   host.parentNode.insertBefore(section, host.nextSibling);
 }
 
 function start() {
-  if (document.getElementById("pin-lock")) {
-    document.addEventListener("nishi:pin-unlocked", initSecretWorld, { once: true });
-  } else {
+  document.addEventListener("nishi:pin-unlocked", initSecretWorld, { once: true });
+  // Module dependencies may finish loading just after the PIN event. The
+  // persistent in-page marker makes late startup safe without double-rendering.
+  if (!document.getElementById("pin-lock") || document.body.classList.contains("nishi-pin-unlocked")) {
     initSecretWorld();
   }
 }
