@@ -40,16 +40,21 @@ if (overlay) {
     const dotsLabel = overlay.querySelector('#pin-lock-dots');
     const status = overlay.querySelector('#pin-lock-status');
     const keys = overlay.querySelector('.pin-lock-keypad');
+    const mascot = overlay.querySelector('#pin-mascot');
     let entered = '';
     let checking = false;
+    let failedAttempts = 0;
+
+    const setMood = mood => mascot?.setAttribute('data-mood', mood);
 
     const render = () => {
       dots.forEach((dot, index) => dot.classList.toggle('is-filled', index < entered.length));
       dotsLabel?.setAttribute('aria-label', `Eight digit PIN, ${entered.length} digits entered`);
     };
 
-    const clear = () => {
+    const clear = (resetMood = true) => {
       entered = '';
+      if (resetMood) setMood('idle');
       render();
     };
 
@@ -63,18 +68,23 @@ if (overlay) {
         const digest = await crypto.subtle.digest('SHA-256', bytes);
         const actual = [...new Uint8Array(digest)].map(byte => byte.toString(16).padStart(2, '0')).join('');
         if (actual !== PIN_SHA256) {
-          status.textContent = 'Not quite! Try Nishi’s birthday again 💜';
+          failedAttempts += 1;
+          setMood(failedAttempts > 1 ? 'crying' : 'sad');
+          status.textContent = failedAttempts > 1
+            ? 'Oh nooo! Bubu & Dudu are crying 🥺 Try once more, Nishi!'
+            : 'Oopsie! Bubu is a little sad. Try again 💜';
           status.classList.add('is-error');
-          clear();
+          clear(false);
           return;
         }
         try { sessionStorage.setItem(SESSION_KEY, '1'); } catch { /* unlock current page even if storage is blocked */ }
-        status.textContent = 'A little magic is opening… ✨';
+        setMood('happy');
+        status.textContent = 'YAY! Bubu & Dudu are celebrating with you! 💜✨';
         overlay.classList.add('is-unlocking');
         window.setTimeout(() => {
           overlay.remove();
           announceUnlocked();
-        }, 480);
+        }, 700);
       } catch {
         status.textContent = 'Please open this page in a modern secure browser.';
         status.classList.add('is-error');
@@ -88,6 +98,7 @@ if (overlay) {
     const addDigit = digit => {
       if (checking || entered.length >= 8 || !/^[0-9]$/.test(digit)) return;
       entered += digit;
+      setMood('thinking');
       status.classList.remove('is-error');
       status.textContent = 'Made with love, just for you 💜';
       render();
@@ -101,6 +112,7 @@ if (overlay) {
       if (button.dataset.pinAction === 'clear') clear();
       if (button.dataset.pinAction === 'backspace') {
         entered = entered.slice(0, -1);
+        setMood(entered.length ? 'thinking' : 'idle');
         render();
       }
     });
@@ -112,6 +124,7 @@ if (overlay) {
       } else if (event.key === 'Backspace') {
         event.preventDefault();
         entered = entered.slice(0, -1);
+        setMood(entered.length ? 'thinking' : 'idle');
         render();
       } else if (event.key === 'Escape') {
         event.preventDefault();

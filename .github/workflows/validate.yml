@@ -68,6 +68,13 @@ jobs:
           lock = open("js/pin-lock.js", encoding="utf-8").read()
           assert "nishi:pin-unlocked" in lock and "sessionStorage" in lock
           assert "PIN_SHA256" in lock
+          for mood in ('idle', 'thinking', 'sad', 'crying', 'happy'):
+              assert f'data-mood="{mood}"' in html or f"'{mood}'" in lock, f"Missing mascot mood: {mood}"
+          assert 'id="pin-mascot"' in html and 'Bubu &amp; Dudu' in html
+          smoke = open("tests/browser-smoke.mjs", encoding="utf-8").read()
+          for mood in ('idle', 'thinking', 'sad', 'crying', 'happy'):
+              assert f"'{mood}'" in smoke, f"Missing browser smoke assertion for {mood}"
+          print("Bubu & Dudu PIN mood states: PASS")
           ui = open("js/ui.js", encoding="utf-8").read()
           assert "startAfterPinUnlock" in ui
           print("Full-site birthday PIN gate and deferred startup: PASS")
