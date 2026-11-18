@@ -11,7 +11,22 @@
   const keys = overlay.querySelector('.pin-lock-keypad');
   const mascot = overlay.querySelector('#pin-mascot');
   let entered = '', checking = false, failedAttempts = 0;
-  function mood(value) { if (mascot) mascot.setAttribute('data-mood', value); }
+  const mascotStickers = {
+    idle: 'https://media1.tenor.com/m/dHMBUC-iGXgAAAAd/bubu-dudu.gif',
+    thinking: 'https://media1.tenor.com/m/dHMBUC-iGXgAAAAd/bubu-dudu.gif',
+    sad: 'https://media.tenor.com/BOLqQTbf9QgAAAAj/dudu-sad.gif',
+    crying: 'https://media.tenor.com/4-S7eXPVyfQAAAAj/bubu-dudu-sseeyall.gif',
+    happy: 'https://media1.tenor.com/m/dHMBUC-iGXgAAAAd/bubu-dudu.gif'
+  };
+  function mood(value) {
+    if (!mascot) return;
+    mascot.setAttribute('data-mood', value);
+    const next = mascotStickers[value] || mascotStickers.idle;
+    if (!mascot.src.endsWith(next)) mascot.src = next;
+    mascot.alt = value === 'sad' ? 'Dudu the white panda looking sad'
+      : value === 'crying' ? 'Dudu the white panda crying'
+      : 'Bubu the brown bear cuddling Dudu the white panda';
+  }
   function render() { dots.forEach((dot, i) => dot.classList.toggle('is-filled', i < entered.length)); if (dotsLabel) dotsLabel.setAttribute('aria-label', 'Eight digit PIN, ' + entered.length + ' digits entered'); }
   function setStatus(message, error) { if (!status) return; status.textContent = message; status.classList.toggle('is-error', !!error); }
   function clear(resetMood) { entered = ''; if (resetMood !== false) mood('idle'); render(); }
