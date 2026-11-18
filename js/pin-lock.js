@@ -22,6 +22,7 @@ function setInert(locked) {
 
 function announceUnlocked() {
   document.body.classList.remove('pin-locked');
+  document.body.classList.add('nishi-pin-unlocked');
   setInert(false);
   document.dispatchEvent(new CustomEvent('nishi:pin-unlocked'));
 }
