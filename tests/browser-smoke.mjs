@@ -8,8 +8,9 @@ const root = process.cwd();
 const mime = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8',
   '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png',
-  '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.woff2': 'font/woff2',
-  '.txt': 'text/plain; charset=utf-8', '.json': 'application/json'
+  '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp',
+  '.woff2': 'font/woff2', '.txt': 'text/plain; charset=utf-8',
+  '.json': 'application/json'
 };
 const server = http.createServer((req, res) => {
   let pathname;
@@ -47,6 +48,10 @@ try {
     const pageErrors = [];
     page.on('pageerror', error => pageErrors.push(error.message));
     const localFailures = [];
+    let contentConfigLoaded = false;
+    page.on('response', response => {
+      if (response.url().endsWith('/content/site-config.js') && response.ok()) contentConfigLoaded = true;
+    });
     page.on('requestfailed', request => {
       if (request.url().startsWith('http://127.0.0.1:4173/')) localFailures.push(request.url());
     });
@@ -79,10 +84,36 @@ try {
       mainSections: ['music-room', 'story', 'quest-mount'].every(id => !!document.getElementById(id))
     }));
     assert.ok(layout.title.includes('Nishi'), profile.name + ': title missing');
+    assert.ok(contentConfigLoaded, profile.name + ': central editable content config did not load');
     assert.ok(layout.mainSections, profile.name + ': core sections missing');
     assert.ok(layout.canvas && layout.canvasState, profile.name + ': 3D canvas is neither rendering nor explicitly using CSS fallback');
     assert.ok(layout.scrollWidth <= layout.width + 2,
       profile.name + ': horizontal overflow (' + layout.scrollWidth + ' > ' + layout.width + ')');
+
+    const premium = await page.evaluate(() => {
+      const hero = document.querySelector('#home');
+      const copy = document.querySelector('.premium-hero-copy');
+      const visual = document.querySelector('.premium-hero-visual');
+      const art = document.querySelector('.premium-castle-art');
+      if (!hero || !copy || !visual || !art) return { present: false };
+      const a = copy.getBoundingClientRect();
+      const b = visual.getBoundingClientRect();
+      return {
+        present: true,
+        heading: !!hero.querySelector('h1') && !!hero.querySelector('h1').textContent.trim(),
+        imageLoaded: art.complete && art.naturalWidth > 0,
+        copyVisible: a.width > 0 && a.height > 0,
+        visualVisible: b.width > 0 && b.height > 0,
+        desktopColumns: window.innerWidth <= 900 || b.left >= a.right - 8,
+        mobileStack: window.innerWidth > 900 || b.top >= a.bottom - 8
+      };
+    });
+    assert.ok(premium.present, profile.name + ': premium hero markup missing');
+    assert.ok(premium.heading, profile.name + ': hero heading missing');
+    assert.ok(premium.imageLoaded, profile.name + ': castle artwork failed to load');
+    assert.ok(premium.copyVisible && premium.visualVisible, profile.name + ': hero content is not visible');
+    assert.ok(premium.desktopColumns, profile.name + ': desktop hero columns overlap');
+    assert.ok(premium.mobileStack, profile.name + ': mobile hero columns do not stack');
 
     const menu = page.locator('#nav-toggle');
     const mobileMenu = await menu.isVisible();

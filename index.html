@@ -1130,6 +1130,103 @@ body:has(.nav-links.is-open) .float-controls{opacity:0; pointer-events:none}
   .hero-art-wrap{margin-block:.85rem}
 }
 
+
+/* ---------- Nishi premium hero experience ---------- */
+.premium-hero{display:block;isolation:isolate;min-height:calc(100svh - 70px);padding-block:clamp(3.2rem,7vw,6.4rem) 2.5rem;overflow:clip}
+.premium-hero::before{content:"";position:absolute;z-index:-1;inset:4% -12% 10%;pointer-events:none;background:radial-gradient(ellipse at 72% 42%,rgba(145,64,224,.25),transparent 52%),radial-gradient(ellipse at 14% 60%,rgba(88,34,154,.22),transparent 48%)}
+.premium-hero-grid{display:grid;grid-template-columns:minmax(0,.82fr) minmax(0,1.18fr);align-items:center;gap:clamp(1.8rem,5vw,5rem)}
+.premium-hero-copy{position:relative;z-index:2;padding-block:1.5rem}
+.premium-pretitle{font-size:clamp(2rem,4vw,3.5rem);margin:0 0 .15em}
+.premium-title{font-size:clamp(2.8rem,6.2vw,5.8rem);line-height:.98;margin:0 0 .45em;letter-spacing:-.035em}
+.premium-title span:first-child{color:#e2b7ff;text-shadow:0 0 28px rgba(199,125,255,.48)}
+.premium-title span[aria-hidden]{color:#ffb9e4}
+.premium-lead{max-width:46ch;margin:0;color:#e0d1f7;font-size:clamp(1rem,1.45vw,1.18rem)}
+.premium-hero-actions{display:flex;flex-wrap:wrap;gap:.8rem;margin-top:1.7rem}
+.premium-primary{background:linear-gradient(120deg,#7930ba,#ad5be9 58%,#d28cf6);box-shadow:0 12px 35px rgba(137,58,207,.3),0 0 38px rgba(190,111,255,.24)}
+.premium-note{display:flex;align-items:center;gap:.65rem;margin-top:1.55rem;color:#c9b3e8;font-size:.82rem;letter-spacing:.12em;text-transform:uppercase}
+.premium-note-dot{width:7px;height:7px;border-radius:50%;background:#dba5ff;box-shadow:0 0 14px #c77dff}
+.premium-hero-visual{position:relative;min-width:0;padding:clamp(.4rem,2vw,1.5rem)}
+.premium-castle-card{position:relative;margin:0;overflow:hidden;isolation:isolate;border-radius:clamp(20px,3vw,34px);border:1px solid rgba(229,190,255,.46);background:#16072e;box-shadow:0 30px 90px rgba(4,1,20,.62),0 0 55px rgba(163,82,226,.28),inset 0 1px rgba(255,255,255,.3);transform:perspective(1200px) rotateY(-3deg) rotateX(1deg)}
+.premium-castle-card::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 45%,rgba(12,3,29,.86) 100%);pointer-events:none}
+.premium-castle-art{display:block;width:100%;height:auto;aspect-ratio:1200/520;object-fit:cover;border-radius:inherit;box-shadow:none;transition:transform 1.2s cubic-bezier(.2,.8,.2,1)}
+.premium-castle-card:hover .premium-castle-art{transform:scale(1.045)}
+.premium-castle-caption{position:absolute;z-index:1;left:clamp(1rem,3vw,2rem);right:1rem;bottom:clamp(1rem,3vw,2rem);display:flex;flex-direction:column;gap:.15rem}
+.premium-caption-kicker{font-size:.7rem;letter-spacing:.24em;text-transform:uppercase;color:#e7caff}
+.premium-caption-title{font-size:clamp(1.3rem,2.5vw,2.2rem);font-weight:800;color:white;text-shadow:0 2px 18px #25083f}
+.premium-orbit{position:absolute;border:1px solid rgba(215,165,255,.2);border-radius:50%;pointer-events:none}
+.premium-orbit-one{inset:-8% -5%;transform:rotate(-14deg)}
+.premium-orbit-two{inset:4% -11%;transform:rotate(18deg);border-color:rgba(255,198,235,.14)}
+.premium-floating-chip{position:absolute;z-index:3;display:grid;grid-template-columns:auto auto;align-items:center;column-gap:.45rem;padding:.7rem 1rem;border:1px solid rgba(224,184,255,.38);border-radius:18px;background:rgba(25,8,52,.76);backdrop-filter:blur(16px);box-shadow:0 14px 40px rgba(4,1,20,.4),0 0 26px rgba(175,94,239,.2);color:#fff}
+.premium-floating-chip>span{grid-row:span 2;color:#e3b7ff;font-size:1.45rem}
+.premium-floating-chip>b{font-size:1.15rem;line-height:1}
+.premium-floating-chip>small{font-size:.65rem;color:#d2bde9;white-space:nowrap}
+.chip-stars{top:3%;left:-3%}.chip-love{right:-2%;bottom:8%}
+.premium-hero-footer{display:grid;grid-template-columns:repeat(4,1fr);margin-top:clamp(2.4rem,5vw,4rem);border-top:1px solid rgba(206,157,255,.2);border-bottom:1px solid rgba(206,157,255,.14);background:linear-gradient(90deg,transparent,rgba(70,28,113,.18),transparent)}
+.premium-footer-item{display:grid;grid-template-columns:auto 1fr;align-items:center;column-gap:.65rem;padding:1rem clamp(.4rem,2vw,1.3rem);border-right:1px solid rgba(206,157,255,.18)}
+.premium-footer-item:last-child{border:0}
+.premium-footer-item>span{grid-row:span 2;color:#d99cff;font-size:1.25rem}
+.premium-footer-item>b{font-size:.85rem;line-height:1.25;color:#fff}
+.premium-footer-item>small{font-size:.7rem;color:#bda8da;line-height:1.3}
+.premium-scroll-cue{margin-top:1.2rem}
+@media (max-width:900px){.premium-hero{min-height:auto;padding-top:3.3rem}.premium-hero-grid{grid-template-columns:1fr;gap:1.7rem}.premium-hero-copy{text-align:center}.premium-hero-copy .eyebrow{justify-content:center}.premium-lead{margin-inline:auto}.premium-hero-actions{justify-content:center}.premium-note{justify-content:center}.premium-hero-visual{width:min(100%,760px);margin-inline:auto}.premium-castle-card{transform:none}.chip-stars{left:0}.chip-love{right:0}.premium-hero-footer{margin-top:2.2rem}}
+@media (max-width:560px){.premium-hero{padding-block:2.4rem 1.5rem}.premium-title{font-size:clamp(2.7rem,13vw,4.2rem)}.premium-pretitle{font-size:2.35rem}.premium-hero-actions{flex-direction:column;align-items:stretch}.premium-hero-actions .btn{width:100%}.premium-hero-visual{padding:.2rem}.premium-castle-card{border-radius:20px}.premium-floating-chip{padding:.55rem .75rem;border-radius:14px}.chip-stars{top:-3%;left:-1%}.chip-love{right:-1%;bottom:4%}.premium-hero-footer{grid-template-columns:repeat(2,1fr)}.premium-footer-item:nth-child(2){border-right:0}.premium-footer-item:nth-child(-n+2){border-bottom:1px solid rgba(206,157,255,.18)}.premium-footer-item{padding:.85rem .6rem}.premium-footer-item>small{font-size:.65rem}.premium-scroll-cue{margin-top:1.1rem}}
+@media (prefers-reduced-motion:reduce){.premium-castle-art{transition:none}.premium-castle-card:hover .premium-castle-art{transform:none}.premium-orbit{display:none}}
+
+
+/* ---------- Purple Universe premium finish ---------- */
+/* Consistent depth, spacing and section transitions across the complete experience. */
+:root{scroll-padding-top:5.5rem}
+.section[id]{scroll-margin-top:5.5rem}
+.section:not(.premium-hero)::before{content:"";position:absolute;z-index:-1;inset:0;pointer-events:none;opacity:.72;background:radial-gradient(ellipse at 50% 0%,rgba(123,44,191,.105),transparent 58%)}
+.section:nth-of-type(even):not(.premium-hero)::before{background:radial-gradient(ellipse at 18% 45%,rgba(199,125,255,.075),transparent 52%),radial-gradient(ellipse at 85% 75%,rgba(255,105,180,.045),transparent 48%)}
+.section-head{position:relative}
+.section-head::after{content:"✦  ·  ✧  ·  ✦";display:block;margin:1.25rem auto 0;color:rgba(224,180,255,.76);font-size:.78rem;letter-spacing:.42em;text-shadow:0 0 18px rgba(199,125,255,.65)}
+#realm-grid{align-items:stretch}
+.realm,.member,.song,.story-card,.player,.game-stage,.wish-scene,.gift-stage,.violet-corner,.memory,.panel{backface-visibility:hidden}
+.realm,.member,.song,.story-card,.player,.game-stage,.wish-scene,.gift-stage,.violet-corner,.memory{box-shadow:0 18px 52px rgba(4,1,16,.28),inset 0 1px 0 rgba(255,255,255,.045)}
+.member{min-height:100%;display:flex;flex-direction:column;align-items:center}
+.member .trait{max-width:25ch;margin-inline:auto}
+.member .tags{margin-top:auto;padding-top:1rem}
+.member .halo{position:relative;isolation:isolate;box-shadow:0 0 0 7px rgba(199,125,255,.055),0 0 34px var(--accent-glow,rgba(199,125,255,.35)),inset 0 1px rgba(255,255,255,.32)}
+.member.is-v{border-color:rgba(199,125,255,.62);background:radial-gradient(ellipse at 50% 0%,rgba(199,125,255,.2),transparent 65%),linear-gradient(180deg,rgba(123,44,191,.28),rgba(26,11,59,.68))}
+.song{min-height:92px}
+.song-note{transition:transform .4s cubic-bezier(.2,.8,.2,1),box-shadow .4s}
+.song:hover .song-note,.song:focus-visible .song-note{transform:rotate(-8deg) scale(1.07);box-shadow:0 0 30px rgba(199,125,255,.38)}
+.story-card{position:relative;overflow:hidden}
+.story-card::before,.player::before,.gift-stage::before{content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;background:linear-gradient(135deg,rgba(255,255,255,.055),transparent 28%,transparent 70%,rgba(199,125,255,.07))}
+.story-card>* ,.player>* ,.gift-stage>*{position:relative}
+.player{position:relative}
+.player-bar{position:relative}
+.player-bar::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:1px;background:linear-gradient(90deg,transparent,rgba(199,125,255,.6),transparent)}
+.memory{isolation:isolate}
+.memory img{transition:transform .8s cubic-bezier(.2,.8,.2,1)}
+.game-stage,.wish-scene{isolation:isolate}
+#wish-form input{min-width:0}
+#ot7-grid{align-items:stretch}
+#ot7-grid .member{height:100%}
+#surprise .gift-stage{box-shadow:0 30px 90px rgba(4,1,16,.42),0 0 70px rgba(157,75,220,.13),inset 0 1px rgba(255,255,255,.12)}
+:where(a,button,input,textarea,select,[tabindex]):focus-visible{outline:3px solid rgba(255,215,0,.92);outline-offset:4px}
+@media(hover:hover) and (pointer:fine){
+  .member:hover{transform:translateY(-8px) scale(1.012)}
+  .memory:hover img{transform:scale(1.035)}
+}
+@media(max-width:700px){
+  .section[id]{scroll-margin-top:4.5rem}
+  .section-head::after{margin-top:.9rem}
+  .story-choice{display:grid;grid-template-columns:1fr}
+  .story-choice .btn{width:100%}
+  .wish-form{padding-inline:1rem;flex-wrap:wrap}
+  .wish-form input{flex-basis:100%;min-height:50px}
+  .wish-form .btn{width:100%}
+  .player-bar{gap:.55rem}
+  .player-now{min-width:calc(100% - 1rem);order:5}
+  .player-trackline{order:6;flex-basis:100%}
+}
+@media(prefers-reduced-motion:reduce){
+  .memory img,.song-note{transition:none}
+  .member:hover,.memory:hover img,.song:hover .song-note{transform:none}
+}
+
 </style>
 </head>
 <body>
@@ -1201,37 +1298,21 @@ body:has(.nav-links.is-open) .float-controls{opacity:0; pointer-events:none}
 <main id="main-content">
 
 <!-- ================= HERO ================= -->
-<section class="section hero" id="home">
-  <div class="shell">
-    <div class="hero-inner">
-      <p class="eyebrow">Seven stars · one sky</p>
-      <h1 class="display glow-title">Welcome, Nishi <span aria-hidden="true">💜</span></h1>
-      <p class="script">Your Purple Universe</p>
-    </div>
-
-    <div class="hero-art-wrap reveal">
-      <img class="hero-art" src="assets/purple-galaxy.svg"
-           alt="A purple moonlit galaxy with a fantasy castle and seven glowing stars"
-           width="300" height="130" fetchpriority="high" decoding="async">
-    </div>
-
-    <div class="shell" style="max-width:72ch">
-      <p class="lead" style="margin-inline:auto; text-align:center">
-        <span class="dearest">To My Dearest Nishi&nbsp;💜</span>
-        Somewhere in this universe, there is a bestie who wishes you endless happiness.
-        Never stop smiling.
-        <span class="bn">কোথাও এই মহাবিশ্বে একজন বন্ধু আছে যে তোমার অসীম সুখ কামনা করে। কখনো হাসতে থাকো।</span>
-      </p>
-      <div class="hero-actions">
-        <a class="btn" href="#realms">Enter the universe ✨</a>
-        <button class="btn ghost" id="ambience-btn" type="button" aria-pressed="false">♫ Play dreamy ambience</button>
-      </div>
-      <div class="scroll-cue" aria-hidden="true">
-        <span class="line"></span>
-        <span>Scroll to explore</span>
-      </div>
-    </div>
-  </div>
+<section class="section hero premium-hero" id="home">
+<div class="shell premium-hero-grid">
+<div class="premium-hero-copy">
+<p class="eyebrow">A little universe, made for you</p><p class="script premium-pretitle">Welcome, Nishi</p>
+<h1 class="display glow-title premium-title">Your Purple<br><span>Universe</span> <span aria-hidden="true">♡</span></h1>
+<p class="lead premium-lead">Seven stars above you. A thousand memories waiting. One magical world made with love.<span class="bn">সাতটি তারা তোমার আকাশে। হাজারো স্মৃতি অপেক্ষায়। ভালোবাসায় তৈরি এক জাদুকরী জগৎ।</span></p>
+<div class="premium-hero-actions"><a class="btn premium-primary" href="#realms">Explore your universe <span aria-hidden="true">✦</span></a><button class="btn ghost" id="ambience-btn" type="button" aria-pressed="false">♫ Play dreamy ambience</button></div>
+<div class="premium-note"><span class="premium-note-dot"></span> OT7 forever · made especially for Nishi</div>
+</div>
+<div class="premium-hero-visual"><div class="premium-orbit premium-orbit-one" aria-hidden="true"></div><div class="premium-orbit premium-orbit-two" aria-hidden="true"></div>
+<figure class="premium-castle-card reveal"><img class="hero-art premium-castle-art" data-content-image="hero" src="assets/purple-galaxy.svg" alt="A moonlit purple fantasy castle beneath seven glowing stars" width="1200" height="520" fetchpriority="high" decoding="async"><figcaption class="premium-castle-caption"><span class="premium-caption-kicker">Your story begins here</span><span class="premium-caption-title">Beyond the stars <span aria-hidden="true">💜</span></span></figcaption></figure>
+<div class="premium-floating-chip chip-stars"><span>✧</span><b>7</b><small>stars, one sky</small></div><div class="premium-floating-chip chip-love"><span>♡</span><b>∞</b><small>purple love</small></div>
+</div></div>
+<div class="shell premium-hero-footer"><div class="premium-footer-item"><span>✦</span><b>OT7</b><small>One family</small></div><div class="premium-footer-item"><span>♫</span><b>Music</b><small>Your favorite songs</small></div><div class="premium-footer-item"><span>✿</span><b>Memories</b><small>Little moments</small></div><div class="premium-footer-item"><span>♡</span><b>For Nishi</b><small>Always, with love</small></div></div>
+<div class="scroll-cue premium-scroll-cue" aria-hidden="true"><span class="line"></span><span>Scroll to discover</span></div>
 </section>
 
 <!-- ================= REALMS ================= -->
@@ -1812,6 +1893,7 @@ body:has(.nav-links.is-open) .float-controls{opacity:0; pointer-events:none}
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <p class="visually-hidden" id="live-region" role="status" aria-live="polite"></p>
 
+<script type="module" src="js/content.js"></script>
 <script type="module" src="js/ui.js"></script>
 </body>
 </html>

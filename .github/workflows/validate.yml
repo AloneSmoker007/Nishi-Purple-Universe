@@ -2,7 +2,7 @@ name: Static validation
 
 on:
   push:
-    branches: [main]
+    branches: [main, 'feat/**']
   pull_request:
   workflow_dispatch:
 
@@ -28,6 +28,8 @@ jobs:
           node --check js/audio.js
           node --check js/player.js
           node --check js/wishes.js
+          node --check js/content.js
+          node --check content/site-config.js
       - name: Validate SEO and fallback files
         run: |
           test -s robots.txt
@@ -48,6 +50,19 @@ jobs:
                            'id="player-toggle"', 'id="player-local-files"', 'id="player-add-local"'):
               assert required in html, f"Missing music player element: {required}"
           print("Music player markup: PASS")
+          premium = html[html.index('class="section hero premium-hero"'):html.index('<!-- ================= REALMS ================= -->')]
+          for required in ('premium-hero-grid', 'premium-castle-card', 'premium-hero-footer',
+                           'assets/purple-galaxy.svg', 'Explore your universe'):
+              assert required in premium, f"Missing premium hero element: {required}"
+          assert '@media (max-width:900px)' in html and '@media (max-width:560px)' in html
+          assert html.count('id="home"') == 1
+          print("Premium hero structure and responsive breakpoints: PASS")
+          config = open("content/site-config.js", encoding="utf-8").read()
+          assert "export const siteConfig" in config
+          assert "tracks:" in config and "artwork:" in config
+          content = open("js/content.js", encoding="utf-8").read()
+          assert "fallbackSrc" in content and "hero.src = fallbackSrc" in content
+          print("Editable content config and SVG fallback: PASS")
           player = open("js/player.js", encoding="utf-8").read()
           assert "function syncProgressTimer()" in player
           assert "&& !document.hidden" in player
@@ -61,7 +76,7 @@ jobs:
           assert "const shadowSize = state.isMobile ? 1024 : 2048" in world
           print("Adaptive mobile GPU budgets: PASS")
           ui = open("js/ui.js", encoding="utf-8").read()
-          resize = ui.split("  resize() {", 1)[1].split("\n  },", 1)[0]
+          resize = ui.split("  resize() {", 1)[1].split("\\n  },", 1)[0]
           assert "classList.add('is-live')" not in resize
           print("WebGL visibility lifecycle: PASS")
           PY
