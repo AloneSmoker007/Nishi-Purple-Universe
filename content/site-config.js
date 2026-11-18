@@ -57,8 +57,7 @@ export const siteConfig = {
     hugButton: "Send me a warm hug 💜",
     hugThanks: "Hug delivered! Bubu & Dudu say: you are never a bother. 🧸💗",
     hugThanksBn: "আলিঙ্গন পৌঁছে গেছে! বুবু আর দুদু বলছে: তুমি কখনোই বিরক্তির কারণ নও। 🧸💗",
-  },
-  magicShop: {
+    magicShop: {
     title: "The Magic Shop 💜",
     copy: "Leave a little worry here. This tiny corner is only for comfort, kindness and a surprise.",
     copyBn: "একটু দুশ্চিন্তা এখানে রেখে যাও। এই ছোট্ট কোণটি শুধু স্বস্তি, মমতা আর একটি চমকের জন্য।",
@@ -83,6 +82,7 @@ export const siteConfig = {
       { name: "Jimin", symbol: "🦋" }, { name: "V", symbol: "🎨" },
       { name: "Jung Kook", symbol: "⭐" }
     ]
+    },
   },
   tracks: [
     { id: "7C2z4GqqS5E", title: "Fake Love", note: "💜" },
