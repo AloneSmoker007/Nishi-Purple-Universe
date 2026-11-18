@@ -76,6 +76,20 @@ try {
     assert.equal(await page.locator('#main-content').evaluate(el => el.inert), false,
       profile.name + ': site content should become interactive after correct PIN');
 
+    // The playful bilingual mini-arcade must appear only after PIN unlock.
+    const arcade = page.locator('#joy-arcade');
+    await arcade.waitFor({ state: 'visible' });
+    assert.equal(await arcade.locator('.joy-gift-card').count(), 3,
+      profile.name + ': expected three editable surprise cards');
+    const firstGift = arcade.locator('.joy-gift-card').first();
+    await firstGift.click();
+    assert.equal(await firstGift.getAttribute('aria-expanded'), 'true',
+      profile.name + ': selected surprise should expose expanded state');
+    assert.equal(await arcade.locator('#joy-arcade-reveal').isVisible(), true,
+      profile.name + ': selected surprise message should be visible');
+    assert.ok((await arcade.locator('.joy-arcade-reveal-message').textContent()).trim().length > 20,
+      profile.name + ': surprise message is missing');
+
     // The first-visit cinematic intro intentionally blocks background controls.
     // Dismiss it through its real user-facing action before testing the page UI.
     const intro = page.locator('#intro');
