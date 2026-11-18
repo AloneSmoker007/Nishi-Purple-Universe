@@ -40,11 +40,8 @@ const world = {
     this.canvas = $('#scene-canvas');
     if (!this.canvas) return;
 
-    // HARD GATE: the Three.js world pulls in 687 KB and keeps a permanent
-    // requestAnimationFrame loop alive. Mobile Safari has a tight GPU/memory
-    // budget and reloads or blanks the page when that runs alongside large
-    // backdrop-filter blurs. Phones therefore get the lightweight CSS/canvas
-    // layer, which is beautiful and cannot crash. The ✦ FAB can force 3D on.
+    // Load the 3D world on capable phones as well as desktops. Quality is
+    // selected adaptively below; WebGL/import failures retain the CSS fallback.
     if (!canRunWebGL()) {
       document.body.classList.add('no-webgl');
       return;
@@ -59,9 +56,17 @@ const world = {
 
     try {
       const mod = await import('./world.js');
-      if (typeof mod.initWorld !== 'function') return;
+      if (typeof mod.initWorld !== 'function') {
+        document.body.classList.add('no-webgl');
+        return;
+      }
       const res = mod.initWorld(this.canvas, { reducedMotion: REDUCED, touch: IS_TOUCH });
-      if (res && res.ok === false) return;
+      if (!res || res.ok === false) {
+        document.body.classList.add('no-webgl');
+        this.canvas.classList.remove('is-live');
+        console.warn('[nishi] 3D world fell back to CSS:', res && res.reason || 'initialisation failed');
+        return;
+      }
       this.api = mod;
       this.ready = true;
       // Reveal the canvas only once a real frame exists, so the visitor never
@@ -84,7 +89,22 @@ const world = {
         if (st && st.renderedFrames > 0) revealOnce();
         else {
           document.addEventListener('nishi:world-firstframe', revealOnce, { once: true });
-          setTimeout(revealOnce, 2000);
+          // Never reveal a canvas merely because time elapsed. If no frame
+          // rendered, release the failed renderer and keep the CSS fallback.
+          setTimeout(() => {
+            const status = typeof mod.getWorldStatus === 'function' ? mod.getWorldStatus() : null;
+            if (status && status.renderedFrames > 0) {
+              revealOnce();
+              return;
+            }
+            document.body.classList.add('no-webgl');
+            const c = $('#scene-canvas');
+            if (c) c.classList.remove('is-live');
+            try { mod.dispose && mod.dispose(); } catch { /* non-fatal */ }
+            this.ready = false;
+            this.api = null;
+            console.warn('[nishi] 3D produced no frame; CSS fallback retained.');
+          }, 2000);
         }
       } catch (e) {
         revealOnce();
@@ -92,7 +112,9 @@ const world = {
       if (typeof mod.setReducedMotion === 'function') mod.setReducedMotion(REDUCED);
       this.applyQuality(detectQuality());
     } catch (err) {
-      console.warn('[nishi] 3D world unavailable:', err && err.message);
+      document.body.classList.add('no-webgl');
+      this.canvas?.classList.remove('is-live');
+      console.warn('[nishi] 3D world unavailable; CSS fallback enabled:', err && err.message);
     }
   },
   applyQuality(level) {
@@ -119,10 +141,9 @@ const world = {
     } catch { return false; }
   },
   resize() {
+    // Resizing must never reveal a blank or context-lost canvas. The renderer's
+    // first-frame and context-restored signals own visibility transitions.
     try { this.api && this.api.resize && this.api.resize(); } catch { /* non-fatal */ }
-    // the canvas node may have been replaced by a quality change
-    const c = $('#scene-canvas');
-    if (c && this.ready) c.classList.add('is-live');
   }
 };
 
@@ -148,10 +169,8 @@ function canRunWebGL() {
     if (pref === 'off') return false;
   } catch { /* private mode */ }
 
-  // Phones and tablets: skip the 3D world entirely.
-  if (isPhoneLike()) return false;
-  // Only skip 3D on genuinely ancient hardware. Phones are already handled
-  // by isPhoneLike(); this is a last-resort safety net, not a spec sheet.
+  // Keep the 3D experience available on mobile; reject only genuinely
+  // constrained hardware and visitors who explicitly request data saving.
   const mem = navigator.deviceMemory;
   const cores = navigator.hardwareConcurrency;
   if (typeof mem === 'number' && mem < 2) return false;
@@ -160,20 +179,6 @@ function canRunWebGL() {
   const conn = navigator.connection;
   if (conn && conn.saveData) return false;
   return true;
-}
-
-/**
- * A phone is a small viewport, or a coarse pointer with real touch and a
- * modest width. `(hover: none)` alone is unreliable — headless browsers and
- * some desktop setups report it even with a mouse — so it is not used here.
- * A touchscreen laptop at 1440px is *not* a phone and should get the 3D world.
- */
-function isPhoneLike() {
-  const coarse = window.matchMedia('(pointer: coarse)').matches;
-  const touch = (navigator.maxTouchPoints || 0) > 0;
-  if (window.innerWidth < 900) return true;
-  if (coarse && touch && window.innerWidth < 1200) return true;
-  return false;
 }
 
 /* ---------------------------------------------------------------

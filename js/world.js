@@ -110,6 +110,7 @@ const state = {
   ready: false,
   disposed: false,
   ctxLost: false,
+  ctxRecoveryPending: false,
   quality: 'high',
   isMobile: false,
   reducedMotion: false,
@@ -143,6 +144,7 @@ const state = {
   clouds: [],
   waterfalls: [],
   composer: null,
+  contextHandlers: null,
   bloomStrength: 0.45,
   vignetteAmount: 0.42,
   chromaticAmount: 0.0012,
@@ -613,7 +615,10 @@ function buildMoon() {
   state.scene.add(dir);
   state.scene.add(dir.target);
   dir.castShadow = true;
-  dir.shadow.mapSize.set(2048, 2048);
+  // A 2048² shadow map is costly on mobile GPUs; 1024² retains the castle
+  // silhouette while cutting shadow-map texel memory and fill work by 75%.
+  const shadowSize = state.isMobile ? 1024 : 2048;
+  dir.shadow.mapSize.set(shadowSize, shadowSize);
   dir.shadow.camera.near = 200;
   dir.shadow.camera.far = 1600;
   dir.shadow.camera.left = -320;
@@ -1364,8 +1369,9 @@ function buildIslands() {
 }
 
 function updateWaterfalls(dt) {
+  const activeFraction = QUALITY_COUNTS[state.quality].fall;
   for (const w of state.waterfalls) {
-    const n = w.seedY.length;
+    const n = Math.floor(w.seedY.length * activeFraction);
     for (let i = 0; i < n; i++) {
       w.fpos[i * 3 + 1] -= dt * 34 * w.seedY[i];
       if (w.fpos[i * 3 + 1] < w.oy - w.fall) {
@@ -1564,7 +1570,7 @@ function buildPetals() {
 function updatePetals(dt) {
   const d = state.petalData;
   if (!d) return;
-  const n = d.sway.length;
+  const n = Math.min(d.sway.length, QUALITY_COUNTS[state.quality].petals);
   for (let i = 0; i < n; i++) {
     d.pos[i * 3] += (d.vel[i * 3] + Math.sin(state.time * 0.8 + d.sway[i]) * 1.7) * dt;
     d.pos[i * 3 + 1] += d.vel[i * 3 + 1] * dt;
@@ -1604,8 +1610,9 @@ function buildButterflies() {
   wingGeoR.translate(-0.48, 0, 0);
   state.disposables.push(wingGeoL, wingGeoR);
 
-  for (let i = 0; i < 16; i++) {
-    const [base, accent] = colors[i % colors.length];
+  // Six palette materials are shared by all 16 butterflies. Rebuilding the
+  // same 128px canvas texture for every butterfly wastes CPU and GPU memory.
+  const wingMaterials = colors.map(([base, accent]) => {
     const tex = makeWingTexture(base, accent);
     const mat = new THREE.MeshBasicMaterial({
       map: tex,
@@ -1615,6 +1622,11 @@ function buildButterflies() {
       opacity: 0.92,
     });
     state.disposables.push(mat);
+    return mat;
+  });
+
+  for (let i = 0; i < 16; i++) {
+    const mat = wingMaterials[i % wingMaterials.length];
     const group = new THREE.Group();
     const wingL = new THREE.Mesh(wingGeoL, mat);
     const wingR = new THREE.Mesh(wingGeoR, mat);
@@ -1639,7 +1651,9 @@ function buildButterflies() {
 }
 
 function updateButterflies() {
-  for (const b of state.butterflies) {
+  const count = QUALITY_COUNTS[state.quality].butterflies;
+  for (let i = 0; i < Math.min(count, state.butterflies.length); i++) {
+    const b = state.butterflies[i];
     const t = state.time * b.orbitSpeed + b.phase;
     b.group.position.set(
       b.cx + Math.sin(t) * b.orbitR,
@@ -1680,7 +1694,9 @@ function buildClouds() {
 }
 
 function updateClouds() {
-  for (const c of state.clouds) {
+  const count = QUALITY_COUNTS[state.quality].clouds;
+  for (let i = 0; i < Math.min(count, state.clouds.length); i++) {
+    const c = state.clouds[i];
     c.sprite.position.x = ((c.baseX + state.time * c.speed + c.phase + 700) % 1400) - 700;
     c.sprite.position.y += Math.sin(state.time * 0.07 + c.phase) * 0.02;
   }
@@ -1913,6 +1929,15 @@ function tick() {
   }
 
   renderWithPostProcessing();
+  if (state.ctxRecoveryPending) {
+    state.ctxRecoveryPending = false;
+    if (state.canvas) state.canvas.classList.add('is-live');
+    try {
+      document.dispatchEvent(new CustomEvent('nishi:world-context-restored'));
+    } catch (e) {
+      /* recovery signal must never break rendering */
+    }
+  }
   signalFirstFrame();
 }
 
@@ -1931,12 +1956,24 @@ function disposePostProcessing() {
   }
 }
 
+function postProcessingSize() {
+  if (!state.renderer) return { w: 1, h: 1 };
+  // The post pass is a full-screen effect, so phones can render it below
+  // native DPR without reducing the main canvas' CSS dimensions.
+  const scale = state.isMobile
+    ? ({ high: 0.85, medium: 0.7, low: 0.55 }[state.quality] || 0.7)
+    : 1;
+  return {
+    w: Math.max(1, Math.floor(state.renderer.domElement.width * scale)),
+    h: Math.max(1, Math.floor(state.renderer.domElement.height * scale)),
+  };
+}
+
 function setupPostProcessing() {
   if (!state.renderer || !state.scene || !state.camera) return;
   disposePostProcessing();
 
-  const w = state.renderer.domElement.width;
-  const h = state.renderer.domElement.height;
+  const { w, h } = postProcessingSize();
 
   // Offscreen render target (scene renders here first)
   const rt = new THREE.WebGLRenderTarget(w, h, {
@@ -1959,6 +1996,7 @@ function setupPostProcessing() {
       uVignetteAmount: { value: state.vignetteAmount },
       uChromaticAmount: { value: state.chromaticAmount },
       uTime: { value: 0 },
+      uMobile: { value: state.isMobile ? 1 : 0 },
     },
     vertexShader: /* glsl */ `
       varying vec2 vUv;
@@ -1974,6 +2012,7 @@ function setupPostProcessing() {
       uniform float uVignetteAmount;
       uniform float uChromaticAmount;
       uniform float uTime;
+      uniform float uMobile;
       varying vec2 vUv;
 
       // Simple box blur for bloom
@@ -2000,11 +2039,24 @@ function setupPostProcessing() {
         color.g = texture2D(tDiffuse, uv).g;
         color.b = texture2D(tDiffuse, uv - vec2(ca, 0.0)).b;
 
-        // Bloom: blur bright areas and add them back
-        vec3 blur1 = sampleBlur(uv, 4.0);
-        vec3 blur2 = sampleBlur(uv, 8.0);
-        vec3 blur3 = sampleBlur(uv, 16.0);
-        vec3 bloom = blur1 * 0.5 + blur2 * 0.3 + blur3 * 0.2;
+        // Bloom: use a lightweight five-tap approximation on phones.
+        // Desktop keeps the wider multi-radius blur for richer highlights.
+        vec3 bloom;
+        if (uMobile > 0.5) {
+          vec2 px = 2.0 / uResolution;
+          bloom = (
+            texture2D(tDiffuse, uv).rgb +
+            texture2D(tDiffuse, uv + vec2(px.x, 0.0)).rgb +
+            texture2D(tDiffuse, uv - vec2(px.x, 0.0)).rgb +
+            texture2D(tDiffuse, uv + vec2(0.0, px.y)).rgb +
+            texture2D(tDiffuse, uv - vec2(0.0, px.y)).rgb
+          ) * 0.2;
+        } else {
+          vec3 blur1 = sampleBlur(uv, 4.0);
+          vec3 blur2 = sampleBlur(uv, 8.0);
+          vec3 blur3 = sampleBlur(uv, 16.0);
+          bloom = blur1 * 0.5 + blur2 * 0.3 + blur3 * 0.2;
+        }
         // Extract bright parts (highlights)
         float brightness = dot(bloom, vec3(0.2126, 0.7152, 0.0722));
         vec3 bloomHighlights = bloom * smoothstep(0.45, 1.2, brightness);
@@ -2063,9 +2115,10 @@ function renderWithPostProcessing() {
 
 function resizePostProcessing() {
   if (!state.composer || !state.renderer) return;
-  const w = state.renderer.domElement.width;
-  const h = state.renderer.domElement.height;
-  state.composer.renderTarget.setSize(w, h);
+  const { w, h } = postProcessingSize();
+  if (state.composer.renderTarget.width !== w || state.composer.renderTarget.height !== h) {
+    state.composer.renderTarget.setSize(w, h);
+  }
   state.composer.material.uniforms.uResolution.value.set(w, h);
 }
 
@@ -2130,8 +2183,10 @@ function swapAntialias(wantAA) {
   const parent = state.canvas && state.canvas.parentNode;
   if (!parent) return false;
   try {
-    const fresh = state.canvas.cloneNode(false); // keeps id/class/style attributes
-    parent.replaceChild(fresh, state.canvas);
+    const previousCanvas = state.canvas;
+    const fresh = previousCanvas.cloneNode(false); // keeps id/class/style attributes
+    detachContextHandlers(previousCanvas);
+    parent.replaceChild(fresh, previousCanvas);
     disposePostProcessing();
     try {
       state.renderer.dispose();
@@ -2171,14 +2226,31 @@ function createRenderer(canvas, antialias) {
   return renderer;
 }
 
+function detachContextHandlers(canvas = state.canvas) {
+  const handlers = state.contextHandlers;
+  if (!canvas || !handlers) return;
+  canvas.removeEventListener('webglcontextlost', handlers.lost);
+  canvas.removeEventListener('webglcontextrestored', handlers.restored);
+  state.contextHandlers = null;
+}
+
 function attachContextHandlers(canvas) {
-  canvas.addEventListener('webglcontextlost', (e) => {
+  detachContextHandlers();
+  const lost = (e) => {
     e.preventDefault();
     state.ctxLost = true;
-  });
-  canvas.addEventListener('webglcontextrestored', () => {
+    state.ctxRecoveryPending = false;
+    if (canvas === state.canvas) canvas.classList.remove('is-live');
+  };
+  const restored = () => {
+    // Three.js restores its WebGL internals before this listener runs.
+    // Keep the CSS fallback visible until a real frame renders again.
     state.ctxLost = false;
-  });
+    state.ctxRecoveryPending = true;
+  };
+  state.contextHandlers = { lost, restored };
+  canvas.addEventListener('webglcontextlost', lost);
+  canvas.addEventListener('webglcontextrestored', restored);
 }
 
 function webglAvailable() {
@@ -2268,6 +2340,14 @@ export function initWorld(canvas, opts = {}) {
     state.renderer.setAnimationLoop(tick);
     return { ok: true };
   } catch (e) {
+    // Partial scene construction may already own GPU buffers, textures,
+    // render targets, listeners, and an animation loop. Release them before
+    // returning control to the CSS fallback; never leave a half-built world.
+    try {
+      dispose();
+    } catch (cleanupError) {
+      console.warn('[nishi] partial world cleanup failed:', cleanupError && cleanupError.message);
+    }
     state.ready = false;
     return { ok: false, reason: (e && e.message) || 'unknown error while building the world' };
   }
@@ -2428,6 +2508,7 @@ export function dispose() {
   if (state.disposed) return;
   state.disposed = true;
   cancelIntro();
+  detachContextHandlers();
   try {
     if (state.renderer) state.renderer.setAnimationLoop(null);
   } catch (e) {
