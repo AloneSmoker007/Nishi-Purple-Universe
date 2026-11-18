@@ -44,3 +44,9 @@ The whole experience is gated by the birthday keypad in `index.html` and `js/pin
 - The 3D world, music player and interactive sections wait until the visitor unlocks the page.
 
 **Privacy note:** this is a client-side surprise gate, not strong authentication. The static site must deliver its HTML and JavaScript to visitors, so a determined person can inspect or bypass the PIN check. Do not use it to protect private or sensitive information.
+
+
+## Playful birthday arcade
+
+The bilingual mini-arcade is loaded from `js/playful-moments.js` and styled in `css/playful-moments.css`.
+Edit `playfulArcade` in `content/site-config.js` to change its English/Bangla title, three gift labels and reveal messages. The arcade appears after the birthday PIN is unlocked and respects reduced-motion settings.
