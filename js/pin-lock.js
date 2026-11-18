@@ -84,7 +84,7 @@ if (overlay) {
         window.setTimeout(() => {
           overlay.remove();
           announceUnlocked();
-        }, 480);
+        }, 700);
       } catch {
         status.textContent = 'Please open this page in a modern secure browser.';
         status.classList.add('is-error');
@@ -124,6 +124,7 @@ if (overlay) {
       } else if (event.key === 'Backspace') {
         event.preventDefault();
         entered = entered.slice(0, -1);
+        setMood(entered.length ? 'thinking' : 'idle');
         render();
       } else if (event.key === 'Escape') {
         event.preventDefault();
