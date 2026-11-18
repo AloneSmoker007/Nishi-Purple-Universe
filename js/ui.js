@@ -1121,10 +1121,19 @@ function boot() {
   });
 }
 
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', boot, { once: true });
-} else {
+function startAfterPinUnlock() {
+  // Do not start audio, the 3D renderer, or interactive modules behind the lock.
+  if (document.getElementById('pin-lock')) {
+    document.addEventListener('nishi:pin-unlocked', boot, { once: true });
+    return;
+  }
   boot();
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', startAfterPinUnlock, { once: true });
+} else {
+  startAfterPinUnlock();
 }
 
 // Expose a tiny debug handle (no sensitive data) for manual QA.
