@@ -81,6 +81,12 @@ jobs:
           for required in ("nishi-secret-world", "nishi-star-card", "nishi-letter-reveal", "nishi-hug-button"):
               assert required in smoke, f"Missing Secret World browser assertion: {required}"
           print("Bilingual Secret World, OT7 treasure hunt, Open-When letters and virtual hug: PASS")
+          assert "magicShop:" in config and "ULTRA RARE" in config and "Jung Kook" in config
+          assert "nishi-photocard-pull" in secret and "nishi-magic-open" in secret
+          assert "nishi-photocard" in secret_css and "prefers-reduced-motion" in secret_css
+          assert "nishi-pin-unlocked" in open("js/pin-lock.js", encoding="utf-8").read()
+          assert "nishi-magic-wish" in smoke and "nishi-photocard-pull" in smoke
+          print("Magic Shop comfort reveal, OT7 photocard gacha and late PIN-unlock startup: PASS")
           for mood in ('idle', 'thinking', 'sad', 'crying', 'happy'):
               assert f'data-mood="{mood}"' in html or f"'{mood}'" in lock, f"Missing mascot mood: {mood}"
           assert 'id="pin-mascot"' in html and 'Bubu &amp; Dudu' in html
