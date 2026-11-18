@@ -44,7 +44,9 @@ The whole experience is gated by the birthday keypad in `index.html` and `js/pin
 
 ## Printable birthday QR card
 
-Open [qr-card.html](qr-card.html) and print it to create a small physical gift card. Its QR code points to the live website URL. Test the printed QR with a phone camera before gifting.
+Open [qr-card.html](qr-card.html) and print it to create a small physical gift card. Its embedded QR code points to the live website URL. Test the printed QR with a phone camera before gifting.
+
+### PIN behavior
 - Birthday PIN: 20 June 2008 (`20062008`).
 - A successful unlock lasts for the current browser tab session.
 - The 3D world, music player and interactive sections wait until the visitor unlocks the page.
