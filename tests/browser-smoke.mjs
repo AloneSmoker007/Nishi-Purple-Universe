@@ -73,7 +73,8 @@ try {
     await pinLock.locator('[data-pin-digit="1"]').click();
     assert.equal(await mascot.getAttribute('data-mood'), 'thinking',
       profile.name + ': mascot should think while PIN digits are entered');
-    for (const digit of '11611111') await pinLock.locator('[data-pin-digit="' + digit + '"]').click();
+    await pinLock.locator('[data-pin-action="clear"]').click();
+    for (const digit of '11111111') await pinLock.locator('[data-pin-digit="' + digit + '"]').click();
     await page.waitForFunction(() => /Not quite/.test(document.querySelector('#pin-lock-status')?.textContent || ''));
     assert.equal(await mascot.getAttribute('data-mood'), 'sad',
       profile.name + ': first incorrect PIN should make the mascot sad');
