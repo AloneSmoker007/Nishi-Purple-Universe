@@ -33,3 +33,14 @@ The music player reads its playlist from this file, so adding or reordering trac
 ### AI-generated decorative artwork
 
 The `assets/ai/` folder contains instructions for the original fantasy artwork pack. Use the supplied WebP assets there; they depict a fictional purple castle and garden, not BTS members. The existing SVG remains the fallback until the artwork files are added.
+
+
+## Birthday PIN lock
+
+The whole experience is gated by the birthday keypad in `index.html` and `js/pin-lock.js`.
+- Birthday PIN: 20 June 2008 (`20062008`).
+- A successful unlock lasts for the current browser tab session.
+- The keypad supports touch, keyboard input, screen-reader status messages and reduced-motion preferences.
+- The 3D world, music player and interactive sections wait until the visitor unlocks the page.
+
+**Privacy note:** this is a client-side surprise gate, not strong authentication. The static site must deliver its HTML and JavaScript to visitors, so a determined person can inspect or bypass the PIN check. Do not use it to protect private or sensitive information.

@@ -29,6 +29,7 @@ jobs:
           node --check js/player.js
           node --check js/wishes.js
           node --check js/content.js
+          node --check js/pin-lock.js
           node --check content/site-config.js
       - name: Validate SEO and fallback files
         run: |
@@ -63,6 +64,13 @@ jobs:
           content = open("js/content.js", encoding="utf-8").read()
           assert "fallbackSrc" in content and "hero.src = fallbackSrc" in content
           print("Editable content config and SVG fallback: PASS")
+          assert 'id="pin-lock"' in html and 'js/pin-lock.js' in html
+          lock = open("js/pin-lock.js", encoding="utf-8").read()
+          assert "nishi:pin-unlocked" in lock and "sessionStorage" in lock
+          assert "PIN_SHA256" in lock
+          ui = open("js/ui.js", encoding="utf-8").read()
+          assert "startAfterPinUnlock" in ui
+          print("Full-site birthday PIN gate and deferred startup: PASS")
           player = open("js/player.js", encoding="utf-8").read()
           assert "function syncProgressTimer()" in player
           assert "&& !document.hidden" in player
