@@ -46,7 +46,17 @@ try {
     });
     const page = await context.newPage();
     const pageErrors = [];
+    const consoleErrors = [];
+    const moduleResponses = [];
     page.on('pageerror', error => pageErrors.push(error.message));
+    page.on('console', message => {
+      if (message.type() === 'error') consoleErrors.push(message.text());
+    });
+    page.on('response', response => {
+      if (response.url().includes('/js/secret-world.js') || response.url().includes('/content/site-config.js')) {
+        moduleResponses.push({ url: response.url(), status: response.status() });
+      }
+    });
     const localFailures = [];
     let contentConfigLoaded = false;
     page.on('response', response => {
@@ -104,7 +114,23 @@ try {
 
     // Secret World: seven OT7 stars, bilingual Open-When letters and virtual hug.
     const secretWorld = page.locator('#nishi-secret-world');
-    await secretWorld.waitFor({ state: 'visible' });
+    try {
+      await secretWorld.waitFor({ state: 'visible', timeout: 10000 });
+    } catch {
+      const state = await page.evaluate(() => ({
+        readyState: document.readyState,
+        pinUnlocked: document.body.classList.contains('nishi-pin-unlocked'),
+        pinLockPresent: !!document.querySelector('#pin-lock'),
+        finalLetterPresent: !!document.querySelector('#final-letter'),
+        finalLetterSection: document.querySelector('#final-letter')?.closest('section')?.id || null,
+        secretWorldPresent: !!document.querySelector('#nishi-secret-world'),
+        configPresent: !!window.__nishiSecretWorldConfig
+      }));
+      throw new Error(profile.name + ': Secret World failed to initialise. DOM=' +
+        JSON.stringify(state) + '; pageErrors=' + JSON.stringify(pageErrors) +
+        '; consoleErrors=' + JSON.stringify(consoleErrors) +
+        '; moduleResponses=' + JSON.stringify(moduleResponses));
+    }
     assert.equal(await secretWorld.locator('.nishi-star-card').count(), 7,
       profile.name + ': all seven OT7 treasure stars should be present');
     await secretWorld.locator('[data-star-id="rm"]').click();
