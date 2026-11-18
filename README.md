@@ -41,6 +41,8 @@ The whole experience is gated by the birthday keypad in `index.html` and `js/pin
 - The lock displays an animated brown Bubu + white Dudu sticker hosted by Tenor; sad/crying reactions switch when a PIN attempt fails.
 - Tenor community-uploaded sticker links are attributed in the lock UI; these are not verified official creator uploads and creator licensing is not confirmed.
 - The PIN keypad supports touch, keyboard input, screen-reader status messages and reduced-motion preferences.
+- The keypad stays fully above the fold on phone screens (including landscape) and accepts input through pointer events with click de-duplication, so taps register reliably on iPhone Safari — scrolling the keypad is never required.
+- `tests/pin-keypad-touch.mjs` is the regression suite for this: it runs the full unlock flow with real touch input on WebKit (the Safari engine) and Chromium, covering iPhone/Android viewports, clear/backspace, wrong/correct PIN, session persistence, rotation and reduced motion.
 
 ## Printable birthday QR card
 

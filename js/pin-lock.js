@@ -39,7 +39,11 @@
     if (keys) keys.querySelectorAll('button').forEach(button => { button.disabled = true; });
     try {
       if (!window.crypto || !window.crypto.subtle) throw new Error('Secure PIN check unavailable');
-      const digest = await window.crypto.subtle.digest('SHA-256', new TextEncoder().encode(entered));
+      // Never leave the keypad dead: if the digest stalls, fail visibly and re-enable.
+      const digest = await Promise.race([
+        window.crypto.subtle.digest('SHA-256', new TextEncoder().encode(entered)),
+        new Promise((resolve, reject) => window.setTimeout(() => reject(new Error('PIN check timed out')), 5000))
+      ]);
       const actual = Array.from(new Uint8Array(digest)).map(byte => byte.toString(16).padStart(2, '0')).join('');
       if (actual !== PIN_SHA256) { failedAttempts++; mood(failedAttempts > 1 ? 'crying' : 'sad'); setStatus(failedAttempts > 1 ? 'Oh nooo! Bubu & Dudu are crying 🥺💧 Try again!' : 'Oopsie! Bubu is a little sad 🥺💜 Try again!', true); clear(false); return; }
       try { sessionStorage.setItem(SESSION_KEY, '1'); } catch (error) {}
@@ -50,8 +54,36 @@
   }
   try { if (sessionStorage.getItem(SESSION_KEY) === '1') { overlay.parentNode.removeChild(overlay); announceUnlocked(); return; } } catch (error) {}
   document.body.classList.add('pin-locked'); setInert(true);
-  if (keys) keys.querySelectorAll('button').forEach(button => button.addEventListener('click', () => handleKey(button)));
+  /* Input wiring.
+     iOS Safari is unreliable at synthesising click from touch, so digits are
+     handled on pointerup (fired natively by the iOS event pipeline) and the
+     follow-up click is deduplicated. Keyboard activation still arrives as a
+     click with detail 0 and is never suppressed. One tap = exactly one digit. */
+  let lastPointerActivation = 0;
+  function keyFromEventTarget(target) {
+    const el = target && typeof target.closest === 'function' ? target.closest('.pin-lock-keypad button') : null;
+    return el && keys && keys.contains(el) ? el : null;
+  }
+  function activateFromPointer(event) {
+    if (!event.isPrimary || (event.pointerType === 'mouse' && event.button !== 0)) return;
+    const button = keyFromEventTarget(event.target);
+    if (!button) return;
+    lastPointerActivation = Date.now();
+    handleKey(button);
+  }
+  function activateFromClick(event) {
+    const button = keyFromEventTarget(event.target);
+    if (!button) return;
+    if (event.detail !== 0 && Date.now() - lastPointerActivation < 500) return; /* ghost click after touch/mouse */
+    handleKey(button);
+  }
+  if (keys) {
+    keys.addEventListener('pointerup', activateFromPointer);
+    keys.addEventListener('click', activateFromClick);
+  }
   overlay.addEventListener('keydown', event => { if (/^[0-9]$/.test(event.key)) { event.preventDefault(); addDigit(event.key); } else if (event.key === 'Backspace') { event.preventDefault(); entered = entered.slice(0, -1); mood(entered.length ? 'thinking' : 'idle'); render(); } else if (event.key === 'Escape') { event.preventDefault(); clear(); } });
+  window.addEventListener('resize', render);
+  window.addEventListener('orientationchange', () => window.setTimeout(render, 120));
   setStatus('Made with love, just for you 💜🌙', false); render();
   const firstKey = keys && keys.querySelector('[data-pin-digit="1"]'); if (firstKey) firstKey.focus({ preventScroll: true });
 })();
