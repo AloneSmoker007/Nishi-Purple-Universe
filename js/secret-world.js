@@ -71,6 +71,12 @@ function initSecretWorld() {
   count.setAttribute("aria-live", "polite");
   meterWrap.append(meter, count);
   treasure.append(meterWrap);
+  const starReveal = el("div", "nishi-star-reveal");
+  starReveal.setAttribute("aria-live", "polite");
+  const starRevealEn = el("p");
+  const starRevealBn = el("p", "bn nishi-secret-bn");
+  starReveal.append(starRevealEn, starRevealBn);
+  treasure.append(starReveal);
   const starGrid = el("div", "nishi-star-grid");
   const completion = el("p", "nishi-star-complete");
   completion.id = "nishi-star-complete";
@@ -94,6 +100,8 @@ function initSecretWorld() {
       icon.textContent = "🌟";
       hint.textContent = config.collectedLabel;
       updateStars();
+      starRevealEn.textContent = star.message || "";
+      starRevealBn.textContent = star.messageBn || "";
       if (!reducedMotion) {
         button.classList.remove("is-collected");
         void button.offsetWidth;
