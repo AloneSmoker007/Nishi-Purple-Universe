@@ -101,6 +101,24 @@ try {
       await skip.click();
       await intro.waitFor({ state: 'hidden' });
     }
+
+    // Secret World: seven OT7 stars, bilingual Open-When letters and virtual hug.
+    const secretWorld = page.locator('#nishi-secret-world');
+    await secretWorld.waitFor({ state: 'visible' });
+    assert.equal(await secretWorld.locator('.nishi-star-card').count(), 7,
+      profile.name + ': all seven OT7 treasure stars should be present');
+    await secretWorld.locator('[data-star-id="rm"]').click();
+    assert.match(await secretWorld.locator('#nishi-star-count').textContent(), /1 of 7/);
+    assert.ok((await secretWorld.locator('.nishi-star-reveal').textContent()).includes('Keep dreaming boldly'),
+      profile.name + ': collected star should reveal its wish');
+    await secretWorld.locator('[data-letter-id="sad"]').click();
+    assert.equal(await secretWorld.locator('#nishi-letter-reveal').isVisible(), true,
+      profile.name + ': Open-When letter should reveal its message');
+    assert.ok((await secretWorld.locator('#nishi-letter-reveal').textContent()).includes('cloudy day'));
+    await secretWorld.locator('.nishi-hug-button').click();
+    assert.ok((await secretWorld.locator('.nishi-hug-status').textContent()).includes('Hug delivered'),
+      profile.name + ': virtual hug should provide feedback');
+
     // Allow either a real first WebGL frame or the explicit CSS fallback timeout.
     await page.waitForTimeout(2300);
 
