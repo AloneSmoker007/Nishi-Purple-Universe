@@ -58,6 +58,32 @@ export const siteConfig = {
     hugThanks: "Hug delivered! Bubu & Dudu say: you are never a bother. 🧸💗",
     hugThanksBn: "আলিঙ্গন পৌঁছে গেছে! বুবু আর দুদু বলছে: তুমি কখনোই বিরক্তির কারণ নও। 🧸💗",
   },
+  magicShop: {
+    title: "The Magic Shop 💜",
+    copy: "Leave a little worry here. This tiny corner is only for comfort, kindness and a surprise.",
+    copyBn: "একটু দুশ্চিন্তা এখানে রেখে যাও। এই ছোট্ট কোণটি শুধু স্বস্তি, মমতা আর একটি চমকের জন্য।",
+    wishLabel: "A thought you want to let go (optional)",
+    wishPlaceholder: "Type a little thought…",
+    openButton: "Open my Magic Shop ✨",
+    comfortMessage: "Whatever is on your mind, you deserve patience, rest and kindness. Take one gentle breath. You are not alone under this purple sky. 💜",
+    comfortMessageBn: "তোমার মনে যা-ই থাকুক, তুমি ধৈর্য, বিশ্রাম আর মমতার যোগ্য। ধীরে একটি শ্বাস নাও। এই বেগুনি আকাশের নিচে তুমি একা নও। 💜",
+    privateNote: "Your note stays on this device and is not sent or saved.",
+    gachaTitle: "Mystery Photocard Pull 🎴",
+    gachaCopy: "Every member has an equal chance. Tap to reveal one of seven original fan-made purple cards.",
+    pullButton: "Pull a photocard 🎁",
+    cardLabel: "A new purple photocard has appeared!",
+    rareLabel: "ULTRA RARE! A little Magic Shop gift is yours!",
+    cardMessage: "A little star from your OT7 universe.",
+    cardMessageBn: "তোমার OT7 মহাবিশ্ব থেকে একটি ছোট্ট তারা।",
+    rareMessage: "ULTRA RARE — Redeem this card for one virtual coffee or ice cream from Bilal. 💜",
+    rareMessageBn: "আল্ট্রা রেয়ার — বিলালের কাছ থেকে একটি ভার্চুয়াল কফি বা আইসক্রিমের জন্য এই কার্ডটি রিডিম করো। 💜",
+    members: [
+      { name: "RM", symbol: "📖" }, { name: "Jin", symbol: "🌙" },
+      { name: "SUGA", symbol: "🎹" }, { name: "j-hope", symbol: "☀️" },
+      { name: "Jimin", symbol: "🦋" }, { name: "V", symbol: "🎨" },
+      { name: "Jung Kook", symbol: "⭐" }
+    ]
+  },
   tracks: [
     { id: "7C2z4GqqS5E", title: "Fake Love", note: "💜" },
     { id: "0lapF4DQPKQ", title: "Save Me", note: "🌙" },
