@@ -30,6 +30,7 @@ jobs:
           node --check js/wishes.js
           node --check js/content.js
           node --check js/pin-lock.js
+          node --check js/playful-moments.js
           node --check content/site-config.js
       - name: Validate SEO and fallback files
         run: |
@@ -61,6 +62,13 @@ jobs:
           config = open("content/site-config.js", encoding="utf-8").read()
           assert "export const siteConfig" in config
           assert "tracks:" in config and "artwork:" in config
+          assert "playfulArcade:" in config
+          assert 'js/playful-moments.js' in html
+          assert 'css/playful-moments.css' in html
+          arcade = open("js/playful-moments.js", encoding="utf-8").read()
+          assert "nishi:pin-unlocked" in arcade
+          assert "aria-expanded" in arcade and "prefers-reduced-motion" in arcade
+          print("Editable playful arcade, PIN-gated startup and reduced-motion support: PASS")
           content = open("js/content.js", encoding="utf-8").read()
           assert "fallbackSrc" in content and "hero.src = fallbackSrc" in content
           print("Editable content config and SVG fallback: PASS")
