@@ -23,3 +23,13 @@
 - Rebuilt `/tmp` Playwright runtime twice (container wipe) → hardened
   `rebuild-pw.sh` with the full package list + WPE launcher LD_LIBRARY_PATH fix.
 - Created `NISHI_LOCAL_BACKUPS/` + `NISHI_SAFEPOINTS/`.
+
+## 2026-11-20 (pushed & verified)
+- fa597c0 fix: PIN keypad fits mobile viewports; stable status line; defer 3D
+  behind intro; intro fade click-through (index.html, js/ui.js)
+- fe9fbc7 test: WebKit regression suite, PIN diagnostics and NISHI_SAFEPOINTS
+  checkpoints (tests/*, NISHI_SAFEPOINTS/*, .gitignore)
+- Verified: `git ls-remote` == local HEAD == fe9fbc77fdad0f3b480ec623d905e9e4c3354b53
+- Test evidence: webkit-regression 27/27 PASS, browser-smoke 4/4 PASS,
+  diag-pin-fit belowFold [] x3 viewports, diag-keypad-loop 10/10 stable.
+- Local backup: NISHI_LOCAL_BACKUPS/milestone-001 (SHA256SUMS verified).
