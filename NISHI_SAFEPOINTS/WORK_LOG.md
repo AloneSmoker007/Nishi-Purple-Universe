@@ -33,3 +33,15 @@
 - Test evidence: webkit-regression 27/27 PASS, browser-smoke 4/4 PASS,
   diag-pin-fit belowFold [] x3 viewports, diag-keypad-loop 10/10 stable.
 - Local backup: NISHI_LOCAL_BACKUPS/milestone-001 (SHA256SUMS verified).
+
+## 2026-11-20 (session 3 — CI trigger fix)
+- Recovered from GitHub per handover: remote HEAD 37b4733 (milestone-001),
+  local aligned via ff-only merge. Local parallel edits preserved in
+  NISHI_LOCAL_BACKUPS/local-uncommitted-20261120-062106 (SHA256SUMS verified)
+  and git stash `local-parallel-fixes-20261120`.
+- Rebuilt Playwright runtime (/tmp wipe): `bash .openclaw/tmp/rebuild-pw.sh`
+  → WebKit launch OK.
+- Baseline before change: browser-smoke 4/4 PASS, webkit-regression 27/27 PASS.
+- TASK: widen validate.yml push filter `[main, 'feat/**']` →
+  `[main, 'feat/**', 'fix/**']` so fix branches get static validation on push.
+  pull_request + workflow_dispatch preserved. YAML parse OK; node --check 10/10.

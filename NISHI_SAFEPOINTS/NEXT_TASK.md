@@ -3,8 +3,8 @@
 Updated: 2026-11-20 (Asia/Shanghai)
 
 ## Immediate next task
-1. Land milestone-001: commit the four PIN/intro fixes + safepoint docs on
-   `fix/pin-and-full-site-regression`, push, verify remote SHA == local SHA.
+1. ~~Land milestone-001~~ DONE (fa597c0..37b4733, remote verified).
+   CI trigger widened to fix/** (this commit).
 2. Full-site regression sweep (one logical task per commit):
    - Music Room: playback, controls, local MP3 switching (Chromium + WebKit).
    - QR card: markup + print layout validation.

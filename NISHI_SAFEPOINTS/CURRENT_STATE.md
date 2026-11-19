@@ -41,3 +41,11 @@ Shop, photocard gacha, music room, bilingual EN+BN, QR card, V's section.
   wrap test runs with `bash .openclaw/tmp/pw-env.sh <cmd>`.
 - Headless WPE has no TLS backend: external https (Tenor stickers) fails to
   load in WebKit runs only. Real devices are unaffected.
+
+## Session-3 update (2026-11-20)
+- Branch aligned to remote HEAD 37b473304aeaa65d326ccfd9601e297e54afb07c.
+- Local parallel edits archived: NISHI_LOCAL_BACKUPS/local-uncommitted-20261120-062106
+  + stash `local-parallel-fixes-20261120` (not applied; remote milestone-001
+  is the authoritative version of those fixes).
+- CI: validate.yml now also triggers on `fix/**` pushes.
+- Baseline suites green: smoke 4/4, webkit-regression 27/27.

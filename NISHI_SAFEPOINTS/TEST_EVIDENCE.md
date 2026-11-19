@@ -40,3 +40,15 @@ fade click-through).
 - Physical Vivo Y11 Android Chrome — no device. REQUIRED before release.
 - Tenor sticker loading in headless WebKit — container TLS limitation (BLOCKED),
   verified working via Chromium runs (network tab OK) and unchanged URLs.
+
+## Session-3 re-verification (2026-11-20, after /tmp runtime rebuild)
+- `bash .openclaw/tmp/rebuild-pw.sh` → WebKit launch OK (80 user-space debs).
+- `node tests/browser-smoke.mjs` → **PASS 4/4** (exit 0).
+- `node tests/webkit-regression.mjs` → **PASS 27/27** ("All WebKit regression
+  checks passed", exit 0).
+- CI task diff: `.github/workflows/validate.yml` push branches now
+  `[main, 'feat/**', 'fix/**']`. `python3 yaml.safe_load` → OK;
+  `node --check` 10/10 JS files OK; robots/sitemap/404 present.
+- NOTE: first smoke attempt this session flaked once at skip-intro click
+  (30s action timeout, software-GL contention while webkit suite ran in
+  parallel); passed clean when run alone. Known env limitation, not a site bug.
