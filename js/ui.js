@@ -241,6 +241,14 @@ function syncAudioUI() {
 /* ---------------------------------------------------------------
    cinematic intro
 --------------------------------------------------------------- */
+// Single memoised 3D boot promise: the render loop is deferred while the
+// intro overlay is on screen, and Enter-to-portal must wait for it.
+let worldBootPromise = null;
+function startWorldOnce() {
+  if (!worldBootPromise) worldBootPromise = world.boot();
+  return worldBootPromise;
+}
+
 function initIntro() {
   const intro = $('#intro');
   if (!intro) return;
@@ -252,9 +260,15 @@ function initIntro() {
     intro.setAttribute('aria-hidden', 'true');
     document.body.classList.remove('cinematic');
     try { localStorage.setItem('nishi-intro-seen', '1'); } catch { /* private mode */ }
+    // The 3D renderer is deliberately held back until the intro is gone so the
+    // full-screen overlay never competes with a full-speed render loop for the
+    // main thread (keeps taps instant on low-end devices).
+    document.dispatchEvent(new CustomEvent('nishi:intro-closed'));
     if (entering) {
       sound.chime('portal');
-      world.to('portal');
+      // The world may still be booting (render loop is deferred while the intro
+      // is up); fly to the portal only once it is ready.
+      Promise.resolve(startWorldOnce()).then(() => world.to('portal'));
     }
     // move focus into the page for keyboard users
     const main = $('#main-content');
@@ -272,6 +286,7 @@ function initIntro() {
   let seen = false;
   try { seen = localStorage.getItem('nishi-intro-seen') === '1'; } catch { /* ignore */ }
   if (seen || REDUCED) {
+    intro.style.transition = 'none';
     intro.classList.add('is-hidden');
     intro.setAttribute('aria-hidden', 'true');
     document.body.classList.remove('cinematic');
@@ -1112,8 +1127,14 @@ function boot() {
   initQuest();
   initWishes();
 
-  // 3D last — it must never block the page from becoming usable.
-  world.boot();
+  // 3D last — it must never block the page from becoming usable. When the
+  // intro overlay is on screen, defer the render loop until it closes.
+  const introNow = $('#intro');
+  if (introNow && !introNow.classList.contains('is-hidden')) {
+    document.addEventListener('nishi:intro-closed', startWorldOnce, { once: true });
+  } else {
+    startWorldOnce();
+  }
 
   // Guard against accidental reload losing the intro state
   window.addEventListener('pagehide', () => {
