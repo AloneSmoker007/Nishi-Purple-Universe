@@ -18,7 +18,10 @@ function initPlayfulArcade() {
   if (document.querySelector("#joy-arcade")) return;
   const config = siteConfig.playfulArcade;
   const finalLetter = document.querySelector("#final-letter");
-  const hostSection = finalLetter?.closest("section");
+  // Anchor to the heart-letter section; fall back to the letter's parent so a
+  // missing section wrapper can never silently kill the arcade (PR #15 root
+  // cause: the wrapper was once missing and initPlayfulArcade bailed out).
+  const hostSection = finalLetter?.closest("section") || finalLetter?.parentElement;
   if (!config || !Array.isArray(config.gifts) || !hostSection) return;
 
   const section = element("section", "joy-arcade");

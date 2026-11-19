@@ -31,6 +31,7 @@ jobs:
           node --check js/content.js
           node --check js/pin-lock.js
           node --check js/playful-moments.js
+          node --check js/secret-world.js
           node --check content/site-config.js
       - name: Validate SEO and fallback files
         run: |
@@ -76,6 +77,31 @@ jobs:
           lock = open("js/pin-lock.js", encoding="utf-8").read()
           assert "nishi:pin-unlocked" in lock and "sessionStorage" in lock
           assert "PIN_SHA256" in lock
+          secret = open("js/secret-world.js", encoding="utf-8").read()
+          secret_css = open("css/secret-world.css", encoding="utf-8").read()
+          assert 'js/secret-world.js' in html and 'css/secret-world.css' in html
+          assert "secretWorld:" in config and "stars:" in config and "letters:" in config
+          assert "nishi:pin-unlocked" in secret
+          assert "localStorage" in secret and "aria-expanded" in secret
+          assert "prefers-reduced-motion" in secret_css
+          assert len([name for name in ("RM", "Jin", "SUGA", "j-hope", "Jimin", "V", "Jung Kook") if name in config]) == 7
+          smoke = open("tests/browser-smoke.mjs", encoding="utf-8").read()
+          for required in ("nishi-secret-world", "nishi-star-card", "nishi-letter-reveal", "nishi-hug-button"):
+              assert required in smoke, f"Missing Secret World browser assertion: {required}"
+          print("Bilingual Secret World, OT7 treasure hunt, Open-When letters and virtual hug: PASS")
+          assert "magicShop:" in config and "ULTRA RARE" in config and "Jung Kook" in config
+          assert "nishi-photocard-pull" in secret and "nishi-magic-open" in secret
+          assert "nishi-photocard" in secret_css and "prefers-reduced-motion" in secret_css
+          assert "nishi-pin-unlocked" in open("js/pin-lock.js", encoding="utf-8").read()
+          assert "nishi-magic-wish" in smoke and "nishi-photocard-pull" in smoke
+          print("Magic Shop comfort reveal, OT7 photocard gacha and late PIN-unlock startup: PASS")
+          for mood in ('idle', 'thinking', 'sad', 'crying', 'happy'):
+              assert f'data-mood="{mood}"' in html or f"'{mood}'" in lock, f"Missing mascot mood: {mood}"
+          assert 'id="pin-mascot"' in html and 'Bubu &amp; Dudu' in html
+          smoke = open("tests/browser-smoke.mjs", encoding="utf-8").read()
+          for mood in ('idle', 'thinking', 'sad', 'crying', 'happy'):
+              assert f"'{mood}'" in smoke, f"Missing browser smoke assertion for {mood}"
+          print("Bubu & Dudu PIN mood states: PASS")
           ui = open("js/ui.js", encoding="utf-8").read()
           assert "startAfterPinUnlock" in ui
           print("Full-site birthday PIN gate and deferred startup: PASS")

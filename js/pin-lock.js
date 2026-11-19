@@ -1,124 +1,57 @@
-/**
- * Birthday PIN gate for Nishi's Purple Universe.
- * This is a friendly access screen, not server-side authentication.
- * The PIN is verified locally; only the unlocked state is kept for this tab session.
- */
-const overlay = document.getElementById('pin-lock');
-const SESSION_KEY = 'nishi-purple-universe-unlocked-v1';
-const PIN_SHA256 = '05fd5a1ee836f75c0b6d259897dee23934c94c0475d0024bc1da5cafd06465b4';
-
-function setInert(locked) {
-  for (const child of document.body.children) {
-    if (child === overlay) continue;
-    if (locked) {
-      child.dataset.pinWasInert = child.inert ? 'true' : 'false';
-      child.inert = true;
-    } else {
-      child.inert = child.dataset.pinWasInert === 'true';
-      delete child.dataset.pinWasInert;
-    }
+/* Reliable birthday PIN controller. Classic deferred script; friendly gate, not authentication. */
+(function () {
+  'use strict';
+  const overlay = document.getElementById('pin-lock');
+  if (!overlay) return;
+  const SESSION_KEY = 'nishi-purple-universe-unlocked-v1';
+  const PIN_SHA256 = '05fd5a1ee836f75c0b6d259897dee23934c94c0475d0024bc1da5cafd06465b4';
+  const dots = Array.from(overlay.querySelectorAll('.pin-lock-dot'));
+  const dotsLabel = overlay.querySelector('#pin-lock-dots');
+  const status = overlay.querySelector('#pin-lock-status');
+  const keys = overlay.querySelector('.pin-lock-keypad');
+  const mascot = overlay.querySelector('#pin-mascot');
+  let entered = '', checking = false, failedAttempts = 0;
+  const mascotStickers = {
+    idle: 'https://media1.tenor.com/m/dHMBUC-iGXgAAAAd/bubu-dudu.gif',
+    thinking: 'https://media1.tenor.com/m/dHMBUC-iGXgAAAAd/bubu-dudu.gif',
+    sad: 'https://media.tenor.com/BOLqQTbf9QgAAAAj/dudu-sad.gif',
+    crying: 'https://media.tenor.com/4-S7eXPVyfQAAAAj/bubu-dudu-sseeyall.gif',
+    happy: 'https://media1.tenor.com/m/dHMBUC-iGXgAAAAd/bubu-dudu.gif'
+  };
+  function mood(value) {
+    if (!mascot) return;
+    mascot.setAttribute('data-mood', value);
+    const next = mascotStickers[value] || mascotStickers.idle;
+    if (!mascot.src.endsWith(next)) mascot.src = next;
+    mascot.alt = value === 'sad' ? 'Dudu the white panda looking sad'
+      : value === 'crying' ? 'Dudu the white panda crying'
+      : 'Bubu the brown bear cuddling Dudu the white panda';
   }
-}
-
-function announceUnlocked() {
-  document.body.classList.remove('pin-locked');
-  setInert(false);
-  document.dispatchEvent(new CustomEvent('nishi:pin-unlocked'));
-}
-
-if (overlay) {
-  let alreadyUnlocked = false;
-  try { alreadyUnlocked = sessionStorage.getItem(SESSION_KEY) === '1'; } catch { /* fail closed */ }
-
-  if (alreadyUnlocked) {
-    overlay.remove();
-    announceUnlocked();
-  } else {
-    document.body.classList.add('pin-locked');
-    setInert(true);
-    const dots = [...overlay.querySelectorAll('.pin-lock-dot')];
-    const dotsLabel = overlay.querySelector('#pin-lock-dots');
-    const status = overlay.querySelector('#pin-lock-status');
-    const keys = overlay.querySelector('.pin-lock-keypad');
-    let entered = '';
-    let checking = false;
-
-    const render = () => {
-      dots.forEach((dot, index) => dot.classList.toggle('is-filled', index < entered.length));
-      dotsLabel?.setAttribute('aria-label', `Eight digit PIN, ${entered.length} digits entered`);
-    };
-
-    const clear = () => {
-      entered = '';
-      render();
-    };
-
-    const verify = async () => {
-      if (checking || entered.length !== 8) return;
-      checking = true;
-      keys?.querySelectorAll('button').forEach(button => { button.disabled = true; });
-      try {
-        if (!globalThis.crypto?.subtle) throw new Error('Secure PIN check unavailable');
-        const bytes = new TextEncoder().encode(entered);
-        const digest = await crypto.subtle.digest('SHA-256', bytes);
-        const actual = [...new Uint8Array(digest)].map(byte => byte.toString(16).padStart(2, '0')).join('');
-        if (actual !== PIN_SHA256) {
-          status.textContent = 'Not quite! Try Nishi’s birthday again 💜';
-          status.classList.add('is-error');
-          clear();
-          return;
-        }
-        try { sessionStorage.setItem(SESSION_KEY, '1'); } catch { /* unlock current page even if storage is blocked */ }
-        status.textContent = 'A little magic is opening… ✨';
-        overlay.classList.add('is-unlocking');
-        window.setTimeout(() => {
-          overlay.remove();
-          announceUnlocked();
-        }, 480);
-      } catch {
-        status.textContent = 'Please open this page in a modern secure browser.';
-        status.classList.add('is-error');
-        clear();
-      } finally {
-        checking = false;
-        if (overlay.isConnected) keys?.querySelectorAll('button').forEach(button => { button.disabled = false; });
-      }
-    };
-
-    const addDigit = digit => {
-      if (checking || entered.length >= 8 || !/^[0-9]$/.test(digit)) return;
-      entered += digit;
-      status.classList.remove('is-error');
-      status.textContent = 'Made with love, just for you 💜';
-      render();
-      if (entered.length === 8) verify();
-    };
-
-    keys?.addEventListener('click', event => {
-      const button = event.target.closest('button');
-      if (!button || checking) return;
-      if (button.dataset.pinDigit !== undefined) addDigit(button.dataset.pinDigit);
-      if (button.dataset.pinAction === 'clear') clear();
-      if (button.dataset.pinAction === 'backspace') {
-        entered = entered.slice(0, -1);
-        render();
-      }
-    });
-
-    overlay.addEventListener('keydown', event => {
-      if (/^[0-9]$/.test(event.key)) {
-        event.preventDefault();
-        addDigit(event.key);
-      } else if (event.key === 'Backspace') {
-        event.preventDefault();
-        entered = entered.slice(0, -1);
-        render();
-      } else if (event.key === 'Escape') {
-        event.preventDefault();
-        clear();
-      }
-    });
-
-    keys?.querySelector('[data-pin-digit="1"]')?.focus({ preventScroll: true });
+  function render() { dots.forEach((dot, i) => dot.classList.toggle('is-filled', i < entered.length)); if (dotsLabel) dotsLabel.setAttribute('aria-label', 'Eight digit PIN, ' + entered.length + ' digits entered'); }
+  function setStatus(message, error) { if (!status) return; status.textContent = message; status.classList.toggle('is-error', !!error); }
+  function clear(resetMood) { entered = ''; if (resetMood !== false) mood('idle'); render(); }
+  function setInert(locked) { Array.from(document.body.children).forEach(child => { if (child === overlay) return; if (locked) { child.dataset.pinWasInert = child.inert ? 'true' : 'false'; child.inert = true; } else { child.inert = child.dataset.pinWasInert === 'true'; delete child.dataset.pinWasInert; } }); }
+  function announceUnlocked() { document.body.classList.remove('pin-locked'); document.body.classList.add('nishi-pin-unlocked'); setInert(false); document.dispatchEvent(new CustomEvent('nishi:pin-unlocked')); }
+  function addDigit(digit) { if (checking || entered.length >= 8 || !/^[0-9]$/.test(String(digit))) return; entered += String(digit); mood('thinking'); setStatus('A little magic, one number at a time ✨💜', false); render(); if (entered.length === 8) verify(); }
+  function handleKey(button) { if (!button || checking) return; if (button.hasAttribute('data-pin-digit')) addDigit(button.getAttribute('data-pin-digit')); else if (button.getAttribute('data-pin-action') === 'clear') { clear(); setStatus('PIN cleared. Take your time 🌷', false); } else if (button.getAttribute('data-pin-action') === 'backspace') { entered = entered.slice(0, -1); mood(entered.length ? 'thinking' : 'idle'); render(); } }
+  async function verify() {
+    if (checking || entered.length !== 8) return; checking = true;
+    if (keys) keys.querySelectorAll('button').forEach(button => { button.disabled = true; });
+    try {
+      if (!window.crypto || !window.crypto.subtle) throw new Error('Secure PIN check unavailable');
+      const digest = await window.crypto.subtle.digest('SHA-256', new TextEncoder().encode(entered));
+      const actual = Array.from(new Uint8Array(digest)).map(byte => byte.toString(16).padStart(2, '0')).join('');
+      if (actual !== PIN_SHA256) { failedAttempts++; mood(failedAttempts > 1 ? 'crying' : 'sad'); setStatus(failedAttempts > 1 ? 'Oh nooo! Bubu & Dudu are crying 🥺💧 Try again!' : 'Oopsie! Bubu is a little sad 🥺💜 Try again!', true); clear(false); return; }
+      try { sessionStorage.setItem(SESSION_KEY, '1'); } catch (error) {}
+      mood('happy'); setStatus('YAY! Bubu & Dudu are celebrating! 🎉💜✨', false); overlay.classList.add('is-unlocking');
+      window.setTimeout(() => { if (overlay.parentNode) overlay.parentNode.removeChild(overlay); announceUnlocked(); }, 650);
+    } catch (error) { setStatus('PIN check needs a secure, up-to-date browser 🔒', true); clear(); }
+    finally { checking = false; if (overlay.isConnected && keys) keys.querySelectorAll('button').forEach(button => { button.disabled = false; }); }
   }
-}
+  try { if (sessionStorage.getItem(SESSION_KEY) === '1') { overlay.parentNode.removeChild(overlay); announceUnlocked(); return; } } catch (error) {}
+  document.body.classList.add('pin-locked'); setInert(true);
+  if (keys) keys.querySelectorAll('button').forEach(button => button.addEventListener('click', () => handleKey(button)));
+  overlay.addEventListener('keydown', event => { if (/^[0-9]$/.test(event.key)) { event.preventDefault(); addDigit(event.key); } else if (event.key === 'Backspace') { event.preventDefault(); entered = entered.slice(0, -1); mood(entered.length ? 'thinking' : 'idle'); render(); } else if (event.key === 'Escape') { event.preventDefault(); clear(); } });
+  setStatus('Made with love, just for you 💜🌙', false); render();
+  const firstKey = keys && keys.querySelector('[data-pin-digit="1"]'); if (firstKey) firstKey.focus({ preventScroll: true });
+})();

@@ -6,7 +6,7 @@
 <title>Nishi's Purple Universe 💜</title>
 <meta name="description" content="Enter Nishi's Purple Universe — a cinematic fan-made journey for OT7 and ARMY.">
 <meta name="theme-color" content="#0B0420">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.youtube.com 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://i.ytimg.com https://*.ytimg.com; font-src 'self'; connect-src 'self' https://www.youtube.com; frame-src https://www.youtube-nocookie.com https://www.youtube.com; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.youtube.com 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://i.ytimg.com https://*.ytimg.com https://media.tenor.com https://media1.tenor.com; font-src 'self'; connect-src 'self' https://www.youtube.com; frame-src https://www.youtube-nocookie.com https://www.youtube.com; object-src 'none'; base-uri 'self'; form-action 'self'">
 <script>document.documentElement.classList.add('js')</script>
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <link rel="canonical" href="https://alonesmoker007.github.io/Nishi-Purple-Universe/">
@@ -30,6 +30,7 @@
 {"@context":"https://schema.org","@type":"WebSite","name":"Nishi's Purple Universe","url":"https://alonesmoker007.github.io/Nishi-Purple-Universe/","description":"A cinematic fan-made tribute celebrating BTS OT7, ARMY, music, memories and friendship.","inLanguage":"en"}
 </script>
 <link rel="stylesheet" href="css/playful-moments.css">
+<link rel="stylesheet" href="css/secret-world.css">
 <style>
 /* ============================================================
    NISHI'S PURPLE UNIVERSE — cinematic design system
@@ -1239,8 +1240,12 @@ body.pin-locked{overflow:hidden;overscroll-behavior:none}
 @keyframes pinTwinkle{from{opacity:.35;transform:scale(.8) rotate(-12deg)}to{opacity:1;transform:scale(1.12) rotate(12deg)}}
 .pin-lock-card{position:relative;width:min(100%,390px);margin:auto;padding:clamp(1.35rem,5vw,2.1rem);border:1px solid rgba(220,178,255,.3);border-radius:30px;background:linear-gradient(155deg,rgba(54,24,83,.86),rgba(19,8,42,.92));box-shadow:0 28px 90px rgba(0,0,0,.48),0 0 65px rgba(159,89,222,.2),inset 0 1px rgba(255,255,255,.12);text-align:center;backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px)}
 .pin-lock-emblem{width:76px;height:76px;display:grid;place-items:center;margin:0 auto 1rem;border:1px solid rgba(231,195,255,.46);border-radius:25px;background:radial-gradient(circle at 32% 22%,rgba(255,255,255,.24),transparent 52%),linear-gradient(145deg,#9b55d0,#49206f);box-shadow:0 0 34px rgba(199,125,255,.34);font-size:2.2rem}
+.pin-mascot{display:block;width:min(100%,210px);height:190px;object-fit:contain;margin:0 auto .65rem;filter:drop-shadow(0 10px 18px rgba(8,2,24,.28));border-radius:22px}
+.pin-mascot-caption{margin:-.15rem 0 .7rem;color:#e7ccff;font-size:.78rem;letter-spacing:.03em}
+.pin-mascot-caption a{color:#f3d8ff;text-decoration:underline;text-underline-offset:3px}
+@media(prefers-reduced-motion:reduce){.pin-mascot{animation:none!important}}
 .pin-lock-kicker{margin:0 0 .35rem;color:#d8b5f7;font-size:.72rem;font-weight:700;letter-spacing:.24em;text-transform:uppercase}
-.pin-lock-title{margin:0;color:#fff;font-size:clamp(1.8rem,7vw,2.3rem);line-height:1.12;letter-spacing:-.025em}
+.pin-lock-title{margin:0;color:#fff;font-family:'Great Vibes','Segoe Script',cursive;font-weight:400;font-size:clamp(2.5rem,9vw,3.35rem);line-height:1.12;letter-spacing:.01em;text-shadow:0 0 22px rgba(199,125,255,.42)}
 .pin-lock-subtitle{margin:.65rem 0 1.35rem;color:#d1bee5;font-size:.96rem;line-height:1.55}
 .pin-lock-subtitle .bn{margin-top:.25rem;color:#bda4d7;font-size:.9rem}
 .pin-lock-dots{display:flex;justify-content:center;gap:clamp(.55rem,3vw,.82rem);margin:0 auto 1.1rem}
@@ -1264,10 +1269,14 @@ body.pin-locked{overflow:hidden;overscroll-behavior:none}
 <!-- ================= BIRTHDAY PIN LOCK ================= -->
 <section class="pin-lock" id="pin-lock" role="dialog" aria-modal="true" aria-labelledby="pin-lock-title" aria-describedby="pin-lock-help">
   <div class="pin-lock-card">
-    <div class="pin-lock-emblem" aria-hidden="true">🔐</div>
-    <p class="pin-lock-kicker">A little secret for you</p>
+    <img class="pin-mascot" id="pin-mascot" data-mood="idle"
+         src="https://media1.tenor.com/m/dHMBUC-iGXgAAAAd/bubu-dudu.gif"
+         alt="Bubu, the brown bear, cuddling Dudu, the white panda"
+         width="220" height="220" decoding="async" fetchpriority="high">
+    <p class="pin-mascot-caption">🐻 Bubu &amp; Dudu 🐼 are keeping your little secret 💜 · <a href="https://tenor.com/view/bubu-dudu-stickers-gif-26831087" target="_blank" rel="noopener noreferrer">Sticker via Tenor</a></p>
+    <p class="pin-lock-kicker">🌙 A little secret for you ✨</p>
     <h1 class="pin-lock-title" id="pin-lock-title">Nishi's Purple Universe</h1>
-    <p class="pin-lock-subtitle" id="pin-lock-help">Enter your birthday PIN to unlock the magic.<span class="bn">জন্মদিনের পিন দিয়ে জাদুর জগৎ খুলে ফেলো।</span></p>
+    <p class="pin-lock-subtitle" id="pin-lock-help">🔐 Enter your birthday PIN to unlock the magic. ✨<span class="bn">জন্মদিনের পিন দিয়ে জাদুর জগৎ খুলে ফেলো।</span></p>
     <div class="pin-lock-dots" id="pin-lock-dots" role="img" aria-label="Eight digit PIN, no digits entered">
       <span class="pin-lock-dot" aria-hidden="true"></span><span class="pin-lock-dot" aria-hidden="true"></span><span class="pin-lock-dot" aria-hidden="true"></span><span class="pin-lock-dot" aria-hidden="true"></span><span class="pin-lock-dot" aria-hidden="true"></span><span class="pin-lock-dot" aria-hidden="true"></span><span class="pin-lock-dot" aria-hidden="true"></span><span class="pin-lock-dot" aria-hidden="true"></span>
     </div>
@@ -1278,7 +1287,7 @@ body.pin-locked{overflow:hidden;overscroll-behavior:none}
       <button class="pin-key" type="button" data-pin-digit="0" aria-label="Digit 0">0</button>
       <button class="pin-key utility" type="button" data-pin-action="backspace" aria-label="Delete last digit">⌫</button>
     </div>
-    <p class="pin-lock-foot">✦ Seven stars · one sky · forever purple ✦</p>
+    <p class="pin-lock-foot">🌷 Seven stars · one sky · forever purple 💜✨</p>
   </div>
 </section>
 
@@ -1889,6 +1898,7 @@ body.pin-locked{overflow:hidden;overscroll-behavior:none}
     </div>
   </div>
 </section>
+<section class="section" id="heart-letter">
   <div class="shell">
     <div class="section-head reveal">
       <p class="eyebrow">From the heart</p>
@@ -1945,9 +1955,10 @@ body.pin-locked{overflow:hidden;overscroll-behavior:none}
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <p class="visually-hidden" id="live-region" role="status" aria-live="polite"></p>
 
-<script type="module" src="js/pin-lock.js"></script>
+<script defer src="js/pin-lock.js"></script>
 <script type="module" src="js/content.js"></script>
 <script type="module" src="js/ui.js"></script>
 <script type="module" src="js/playful-moments.js"></script>
+<script type="module" src="js/secret-world.js"></script>
 </body>
 </html>
