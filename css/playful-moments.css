@@ -1,0 +1,24 @@
+/* Nishi's playful bilingual mini-arcade */
+.joy-arcade{position:relative;z-index:2;padding:clamp(4.5rem,9vw,8rem) 0;overflow:hidden}
+.joy-arcade::before{content:"";position:absolute;inset:8% 4%;z-index:-1;pointer-events:none;background:radial-gradient(ellipse at 50% 35%,rgba(199,125,255,.16),transparent 68%)}
+.joy-arcade .section-head{text-align:center;max-width:760px;margin:0 auto 2.4rem}
+.joy-arcade .eyebrow{justify-content:center}
+.joy-arcade-subtitle{margin:0 auto .35rem;text-align:center}
+.joy-arcade-bn{text-align:center;margin:.25rem 0}
+.joy-arcade-choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(.8rem,2vw,1.35rem);max-width:960px;margin:0 auto}
+.joy-gift-card{position:relative;display:flex;min-height:210px;flex-direction:column;align-items:center;justify-content:center;gap:.5rem;padding:1.4rem 1rem;border:1px solid rgba(199,125,255,.32);border-radius:26px;background:linear-gradient(145deg,rgba(55,24,91,.78),rgba(20,8,49,.86));color:#f8efff;font:inherit;cursor:pointer;box-shadow:0 18px 42px rgba(4,1,16,.3),inset 0 1px rgba(255,255,255,.1);transition:transform .25s ease,border-color .25s ease,box-shadow .25s ease}
+.joy-gift-card:hover,.joy-gift-card:focus-visible,.joy-gift-card.is-selected{transform:translateY(-5px);border-color:rgba(232,190,255,.9);box-shadow:0 0 0 3px rgba(199,125,255,.12),0 22px 48px rgba(4,1,16,.42),0 0 32px rgba(199,125,255,.18);outline:none}
+.joy-gift-number{position:absolute;top:14px;left:16px;font-size:.75rem;letter-spacing:.18em;color:#c5a1e9}
+.joy-gift-icon{font-size:2.7rem;line-height:1.2;filter:drop-shadow(0 0 14px rgba(199,125,255,.55))}
+.joy-gift-label{font-weight:800;font-size:1.08rem}
+.joy-gift-label-bn{font-size:.9rem;color:#cbb6e8}
+.joy-arcade-reveal{max-width:760px;margin:1.5rem auto 0;padding:clamp(1.3rem,3vw,2rem);text-align:center;border:1px solid rgba(199,125,255,.38);border-radius:24px;background:rgba(24,9,54,.84);box-shadow:0 18px 48px rgba(4,1,16,.34),0 0 36px rgba(199,125,255,.12)}
+.joy-arcade-reveal[hidden]{display:none}
+.joy-arcade-reveal.is-revealed{animation:joy-reveal-in .48s cubic-bezier(.16,1,.3,1) both}
+.joy-arcade-reveal-icon{display:block;font-size:2rem;margin-bottom:.4rem}
+.joy-arcade-reveal-title{margin:0 0 .6rem;color:#e8c8ff}
+.joy-arcade-reveal-message{margin:0 auto;max-width:58ch}
+.joy-arcade-reveal-bn{margin:.8rem 0 0;color:#cbb6e8}
+@keyframes joy-reveal-in{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+@media(max-width:700px){.joy-arcade{padding:4rem 0}.joy-arcade-choices{grid-template-columns:1fr;max-width:440px}.joy-gift-card{min-height:132px;display:grid;grid-template-columns:46px 1fr;grid-template-rows:auto auto;justify-items:start;align-content:center;text-align:left;padding:1rem 1.2rem 1rem 1.5rem;column-gap:1rem}.joy-gift-number{top:10px;right:12px;left:auto}.joy-gift-icon{grid-row:1/3;grid-column:1;font-size:2.25rem}.joy-gift-label,.joy-gift-label-bn{grid-column:2}.joy-gift-label{align-self:end}.joy-gift-label-bn{align-self:start}}
+@media(prefers-reduced-motion:reduce){.joy-gift-card{transition:none}.joy-arcade-reveal.is-revealed{animation:none}}

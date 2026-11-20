@@ -46,7 +46,17 @@ try {
     });
     const page = await context.newPage();
     const pageErrors = [];
+    const consoleErrors = [];
+    const moduleResponses = [];
     page.on('pageerror', error => pageErrors.push(error.message));
+    page.on('console', message => {
+      if (message.type() === 'error') consoleErrors.push(message.text());
+    });
+    page.on('response', response => {
+      if (response.url().includes('/js/secret-world.js') || response.url().includes('/content/site-config.js')) {
+        moduleResponses.push({ url: response.url(), status: response.status() });
+      }
+    });
     const localFailures = [];
     let contentConfigLoaded = false;
     page.on('response', response => {
@@ -67,14 +77,36 @@ try {
     await pinLock.waitFor({ state: 'visible' });
     assert.equal(await page.locator('#main-content').evaluate(el => el.inert), true,
       profile.name + ': site content should be inert before PIN unlock');
+    const mascot = page.locator('#pin-mascot');
+    assert.equal(await mascot.getAttribute('data-mood'), 'idle',
+      profile.name + ': Bubu & Dudu should start with a calm expression');
+    await pinLock.locator('[data-pin-digit="1"]').click();
+    assert.equal(await mascot.getAttribute('data-mood'), 'thinking',
+      profile.name + ': mascot should think while PIN digits are entered');
+    await pinLock.locator('[data-pin-action="clear"]').click();
+    assert.equal(await mascot.getAttribute('data-mood'), 'idle',
+      profile.name + ': clearing PIN should reset the mascot to idle');
     for (const digit of '11111111') await pinLock.locator('[data-pin-digit="' + digit + '"]').click();
-    await page.waitForFunction(() => /Not quite/.test(document.querySelector('#pin-lock-status')?.textContent || ''));
-    await pinLock.locator('[data-pin-digit="2"]').waitFor({ state: 'visible' });
+    await page.waitForFunction(() => /Oopsie/.test(document.querySelector('#pin-lock-status')?.textContent || ''));
+    assert.equal(await mascot.getAttribute('data-mood'), 'sad',
+      profile.name + ': first incorrect PIN should make the mascot sad');
+    await page.waitForFunction(() => !document.querySelector('#pin-lock .pin-key')?.disabled);
+    for (const digit of '11111111') await pinLock.locator('[data-pin-digit="' + digit + '"]').click();
+    await page.waitForFunction(() => /crying/.test(document.querySelector('#pin-lock-status')?.textContent || ''));
+    assert.equal(await mascot.getAttribute('data-mood'), 'crying',
+      profile.name + ': repeated incorrect PIN should make the mascot cry');
     await page.waitForFunction(() => !document.querySelector('#pin-lock .pin-key')?.disabled);
     for (const digit of '20062008') await pinLock.locator('[data-pin-digit="' + digit + '"]').click();
+    await page.waitForFunction(() => document.querySelector('#pin-mascot')?.getAttribute('data-mood') === 'happy');
     await pinLock.waitFor({ state: 'hidden' });
     assert.equal(await page.locator('#main-content').evaluate(el => el.inert), false,
       profile.name + ': site content should become interactive after correct PIN');
+
+    // The playful bilingual mini-arcade must appear only after PIN unlock.
+    const arcade = page.locator('#joy-arcade');
+    await arcade.waitFor({ state: 'visible' });
+    assert.equal(await arcade.locator('.joy-gift-card').count(), 3,
+      profile.name + ': expected three editable surprise cards');
 
     // The first-visit cinematic intro intentionally blocks background controls.
     // Dismiss it through its real user-facing action before testing the page UI.
@@ -85,6 +117,60 @@ try {
       await skip.click();
       await intro.waitFor({ state: 'hidden' });
     }
+
+    // Arcade interaction only after the intro overlay is gone (it blocks taps).
+    const firstGift = arcade.locator('.joy-gift-card').first();
+    await firstGift.click();
+    assert.equal(await firstGift.getAttribute('aria-expanded'), 'true',
+      profile.name + ': selected surprise should expose expanded state');
+    assert.equal(await arcade.locator('#joy-arcade-reveal').isVisible(), true,
+      profile.name + ': selected surprise message should be visible');
+    assert.ok((await arcade.locator('.joy-arcade-reveal-message').textContent()).trim().length > 20,
+      profile.name + ': surprise message is missing');
+
+    // Secret World: seven OT7 stars, bilingual Open-When letters and virtual hug.
+    const secretWorld = page.locator('#nishi-secret-world');
+    try {
+      await secretWorld.waitFor({ state: 'visible', timeout: 10000 });
+    } catch {
+      const state = await page.evaluate(() => ({
+        readyState: document.readyState,
+        pinUnlocked: document.body.classList.contains('nishi-pin-unlocked'),
+        pinLockPresent: !!document.querySelector('#pin-lock'),
+        finalLetterPresent: !!document.querySelector('#final-letter'),
+        finalLetterSection: document.querySelector('#final-letter')?.closest('section')?.id || null,
+        secretWorldPresent: !!document.querySelector('#nishi-secret-world'),
+        configPresent: !!window.__nishiSecretWorldConfig
+      }));
+      throw new Error(profile.name + ': Secret World failed to initialise. DOM=' +
+        JSON.stringify(state) + '; pageErrors=' + JSON.stringify(pageErrors) +
+        '; consoleErrors=' + JSON.stringify(consoleErrors) +
+        '; moduleResponses=' + JSON.stringify(moduleResponses));
+    }
+    assert.equal(await secretWorld.locator('.nishi-star-card').count(), 7,
+      profile.name + ': all seven OT7 treasure stars should be present');
+    await secretWorld.locator('[data-star-id="rm"]').click();
+    assert.match(await secretWorld.locator('#nishi-star-count').textContent(), /1 of 7/);
+    assert.ok((await secretWorld.locator('.nishi-star-reveal').textContent()).includes('Keep dreaming boldly'),
+      profile.name + ': collected star should reveal its wish');
+    await secretWorld.locator('[data-letter-id="sad"]').click();
+    assert.equal(await secretWorld.locator('#nishi-letter-reveal').isVisible(), true,
+      profile.name + ': Open-When letter should reveal its message');
+    assert.ok((await secretWorld.locator('#nishi-letter-reveal').textContent()).includes('cloudy day'));
+    await secretWorld.locator('.nishi-hug-button').click();
+    assert.ok((await secretWorld.locator('.nishi-hug-status').textContent()).includes('Hug delivered'),
+      profile.name + ': virtual hug should provide feedback');
+    await secretWorld.locator('#nishi-magic-wish').fill('A little wish');
+    await secretWorld.locator('.nishi-magic-open').click();
+    assert.ok((await secretWorld.locator('.nishi-magic-status').textContent()).includes('you deserve patience'),
+      profile.name + ': Magic Shop should reveal its comfort message');
+    await secretWorld.locator('.nishi-photocard-pull').click();
+    const pulledCard = secretWorld.locator('.nishi-photocard');
+    await pulledCard.waitFor({ state: 'visible' });
+    const pulledMember = (await pulledCard.locator('.nishi-photocard-member').textContent()).trim();
+    assert.ok(['RM', 'Jin', 'SUGA', 'j-hope', 'Jimin', 'V', 'Jung Kook'].includes(pulledMember),
+      profile.name + ': photocard should feature exactly one OT7 member');
+
     // Allow either a real first WebGL frame or the explicit CSS fallback timeout.
     await page.waitForTimeout(2300);
 

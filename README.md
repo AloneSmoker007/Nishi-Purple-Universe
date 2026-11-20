@@ -38,9 +38,23 @@ The `assets/ai/` folder contains instructions for the original fantasy artwork p
 ## Birthday PIN lock
 
 The whole experience is gated by the birthday keypad in `index.html` and `js/pin-lock.js`.
+- The lock displays an animated brown Bubu + white Dudu sticker hosted by Tenor; sad/crying reactions switch when a PIN attempt fails.
+- Tenor community-uploaded sticker links are attributed in the lock UI; these are not verified official creator uploads and creator licensing is not confirmed.
+- The PIN keypad supports touch, keyboard input, screen-reader status messages and reduced-motion preferences.
+
+## Printable birthday QR card
+
+Open [qr-card.html](qr-card.html) and print it to create a small physical gift card. Its embedded QR code points to the live website URL. Test the printed QR with a phone camera before gifting.
+
+### PIN behavior
 - Birthday PIN: 20 June 2008 (`20062008`).
 - A successful unlock lasts for the current browser tab session.
-- The keypad supports touch, keyboard input, screen-reader status messages and reduced-motion preferences.
 - The 3D world, music player and interactive sections wait until the visitor unlocks the page.
 
 **Privacy note:** this is a client-side surprise gate, not strong authentication. The static site must deliver its HTML and JavaScript to visitors, so a determined person can inspect or bypass the PIN check. Do not use it to protect private or sensitive information.
+
+
+## Playful birthday arcade
+
+The bilingual mini-arcade is loaded from `js/playful-moments.js` and styled in `css/playful-moments.css`.
+Edit `playfulArcade` in `content/site-config.js` to change its English/Bangla title, three gift labels and reveal messages. The arcade appears after the birthday PIN is unlocked and respects reduced-motion settings.

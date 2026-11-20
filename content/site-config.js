@@ -15,10 +15,106 @@ export const siteConfig = {
     glow: "rgba(199,125,255,.42)",
   },
   artwork: {
-    hero: "assets/purple-galaxy.svg", // Replace with assets/ai/purple-castle-hero.webp when uploaded.
+    hero: "assets/purple-galaxy.svg",
     heroAlt: "A moonlit purple fantasy castle beneath seven glowing stars",
     memory: "assets/ai/rose-garden-terrace.webp",
     castle: "assets/ai/moonlit-castle-detail.webp",
+  },
+  playfulArcade: {
+    title: "Nishi's Little Joy Arcade 💜",
+    subtitle: "Three tiny surprises. Pick the one that matches your mood!",
+    titleBn: "নিশির ছোট্ট আনন্দের জগৎ 💜",
+    subtitleBn: "তোমার মনের মতো একটি ছোট্ট চমক বেছে নাও!",
+    gifts: [
+      {
+        id: "hype",
+        icon: "🎀",
+        label: "Hype bestie",
+        labelBn: "হাইপ বেস্টি",
+        message: "Breaking news: you are legally required to keep being this iconic. No refunds, only extra cake. 🎂",
+        messageBn: "জরুরি খবর: তোমাকে এভাবেই অসাধারণ থাকতে হবে! রিফান্ড নেই, শুধু আরও কেক! 🎂"
+      },
+      {
+        id: "soft",
+        icon: "🧸",
+        label: "Soft hug",
+        labelBn: "একটি মিষ্টি আলিঙ্গন",
+        message: "A tiny reminder: even on a cloudy day, you deserve kindness, laughter and a thousand little reasons to smile. 💜",
+        messageBn: "মনে রেখো: মেঘলা দিনেও তুমি ভালোবাসা, হাসি আর হাজারো ছোট্ট আনন্দ পাওয়ার যোগ্য। 💜"
+      },
+      {
+        id: "star",
+        icon: "🌟",
+        label: "Main character",
+        labelBn: "গল্পের নায়িকা",
+        message: "Your next chapter comes with seven-star energy, a little chaos, big dreams and a soundtrack picked by you. ✨",
+        messageBn: "তোমার পরের অধ্যায়ে থাকুক সাত তারার আলো, একটু দুষ্টুমি, বড় স্বপ্ন আর তোমার পছন্দের গান। ✨"
+      }
+    ]
+  },
+  secretWorld: {
+    eyebrow: "A little world, just for you",
+    title: "Nishi's Secret World 💜",
+    subtitle: "Find seven stars, open a little letter, and collect a warm hug.",
+    subtitleBn: "সাতটি তারা খুঁজে নাও, একটি চিঠি খোলো, আর একটি উষ্ণ আলিঙ্গন নাও।",
+    starsTitle: "The Seven-Star Treasure Hunt ✨",
+    starsHint: "Tap every star to collect a tiny wish from all seven members.",
+    starsHintBn: "সাতজনের কাছ থেকে ছোট্ট শুভকামনা পেতে প্রতিটি তারায় ট্যাপ করো।",
+    progressLabel: "{found} of {total} stars found",
+    tapLabel: "Tap to find",
+    collectedLabel: "Collected ✨",
+    completeMessage: "You found all seven stars! Your little universe is glowing brighter because of you. 💜",
+    completeMessageBn: "তুমি সাতটি তারাই খুঁজে পেয়েছ! তোমার জন্যই এই ছোট্ট মহাবিশ্ব আরও উজ্জ্বল। 💜",
+    stars: [
+      { id: "rm", name: "RM", message: "Keep dreaming boldly. Your ideas deserve the whole sky.", messageBn: "বড় স্বপ্ন দেখো। তোমার ভাবনাগুলো পুরো আকাশের মতো বিশাল হওয়ার যোগ্য।" },
+      { id: "jin", name: "Jin", message: "May your days bring you laughter, comfort and a little extra sparkle.", messageBn: "তোমার দিনগুলো ভরে উঠুক হাসি, স্বস্তি আর একটু বাড়তি ঝলমলে আনন্দে।" },
+      { id: "suga", name: "SUGA", message: "Rest when you need to. You never have to earn your worth.", messageBn: "যখন দরকার বিশ্রাম নাও। নিজের মূল্য প্রমাণ করার জন্য তোমাকে কিছুই করতে হবে না।" },
+      { id: "jhope", name: "j-hope", message: "Keep a little sunshine in your pocket, even on cloudy days.", messageBn: "মেঘলা দিনেও নিজের মনে একটুখানি রোদ জমিয়ে রেখো।" },
+      { id: "jimin", name: "Jimin", message: "You deserve gentleness, kindness and people who cheer for you.", messageBn: "তুমি কোমলতা, মমতা আর তোমার জন্য আনন্দে চিৎকার করা মানুষদের যোগ্য।" },
+      { id: "v", name: "V", message: "Keep seeing beauty in little things. Your unique colour matters.", messageBn: "ছোট ছোট জিনিসের সৌন্দর্য খুঁজে নাও। তোমার নিজস্ব রং খুব মূল্যবান।" },
+      { id: "jungkook", name: "Jung Kook", message: "One step at a time. Your next chapter can be amazing.", messageBn: "এক ধাপ করে এগিয়ে চলো। তোমার পরের অধ্যায় অসাধারণ হতে পারে।" },
+    ],
+    lettersTitle: "Open When… 💌",
+    lettersHint: "Choose the envelope that matches your moment.",
+    lettersHintBn: "তোমার মনের অবস্থার সঙ্গে মেলে এমন খামটি বেছে নাও।",
+    letters: [
+      { id: "sad", icon: "🌧️", label: "You feel sad", labelBn: "মন খারাপ হলে", title: "A soft reminder for a cloudy day", message: "You don't have to pretend to be okay every minute. Take a breath, drink some water, and give yourself the same kindness you give everyone else. This feeling can pass, one gentle moment at a time. 💜", messageBn: "প্রতিটি মুহূর্তে ভালো থাকার অভিনয় করতে হবে না। একটু শ্বাস নাও, পানি খাও, আর নিজেকেও সেই মমতা দাও যা তুমি অন্যদের দাও। ধীরে ধীরে এই অনুভূতিও কেটে যেতে পারে। 💜" },
+      { id: "miss", icon: "🌙", label: "You miss me", labelBn: "আমাকে মনে পড়লে", title: "Under the same purple sky", message: "Look up at the sky for a second. Somewhere under that same sky, someone is wishing you a peaceful day and sending you the biggest long-distance hug. 🌙", messageBn: "একটু আকাশের দিকে তাকাও। সেই একই আকাশের নিচে কেউ একজন তোমার শান্তিময় দিনের কামনা করছে আর দূর থেকে বড় একটি আলিঙ্গন পাঠাচ্ছে। 🌙" },
+      { id: "brave", icon: "🦋", label: "You need courage", labelBn: "সাহস দরকার হলে", title: "Your little courage note", message: "You have made it through days you once thought would be too hard. Take the next step at your own pace. You are allowed to learn, pause, and begin again. 🦋", messageBn: "যে দিনগুলো একসময় খুব কঠিন মনে হয়েছিল, সেগুলোও তুমি পার করেছ। নিজের গতিতে পরের ধাপটি নাও। শেখা, থামা আর আবার শুরু করার অধিকার তোমার আছে। 🦋" },
+      { id: "happy", icon: "🎉", label: "You feel happy", labelBn: "খুশি হলে", title: "Please keep this sparkle", message: "YAY! Save this moment, celebrate the tiny wins, play your favourite BTS song and let yourself enjoy every bit of this happiness. You deserve it! 🎉💜", messageBn: "ইয়েই! এই মুহূর্তটি মনে রেখো, ছোট ছোট সাফল্য উদযাপন করো, তোমার প্রিয় BTS গান চালাও আর এই আনন্দটুকু মন ভরে উপভোগ করো। তুমি এর যোগ্য! 🎉💜" },
+    ],
+    hugTitle: "A Hug Whenever You Need One 🫂",
+    hugCopy: "A tiny virtual hug, delivered with a whole lot of care.",
+    hugCopyBn: "অনেক যত্ন দিয়ে পাঠানো একটি ছোট্ট ভার্চুয়াল আলিঙ্গন।",
+    hugButton: "Send me a warm hug 💜",
+    hugThanks: "Hug delivered! Bubu & Dudu say: you are never a bother. 🧸💗",
+    hugThanksBn: "আলিঙ্গন পৌঁছে গেছে! বুবু আর দুদু বলছে: তুমি কখনোই বিরক্তির কারণ নও। 🧸💗",
+    magicShop: {
+    title: "The Magic Shop 💜",
+    copy: "Leave a little worry here. This tiny corner is only for comfort, kindness and a surprise.",
+    copyBn: "একটু দুশ্চিন্তা এখানে রেখে যাও। এই ছোট্ট কোণটি শুধু স্বস্তি, মমতা আর একটি চমকের জন্য।",
+    wishLabel: "A thought you want to let go (optional)",
+    wishPlaceholder: "Type a little thought…",
+    openButton: "Open my Magic Shop ✨",
+    comfortMessage: "Whatever is on your mind, you deserve patience, rest and kindness. Take one gentle breath. You are not alone under this purple sky. 💜",
+    comfortMessageBn: "তোমার মনে যা-ই থাকুক, তুমি ধৈর্য, বিশ্রাম আর মমতার যোগ্য। ধীরে একটি শ্বাস নাও। এই বেগুনি আকাশের নিচে তুমি একা নও। 💜",
+    privateNote: "Your note stays on this device and is not sent or saved.",
+    gachaTitle: "Mystery Photocard Pull 🎴",
+    gachaCopy: "Every member has an equal chance. Tap to reveal one of seven original fan-made purple cards.",
+    pullButton: "Pull a photocard 🎁",
+    cardLabel: "A new purple photocard has appeared!",
+    rareLabel: "ULTRA RARE! A little Magic Shop gift is yours!",
+    cardMessage: "A little star from your OT7 universe.",
+    cardMessageBn: "তোমার OT7 মহাবিশ্ব থেকে একটি ছোট্ট তারা।",
+    rareMessage: "ULTRA RARE — Redeem this card for one virtual coffee or ice cream from Bilal. 💜",
+    rareMessageBn: "আল্ট্রা রেয়ার — বিলালের কাছ থেকে একটি ভার্চুয়াল কফি বা আইসক্রিমের জন্য এই কার্ডটি রিডিম করো। 💜",
+    members: [
+      { name: "RM", symbol: "📖" }, { name: "Jin", symbol: "🌙" },
+      { name: "SUGA", symbol: "🎹" }, { name: "j-hope", symbol: "☀️" },
+      { name: "Jimin", symbol: "🦋" }, { name: "V", symbol: "🎨" },
+      { name: "Jung Kook", symbol: "⭐" }
+    ]
+    },
   },
   tracks: [
     { id: "7C2z4GqqS5E", title: "Fake Love", note: "💜" },
