@@ -5,12 +5,8 @@
 ## Git state
 | Ref | SHA | Note |
 |---|---|---|
-| `main` (remote) | `8f769d2` | clean; CI green |
-| `fix/iphone-pin-keypad-touch-input` (PR #22) | `94ce286` | pushed; CI 3/3 PASS; **awaiting merge approval** |
-| `feat/nishi-playful-mix-experience` (PR #15) | `b811c8a` | pushed 2026-11-20 (merge of main + arcade root-cause fix); CI runs watched |
+| `main` (remote) | `cb05a13` | PR #22 (`291e6c2`) + PR #15 (`70b8074`) + PR #23 (`cb05a13`) **all MERGED 2026-11-21**; CI green; Pages deployed & verified |
 | `fix/pin-and-full-site-regression` | `cad832a` | previous Mimo's work; integration pending (NEXT_TASK.md) |
-| `feat/music-player-reliability-local-mp3` (PR #7) | closed | superseded (evidence posted on PR) |
-| `feat/enable-adaptive-mobile-3d` (PR #8) | closed | superseded (evidence posted on PR) |
 
 ## Working copies
 - Main clone: `/home/work/.openclaw/workspace/Nishi-Purple-Universe` (branch: `fix/iphone-pin-keypad-touch-input`)
@@ -21,14 +17,14 @@
 1. Pushed PR #22 (was blocked on `workflow` scope; authorized via device flow).
 2. Root-caused + fixed PR #15 `#joy-arcade` timeout (missing section wrapper on old base + config comma + test-order); merged main into branch; pure-additive diff (192+/0−); pushed `b811c8a`.
 3. Closed PRs #7/#8 as superseded with commit-level evidence comments.
-4. Handover docs written (this file + MASTER_WORK_INVENTORY.md + TEST_EVIDENCE.md + NEXT_TASK.md + RELEASE_CHECKLIST.md).
+4. Handover docs written and merged (PR #23).
+5. **2026-11-21: merged #22 → `291e6c2`, #15 → `70b8074`, #23 → `cb05a13` (user-authorized).** Post-merge verification on main: PIN suite 6/6, smoke 4/4, static 12/12, CI green, live site verified. One CI flake on intermediate commit `291e6c2` (reload wait 5s under runner load) — same code green on `94ce286` and `cb05a13`; reload wait hardened to 10s.
 
 ## In flight when interrupted
 - Background smoke re-run on `b811c8a` (final tree) → `playful-smoke4.log` (session sharp-tidepool).
 - CI for `feat/nishi-playful-mix-experience` push.
 
 ## Exact next action
-1. Confirm smoke4 + PR #15 CI green.
-2. Commit these docs on `docs/handover-inventory` (off `main`), push, open PR.
-3. Ask human: merge approval for PR #22, PR #15, docs PR.
-4. Then NEXT_TASK.md steps 2–4 (integration branch, post-merge verification, physical-device request).
+1. Integration branch: port `fix/pin-and-full-site-regression`'s valuable work (intro fade click-through, stable PIN status height, deferred 3D boot) onto current main; re-verify with both suites; PR + merge.
+2. Physical-device tap-through request (real iPhone + low-end Android).
+3. Then release items in RELEASE_CHECKLIST.md.

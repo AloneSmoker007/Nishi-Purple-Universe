@@ -149,7 +149,7 @@ try {
 
     // --- 6. Unlock survives a reload (session behaviour preserved) ---
     await page.reload({ waitUntil: 'domcontentloaded' });
-    await page.waitForFunction(() => !document.querySelector('#pin-lock'), null, { timeout: 5000 });
+    await page.waitForFunction(() => !document.querySelector('#pin-lock'), null, { timeout: 10000 });
     assert.equal(await page.locator('#main-content').evaluate(el => el.inert), false,
       profile.name + ': unlocked state must persist across reloads');
 

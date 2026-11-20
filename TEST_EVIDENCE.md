@@ -46,7 +46,15 @@ Browser-side diagnostic on the pre-fix branch: `arcadeExists: false, finalLetter
 One local re-run (on the final tree) failed at `#skip-intro` visibility (30s timeout) while the machine was running concurrent work. The **same tree** passed: smoke3 (pre-amend run), smoke5 (clean re-run, exit=0 4/4), GitHub CI smoke (run 44640539815), and an 8-iteration state-sampling diagnostic of the exact post-unlock sequence (8/8: intro never auto-hides, `skip` always visible, `prefers-reduced-motion=false`, `nishi-intro-seen=null`).
 **Classification: environment/timing flake under CPU contention — not an implementation regression and not an assertion defect.** No test was weakened or skipped.
 
-## C. Static validation on `main` (`8f769d2`) — PASS (run 44630251495/44402838211)
+## C. Post-merge verification on `main` (2026-11-21, merges `291e6c2` + `70b8074` + `cb05a13`)
+- `tests/pin-keypad-touch.mjs` — **6/6 PASS / 0 FAIL / 0 SKIP** (exit=0)
+- `tests/browser-smoke.mjs` — **4/4 PASS / 0 FAIL / 0 SKIP** (exit=0; arcade + PIN + Secret World combined tree)
+- `validate.yml` static blocks — **all PASS** (incl. arcade + QR checks)
+- CI on `cb05a13`: Browser smoke ✅, Static validation ✅, pages-build-deployment ✅
+- Live site: HTTP 200, new PIN lock deployed and verified
+- **CI flake (recorded honestly):** one run on intermediate commit `291e6c2` failed the 5s reload wait in the WebKit PIN job under runner load. The identical code passed CI on `94ce286` and `cb05a13` and locally 6/6 → timing flake, not a defect. Reload wait hardened to 10s (assertion unchanged).
+
+## D. Static validation on `main` (`8f769d2`) — PASS (run 44630251495/44402838211)
 Browser smoke on `main` — PASS (run 44402838243).
 
 ## D. Gaps / honest limitations

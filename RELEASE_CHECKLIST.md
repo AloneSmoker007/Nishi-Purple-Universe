@@ -3,9 +3,9 @@
 **Status (2026-11-20): NOT RELEASE READY** — blocking items in bold.
 
 ## Merge queue (needs human approval)
-- [ ] **PR #22 (iPhone PIN fix) reviewed & merged** — checks 3/3 green
-- [ ] **PR #15 (playful arcade) reviewed & merged** — checks green (see CI)
-- [ ] Docs PR (handover docs) reviewed & merged
+- [x] PR #22 (iPhone PIN fix) **MERGED** `291e6c2` (2026-11-21)
+- [x] PR #15 (playful arcade) **MERGED** `70b8074` (2026-11-21)
+- [x] Docs PR #23 (handover docs) **MERGED** `cb05a13` (2026-11-21)
 - [ ] Integration branch (regression-branch work) completed & merged (NEXT_TASK.md)
 
 ## Verification gates
@@ -15,8 +15,8 @@
 - [x] Browser smoke suite — PASS 4/4 (both PR lines)
 - [x] Zero removed assertions vs main (diff-audited)
 - [x] QR destination verified (decodes to live URL)
-- [ ] **Post-merge re-run of both suites on `main`**
-- [ ] **Live GitHub Pages deployment verified after merge** (fresh visit, PIN unlock, all features)
+- [x] Post-merge re-run of both suites on `main` — **PIN 6/6 PASS, smoke 4/4 PASS, static 12/12 PASS** (2026-11-21)
+- [x] Live GitHub Pages deployment verified after merge — HTTP 200, new PIN lock live
 - [ ] **Physical-device tap-through: real iPhone (Safari) + one low-end Android (e.g. Vivo Y11)** — PIN keypad, music, scroll, landscape
 - [ ] Music playback manually verified on phone (YouTube embed + local MP3 + no overlapping audio)
 
