@@ -12,20 +12,28 @@
   const mascot = overlay.querySelector('#pin-mascot');
   let entered = '', checking = false, failedAttempts = 0;
   const mascotStickers = {
-    idle: 'https://media1.tenor.com/m/dHMBUC-iGXgAAAAd/bubu-dudu.gif',
-    thinking: 'https://media1.tenor.com/m/dHMBUC-iGXgAAAAd/bubu-dudu.gif',
-    sad: 'https://media.tenor.com/BOLqQTbf9QgAAAAj/dudu-sad.gif',
-    crying: 'https://media.tenor.com/4-S7eXPVyfQAAAAj/bubu-dudu-sseeyall.gif',
-    happy: 'https://media1.tenor.com/m/dHMBUC-iGXgAAAAd/bubu-dudu.gif'
+    /* vendored locally — the page must not depend on a CDN at runtime */
+    idle: 'assets/stickers/bubu-dudu-hug.gif',
+    thinking: 'assets/stickers/bubu-dudu-hug.gif',
+    sad: 'assets/stickers/dudu-sad.gif',
+    crying: 'assets/stickers/bubu-dudu-cry.gif',
+    happy: 'assets/stickers/bubu-dudu-hug.gif'
   };
+  const moodBadge = overlay.querySelector('#pin-mood-badge');
+  const moodEmoji = { idle: '', thinking: '💭', sad: '🥺', crying: '💧', happy: '🎉' };
   function mood(value) {
-    if (!mascot) return;
-    mascot.setAttribute('data-mood', value);
-    const next = mascotStickers[value] || mascotStickers.idle;
-    if (!mascot.src.endsWith(next)) mascot.src = next;
-    mascot.alt = value === 'sad' ? 'Dudu the white panda looking sad'
-      : value === 'crying' ? 'Dudu the white panda crying'
-      : 'Bubu the brown bear cuddling Dudu the white panda';
+    if (mascot) {
+      mascot.setAttribute('data-mood', value);
+      const next = mascotStickers[value] || mascotStickers.idle;
+      if (!mascot.src.endsWith(next)) mascot.src = next;
+      mascot.alt = value === 'sad' ? 'Dudu the white panda looking sad'
+        : value === 'crying' ? 'Dudu the white panda crying'
+        : 'Bubu the brown bear cuddling Dudu the white panda';
+    }
+    if (moodBadge) {
+      moodBadge.textContent = moodEmoji[value] || '';
+      moodBadge.classList.toggle('is-on', !!moodEmoji[value]);
+    }
   }
   function render() { dots.forEach((dot, i) => dot.classList.toggle('is-filled', i < entered.length)); if (dotsLabel) dotsLabel.setAttribute('aria-label', 'Eight digit PIN, ' + entered.length + ' digits entered'); }
   function setStatus(message, error) { if (!status) return; status.textContent = message; status.classList.toggle('is-error', !!error); }
@@ -54,34 +62,59 @@
   }
   try { if (sessionStorage.getItem(SESSION_KEY) === '1') { overlay.parentNode.removeChild(overlay); announceUnlocked(); return; } } catch (error) {}
   document.body.classList.add('pin-locked'); setInert(true);
-  /* Input wiring.
-     iOS Safari is unreliable at synthesising click from touch, so digits are
-     handled on pointerup (fired natively by the iOS event pipeline) and the
-     follow-up click is deduplicated. Keyboard activation still arrives as a
-     click with detail 0 and is never suppressed. One tap = exactly one digit. */
-  let lastPointerActivation = 0;
+  /* Input wiring — one tap must always register exactly one digit.
+     iOS Safari is unreliable at synthesising click from touch and can drop a
+     tap when the hit target moves mid-gesture, so:
+     - touchend is the primary tap path (target-matched, movement-guarded;
+       preventDefault kills ghost clicks and double-tap zoom)
+     - pointerup covers mouse and pen
+     - click is the keyboard-activation fallback (and ancient browsers)
+     - physical keyboards work from anywhere via a document-level handler. */
+  let lastGestureHandledAt = 0;
+  let touchStart = null;
   function keyFromEventTarget(target) {
     const el = target && typeof target.closest === 'function' ? target.closest('.pin-lock-keypad button') : null;
     return el && keys && keys.contains(el) ? el : null;
   }
-  function activateFromPointer(event) {
-    if (!event.isPrimary || (event.pointerType === 'mouse' && event.button !== 0)) return;
-    const button = keyFromEventTarget(event.target);
-    if (!button) return;
-    lastPointerActivation = Date.now();
-    handleKey(button);
-  }
-  function activateFromClick(event) {
-    const button = keyFromEventTarget(event.target);
-    if (!button) return;
-    if (event.detail !== 0 && Date.now() - lastPointerActivation < 500) return; /* ghost click after touch/mouse */
+  function activate(button) {
+    lastGestureHandledAt = Date.now();
     handleKey(button);
   }
   if (keys) {
-    keys.addEventListener('pointerup', activateFromPointer);
-    keys.addEventListener('click', activateFromClick);
+    keys.addEventListener('touchstart', (event) => {
+      const t = event.changedTouches[0];
+      const button = keyFromEventTarget(event.target);
+      touchStart = t && button ? { x: t.clientX, y: t.clientY, button } : null;
+    }, { passive: true });
+    keys.addEventListener('touchend', (event) => {
+      const start = touchStart; touchStart = null;
+      if (!start) return;
+      const t = event.changedTouches[0];
+      const moved = t ? Math.hypot(t.clientX - start.x, t.clientY - start.y) : 99;
+      const button = keyFromEventTarget(event.target);
+      if (!button || button !== start.button || moved > 12) return; /* scroll/flick, not a tap */
+      event.preventDefault(); /* no ghost click, no double-tap zoom */
+      activate(button);
+    }, { passive: false });
+    keys.addEventListener('pointerup', (event) => {
+      if (event.pointerType === 'touch') return; /* handled on touchend */
+      if (!event.isPrimary || event.button !== 0) return;
+      const button = keyFromEventTarget(event.target);
+      if (button) activate(button);
+    });
+    keys.addEventListener('click', (event) => {
+      const button = keyFromEventTarget(event.target);
+      if (!button) return;
+      if (Date.now() - lastGestureHandledAt < 700) return; /* this tap was already handled */
+      activate(button);
+    });
   }
-  overlay.addEventListener('keydown', event => { if (/^[0-9]$/.test(event.key)) { event.preventDefault(); addDigit(event.key); } else if (event.key === 'Backspace') { event.preventDefault(); entered = entered.slice(0, -1); mood(entered.length ? 'thinking' : 'idle'); render(); } else if (event.key === 'Escape') { event.preventDefault(); clear(); } });
+  document.addEventListener('keydown', event => {
+    if (event.repeat || !overlay.isConnected) return;
+    if (/^[0-9]$/.test(event.key)) { event.preventDefault(); addDigit(event.key); }
+    else if (event.key === 'Backspace') { event.preventDefault(); entered = entered.slice(0, -1); mood(entered.length ? 'thinking' : 'idle'); render(); }
+    else if (event.key === 'Escape') { event.preventDefault(); clear(); }
+  });
   window.addEventListener('resize', render);
   window.addEventListener('orientationchange', () => window.setTimeout(render, 120));
   setStatus('Made with love, just for you 💜🌙', false); render();

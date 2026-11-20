@@ -114,7 +114,17 @@ try {
     });
     assert.deepEqual(hitTest, [], profile.name + ': some keypad keys are covered by other elements: ' + hitTest.join('; '));
 
+    // --- 2b. Stickers are vendored locally and must actually load ---
+    const sticker = await page.evaluate(() => {
+      const img = document.querySelector('#pin-mascot');
+      return { src: img?.getAttribute('src') || '', loaded: !!img && img.complete && img.naturalWidth > 0 };
+    });
+    assert.ok(sticker.src.startsWith('assets/stickers/'),
+      profile.name + ': mascot sticker must be served locally, got ' + sticker.src);
+    assert.ok(sticker.loaded, profile.name + ': mascot sticker failed to load');
+
     // --- 3. One tap = exactly one digit (no touch+click double input) ---
+    const mascot = page.locator('#pin-mascot');
     for (const digit of ['1', '2', '3']) {
       const before = await filledDots();
       await tapKey('[data-pin-digit="' + digit + '"]');
@@ -122,6 +132,11 @@ try {
       assert.equal(await filledDots(), before + 1,
         profile.name + ': tapping ' + digit + ' must register exactly one digit');
     }
+    // typing must show the "thinking" mood with a visible 💭 badge (TikTok-style)
+    assert.equal(await mascot.getAttribute('data-mood'), 'thinking',
+      profile.name + ': mascot should think while digits are entered');
+    assert.equal((await page.locator('#pin-mood-badge').textContent()).trim(), '💭',
+      profile.name + ': thinking badge should show 💭 while typing');
 
     // --- 4. Backspace removes one digit, Clear resets ---
     await tapKey('[data-pin-action="backspace"]');
@@ -131,8 +146,22 @@ try {
     await page.waitForTimeout(80);
     assert.equal(await filledDots(), 0, profile.name + ': clear must empty the PIN');
 
+    // --- 4b. Physical keyboard must work even after clicking a non-button ---
+    const box = await pinLock.boundingBox();
+    await page.mouse.click(box.x + 3, box.y + 3); /* click decorative area: focus leaves the keypad */
+    await page.keyboard.press('7');
+    await page.keyboard.press('8');
+    await page.waitForTimeout(80);
+    assert.equal(await filledDots(), 2,
+      profile.name + ': keyboard digits must register even when no key has focus');
+    await page.keyboard.press('Backspace');
+    await page.waitForTimeout(80);
+    assert.equal(await filledDots(), 1, profile.name + ': keyboard Backspace must remove one digit');
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(80);
+    assert.equal(await filledDots(), 0, profile.name + ': keyboard Escape must clear the PIN');
+
     // --- 5. Full flow: wrong PIN twice (sad, crying), then the real PIN unlocks ---
-    const mascot = page.locator('#pin-mascot');
     for (const digit of '11111111') await tapKey('[data-pin-digit="' + digit + '"]');
     await page.waitForFunction(() => /Oopsie/.test(document.querySelector('#pin-lock-status')?.textContent || ''));
     assert.equal(await mascot.getAttribute('data-mood'), 'sad', profile.name + ': first wrong PIN should make the mascot sad');

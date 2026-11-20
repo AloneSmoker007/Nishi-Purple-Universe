@@ -1237,12 +1237,17 @@ body.pin-locked{overflow:hidden;overscroll-behavior:none}
 .pin-lock::before,.pin-lock::after{content:"✦";position:absolute;pointer-events:none;color:rgba(230,190,255,.55);font-size:clamp(1.1rem,3vw,2rem);text-shadow:0 0 22px #c77dff;animation:pinTwinkle 3s ease-in-out infinite alternate}
 .pin-lock::before{top:13%;left:12%}.pin-lock::after{right:11%;bottom:14%;animation-delay:1.2s}
 @keyframes pinTwinkle{from{opacity:.35;transform:scale(.8) rotate(-12deg)}to{opacity:1;transform:scale(1.12) rotate(12deg)}}
-.pin-lock-card{position:relative;width:min(100%,390px);margin:auto;padding:clamp(1.35rem,5vw,2.1rem);border:1px solid rgba(220,178,255,.3);border-radius:30px;background:linear-gradient(155deg,rgba(54,24,83,.86),rgba(19,8,42,.92));box-shadow:0 28px 90px rgba(0,0,0,.48),0 0 65px rgba(159,89,222,.2),inset 0 1px rgba(255,255,255,.12);text-align:center;backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+.pin-lock-card{position:relative;width:min(100%,390px);margin:auto;padding:clamp(1.35rem,5vw,2.1rem);border:1px solid rgba(220,178,255,.3);border-radius:30px;background:linear-gradient(155deg,rgba(54,24,83,.92),rgba(19,8,42,.95));box-shadow:0 28px 90px rgba(0,0,0,.48),0 0 65px rgba(159,89,222,.2),inset 0 1px rgba(255,255,255,.12);text-align:center;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+/* No backdrop-filter here on purpose: it breaks tap hit-testing in iOS Safari. */
 .pin-lock-emblem{width:76px;height:76px;display:grid;place-items:center;margin:0 auto 1rem;border:1px solid rgba(231,195,255,.46);border-radius:25px;background:radial-gradient(circle at 32% 22%,rgba(255,255,255,.24),transparent 52%),linear-gradient(145deg,#9b55d0,#49206f);box-shadow:0 0 34px rgba(199,125,255,.34);font-size:2.2rem}
 .pin-mascot{display:block;width:min(100%,210px);height:190px;object-fit:contain;margin:0 auto .65rem;filter:drop-shadow(0 10px 18px rgba(8,2,24,.28));border-radius:22px}
+.pin-mascot[data-mood="thinking"]{animation:pinThink 1.15s ease-in-out infinite}
+@keyframes pinThink{0%,100%{transform:translateY(0) rotate(-1.2deg)}50%{transform:translateY(-5px) rotate(1.2deg)}}
+.pin-mood-badge{position:absolute;top:.85rem;right:1.1rem;font-size:1.75rem;line-height:1;filter:drop-shadow(0 6px 14px rgba(8,2,24,.5));opacity:0;transform:scale(.7);transition:opacity .18s ease,transform .18s var(--ease-out);pointer-events:none;z-index:3}
+.pin-mood-badge.is-on{opacity:1;transform:scale(1)}
 .pin-mascot-caption{margin:-.15rem 0 .7rem;color:#e7ccff;font-size:.78rem;letter-spacing:.03em}
 .pin-mascot-caption a{color:#f3d8ff;text-decoration:underline;text-underline-offset:3px}
-@media(prefers-reduced-motion:reduce){.pin-mascot{animation:none!important}}
+@media(prefers-reduced-motion:reduce){.pin-mascot{animation:none!important}.pin-mood-badge{transition:none}}
 .pin-lock-kicker{margin:0 0 .35rem;color:#d8b5f7;font-size:.72rem;font-weight:700;letter-spacing:.24em;text-transform:uppercase}
 .pin-lock-title{margin:0;color:#fff;font-family:'Great Vibes','Segoe Script',cursive;font-weight:400;font-size:clamp(2.5rem,9vw,3.35rem);line-height:1.12;letter-spacing:.01em;text-shadow:0 0 22px rgba(199,125,255,.42)}
 .pin-lock-subtitle{margin:.65rem 0 1.35rem;color:#d1bee5;font-size:.96rem;line-height:1.55}
@@ -1256,6 +1261,9 @@ body.pin-locked{overflow:hidden;overscroll-behavior:none}
 .pin-key{min-height:clamp(54px,13vw,64px);border:1px solid rgba(220,184,255,.2);border-radius:17px;background:linear-gradient(155deg,rgba(124,76,163,.44),rgba(54,29,83,.72));color:#fff;font:700 1.35rem/1 'Outfit',system-ui,sans-serif;box-shadow:0 5px 14px rgba(0,0,0,.18),inset 0 1px rgba(255,255,255,.08);cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:transform .12s,background .12s,border-color .12s}
 .pin-key:hover,.pin-key:focus-visible{background:rgba(157,91,203,.62);border-color:rgba(231,195,255,.65)}
 .pin-key:active{transform:scale(.95)}
+/* Taps must never move the hit target mid-gesture (iOS Safari can drop the
+   tap when the element under the finger changes) — brightness only. */
+.pin-lock-keypad .pin-key:active,.pin-lock-keypad .pin-key.is-pressed{transform:none!important}
 .pin-key.utility{font-size:.8rem;letter-spacing:.06em;color:#e4c8fa}
 .pin-lock-foot{margin:1.15rem 0 0;color:#b99dce;font-size:.76rem;letter-spacing:.04em}
 @media(max-height:1000px){
@@ -1304,9 +1312,10 @@ body.pin-locked{overflow:hidden;overscroll-behavior:none}
 <section class="pin-lock" id="pin-lock" role="dialog" aria-modal="true" aria-labelledby="pin-lock-title" aria-describedby="pin-lock-help">
   <div class="pin-lock-card">
     <img class="pin-mascot" id="pin-mascot" data-mood="idle"
-         src="https://media1.tenor.com/m/dHMBUC-iGXgAAAAd/bubu-dudu.gif"
+         src="assets/stickers/bubu-dudu-hug.gif"
          alt="Bubu, the brown bear, cuddling Dudu, the white panda"
          width="220" height="220" decoding="async" fetchpriority="high">
+    <span class="pin-mood-badge" id="pin-mood-badge" aria-hidden="true"></span>
     <p class="pin-mascot-caption">🐻 Bubu &amp; Dudu 🐼 are keeping your little secret 💜 · <a href="https://tenor.com/view/bubu-dudu-stickers-gif-26831087" target="_blank" rel="noopener noreferrer">Sticker via Tenor</a></p>
     <p class="pin-lock-kicker">🌙 A little secret for you ✨</p>
     <h1 class="pin-lock-title" id="pin-lock-title">Nishi's Purple Universe</h1>
