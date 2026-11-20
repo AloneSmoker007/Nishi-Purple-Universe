@@ -874,6 +874,25 @@ function initGift() {
     btn.classList.add('is-open');
     btn.setAttribute('aria-expanded', 'true');
     reveal.classList.add('is-open');
+    // The panel is collapsed with max-height:0 and opened by a 1400px max-height
+    // transition. That can leave the letter stuck at 0px (invisible) when the
+    // transition is interrupted or a host stylesheet wins. Size it explicitly
+    // from its real content height so the letter always becomes readable.
+    reveal.style.maxHeight = 'none';
+    const fullHeight = reveal.scrollHeight;
+    // Open without the CSS transition: on slow/suspended tabs the max-height and
+    // opacity transition can stall half-way and leave the letter invisible.
+    reveal.style.transition = 'none';
+    reveal.style.maxHeight = fullHeight + 'px';
+    reveal.style.opacity = '1';
+    // The surrounding section may still be waiting on its scroll-in fade.
+    const section = btn.closest('.reveal');
+    if (section) {
+      section.classList.add('is-in');
+      section.style.transition = 'none';
+      section.style.opacity = '1';
+      section.style.transform = 'none';
+    }
     if (hint) hint.textContent = '💜 Your secret letter is open';
 
     if (burst && !REDUCED) {
