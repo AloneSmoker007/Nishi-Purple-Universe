@@ -97,6 +97,11 @@ jobs:
           ui = open("js/ui.js", encoding="utf-8").read()
           assert "startAfterPinUnlock" in ui
           print("Full-site birthday PIN gate and deferred startup: PASS")
+          qr = open("qr-card.html", encoding="utf-8").read()
+          assert "https://alonesmoker007.github.io/Nishi-Purple-Universe/" in qr
+          assert 'src="data:image/png;base64,' in qr
+          assert 'alt="Scan to open Nishi' in qr
+          print("Printable QR birthday card with embedded QR image: PASS")
           player = open("js/player.js", encoding="utf-8").read()
           assert "function syncProgressTimer()" in player
           assert "&& !document.hidden" in player
