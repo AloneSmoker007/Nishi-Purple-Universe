@@ -261,8 +261,30 @@ function initIntro() {
     if (main) { main.setAttribute('tabindex', '-1'); main.focus({ preventScroll: true }); }
   };
 
-  $('#enter-universe')?.addEventListener('click', () => close(true));
-  $('#skip-intro')?.addEventListener('click', () => close(false));
+  // A moving hit target can swallow a tap, so activate on pointerdown/touchstart
+  // (the first event of a real tap) and de-duplicate the click that follows.
+  const enterBtn = $('#enter-universe');
+  const skipBtn = $('#skip-intro');
+  const wire = (el, entering) => {
+    if (!el) return;
+    let last = 0;
+    const fire = (event) => {
+      if (event) event.preventDefault();
+      if (Date.now() - last < 600) return;
+      last = Date.now();
+      close(entering);
+    };
+    el.addEventListener('pointerdown', fire);
+    el.addEventListener('touchend', fire, { passive: false });
+    el.addEventListener('click', fire);
+  };
+  wire(enterBtn, true);
+  wire(skipBtn, false);
+  // Tapping the poster background also advances: nobody should ever be stuck here.
+  intro.addEventListener('pointerdown', (event) => {
+    if (event.target.closest('.intro-actions, a, button')) return;
+    close(false);
+  });
   intro.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') close(false);
     if (e.key === 'Enter' && e.target === intro) close(true);

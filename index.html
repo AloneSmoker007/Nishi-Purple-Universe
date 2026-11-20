@@ -37,6 +37,8 @@
    ============================================================ */
 @font-face{font-family:'Outfit';src:url('fonts/outfit-var.woff2') format('woff2');font-weight:100 900;font-style:normal;font-display:swap}
 @font-face{font-family:'Great Vibes';src:url('fonts/great-vibes-400.woff2') format('woff2');font-weight:400;font-style:normal;font-display:swap}
+/* Bengali text must never fall back to a tofu box: ship the script font locally */
+@font-face{font-family:'Noto Sans Bengali';src:url('fonts/noto-sans-bengali.woff2') format('woff2');font-weight:400 700;font-style:normal;font-display:swap;unicode-range:U+0951-0952,U+0964-0965,U+0980-09FE,U+200C-200D,U+20B9,U+25CC}
 
 :root{
   --ink-abyss:#0B0420;
@@ -78,7 +80,7 @@ body{
   margin:0;
   background:var(--ink-abyss);
   color:var(--text);
-  font-family:'Outfit',system-ui,-apple-system,'Segoe UI',sans-serif;
+  font-family:'Outfit','Noto Sans Bengali',system-ui,-apple-system,'Segoe UI','Noto Sans Symbols 2','Noto Sans Symbols','Apple Symbols','Segoe UI Symbol','Noto Color Emoji',sans-serif;
   font-size:17px;
   line-height:1.75;
   overflow-x:hidden;
@@ -164,7 +166,7 @@ h1,h2,h3,h4{margin:0 0 .5em; line-height:1.15; font-weight:800; letter-spacing:.
 }
 
 /* Bangla secondary line */
-.bn{display:block; font-size:max(.95em, 14px); color:var(--text-faint); font-weight:400; letter-spacing:0; margin-top:.35em; line-height:1.7}
+.bn{display:block; font-family:'Outfit','Noto Sans Bengali',system-ui,sans-serif; font-size:max(.95em, 14px); color:var(--text-faint); font-weight:400; letter-spacing:0; margin-top:.35em; line-height:1.7}
 
 /* ---------- glass panels ---------- */
 .panel{
@@ -1040,6 +1042,10 @@ body:has(.nav-links.is-open) .float-controls{opacity:0; pointer-events:none}
   background:linear-gradient(90deg,transparent,#C77DFF,transparent); opacity:.8;
 }
 .intro-actions{margin-top:2.85rem; display:flex; flex-direction:column; gap:1.15rem; align-items:center}
+/* The intro buttons must never shift under a finger or cursor: a moving hit
+   target is exactly what makes taps land on the overlay instead of the button. */
+.intro-actions .btn{transition:box-shadow .32s var(--ease), filter .32s var(--ease)}
+.intro-actions .btn:hover,.intro-actions .btn:active{transform:none}
 .intro-bar{
   width:min(300px,68vw); height:2px; border-radius:99px; overflow:hidden;
   background:rgba(183,107,240,.22); margin:2.65rem auto 0;
@@ -1255,7 +1261,7 @@ body.pin-locked{overflow:hidden;overscroll-behavior:none}
 .pin-lock-dots{display:flex;justify-content:center;gap:clamp(.55rem,3vw,.82rem);margin:0 auto 1.1rem}
 .pin-lock-dot{width:clamp(12px,3.5vw,15px);height:clamp(12px,3.5vw,15px);border:1px solid rgba(229,200,255,.72);border-radius:50%;background:rgba(255,255,255,.08);box-shadow:inset 0 1px 3px rgba(0,0,0,.2);transition:background .16s,transform .16s,box-shadow .16s}
 .pin-lock-dot.is-filled{background:#e5c1ff;border-color:#fff;transform:scale(1.08);box-shadow:0 0 13px rgba(221,172,255,.85)}
-.pin-lock-status{min-height:1.55rem;margin:0 0 .7rem;color:#d6bce9;font-size:.82rem}
+.pin-lock-status{min-height:2.6rem;display:flex;align-items:center;justify-content:center;margin:0 0 .7rem;color:#d6bce9;font-size:.82rem;line-height:1.45}
 .pin-lock-status.is-error{color:#ffb6d0}
 .pin-lock-keypad{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.58rem;max-width:290px;margin:0 auto}
 .pin-key{min-height:clamp(54px,13vw,64px);border:1px solid rgba(220,184,255,.2);border-radius:17px;background:linear-gradient(155deg,rgba(124,76,163,.44),rgba(54,29,83,.72));color:#fff;font:700 1.35rem/1 'Outfit',system-ui,sans-serif;box-shadow:0 5px 14px rgba(0,0,0,.18),inset 0 1px rgba(255,255,255,.08);cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:transform .12s,background .12s,border-color .12s}
@@ -1281,7 +1287,7 @@ body.pin-locked{overflow:hidden;overscroll-behavior:none}
   .pin-lock-subtitle .bn{margin-top:.12rem;font-size:.78rem}
   .pin-lock-dots{gap:.5rem;margin-bottom:.62rem}
   .pin-lock-dot{width:11px;height:11px}
-  .pin-lock-status{min-height:1.15rem;margin:0 0 .5rem;font-size:.76rem}
+  .pin-lock-status{min-height:2.35rem;margin:0 0 .5rem;font-size:.76rem;line-height:1.4}
   .pin-lock-keypad{gap:.42rem;max-width:285px}
   .pin-key{min-height:clamp(42px,6.4vh,52px);font-size:1.16rem;border-radius:14px}
   .pin-lock-foot{margin:.68rem 0 0;font-size:.68rem}
@@ -1296,7 +1302,7 @@ body.pin-locked{overflow:hidden;overscroll-behavior:none}
   .pin-lock-subtitle{margin:.22rem 0 .42rem;font-size:.76rem;line-height:1.3}
   .pin-lock-subtitle .bn{display:none}
   .pin-lock-dots{gap:.42rem;margin-bottom:.38rem}
-  .pin-lock-status{min-height:.95rem;margin:0 0 .34rem;font-size:.7rem}
+  .pin-lock-status{min-height:1.9rem;margin:0 0 .34rem;font-size:.7rem;line-height:1.35}
   .pin-lock-keypad{gap:.32rem}
   .pin-key{min-height:clamp(34px,9vh,46px);font-size:1.02rem;border-radius:12px}
   .pin-key.utility{font-size:.72rem}
@@ -1724,7 +1730,7 @@ body.pin-locked{overflow:hidden;overscroll-behavior:none}
       <div class="memory reveal">
         <img src="assets/nishi-busan-memory.jpg"
              alt="A hand holding a BTS ARMY light stick beside a Busan Day 1 concert ticket"
-             width="180" height="281" loading="lazy" decoding="async">
+             width="540" height="843" loading="lazy" decoding="async">
         <span class="frame-glow" aria-hidden="true"></span>
       </div>
       <div class="reveal" data-delay="1">
@@ -2002,5 +2008,7 @@ body.pin-locked{overflow:hidden;overscroll-behavior:none}
 <script type="module" src="js/content.js"></script>
 <script type="module" src="js/ui.js"></script>
 <script type="module" src="js/secret-world.js"></script>
+
+
 </body>
 </html>
