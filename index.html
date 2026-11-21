@@ -1240,7 +1240,7 @@ body.pin-locked{overflow:hidden;overscroll-behavior:none}
 .pin-lock{position:fixed;z-index:130;inset:0;display:grid;place-items:center;overflow-y:auto;padding:clamp(1rem,4vw,2rem);padding-top:max(1rem,env(safe-area-inset-top));padding-bottom:max(1rem,env(safe-area-inset-bottom));background:radial-gradient(ellipse at 50% 8%,rgba(155,86,226,.3),transparent 48%),radial-gradient(ellipse at 12% 90%,rgba(89,37,151,.26),transparent 42%),linear-gradient(155deg,#100522 0%,#1c0a38 52%,#090319 100%);opacity:1;visibility:visible;transition:opacity .48s ease,visibility .48s}
 .pin-lock[hidden]{display:none}
 .pin-lock.is-unlocking{opacity:0;visibility:hidden;pointer-events:none}
-.pin-lock::before,.pin-lock::after{content:"✦";position:absolute;pointer-events:none;color:rgba(230,190,255,.55);font-size:clamp(1.1rem,3vw,2rem);text-shadow:0 0 22px #c77dff;animation:pinTwinkle 3s ease-in-out infinite alternate}
+.pin-lock::before,.pin-lock::after{content:"";position:absolute;pointer-events:none;width:clamp(8px,2vw,15px);height:clamp(8px,2vw,15px);background:rgba(230,190,255,.6);border-radius:2px;transform:rotate(45deg);box-shadow:0 0 18px 2px rgba(199,125,255,.55);animation:pinTwinkle 3s ease-in-out infinite alternate}
 .pin-lock::before{top:13%;left:12%}.pin-lock::after{right:11%;bottom:14%;animation-delay:1.2s}
 @keyframes pinTwinkle{from{opacity:.35;transform:scale(.8) rotate(-12deg)}to{opacity:1;transform:scale(1.12) rotate(12deg)}}
 .pin-lock-card{position:relative;width:min(100%,390px);margin:auto;padding:clamp(1.35rem,5vw,2.1rem);border:1px solid rgba(220,178,255,.3);border-radius:30px;background:linear-gradient(155deg,rgba(54,24,83,.92),rgba(19,8,42,.95));box-shadow:0 28px 90px rgba(0,0,0,.48),0 0 65px rgba(159,89,222,.2),inset 0 1px rgba(255,255,255,.12);text-align:center;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
@@ -1271,6 +1271,7 @@ body.pin-locked{overflow:hidden;overscroll-behavior:none}
    tap when the element under the finger changes) — brightness only. */
 .pin-lock-keypad .pin-key:active,.pin-lock-keypad .pin-key.is-pressed{transform:none!important}
 .pin-key.utility{font-size:.8rem;letter-spacing:.06em;color:#e4c8fa}
+.pin-key-icon{display:block;margin:0 auto;width:20px;height:20px}
 .pin-lock-foot{margin:1.15rem 0 0;color:#b99dce;font-size:.76rem;letter-spacing:.04em}
 @media(max-height:1000px){
   /* The whole keypad must stay above the fold: iOS Safari turns taps
@@ -1334,7 +1335,7 @@ body.pin-locked{overflow:hidden;overscroll-behavior:none}
       <button class="pin-key" type="button" data-pin-digit="1" aria-label="Digit 1">1</button><button class="pin-key" type="button" data-pin-digit="2" aria-label="Digit 2">2</button><button class="pin-key" type="button" data-pin-digit="3" aria-label="Digit 3">3</button><button class="pin-key" type="button" data-pin-digit="4" aria-label="Digit 4">4</button><button class="pin-key" type="button" data-pin-digit="5" aria-label="Digit 5">5</button><button class="pin-key" type="button" data-pin-digit="6" aria-label="Digit 6">6</button><button class="pin-key" type="button" data-pin-digit="7" aria-label="Digit 7">7</button><button class="pin-key" type="button" data-pin-digit="8" aria-label="Digit 8">8</button><button class="pin-key" type="button" data-pin-digit="9" aria-label="Digit 9">9</button>
       <button class="pin-key utility" type="button" data-pin-action="clear" aria-label="Clear PIN">Clear</button>
       <button class="pin-key" type="button" data-pin-digit="0" aria-label="Digit 0">0</button>
-      <button class="pin-key utility" type="button" data-pin-action="backspace" aria-label="Delete last digit">⌫</button>
+      <button class="pin-key utility" type="button" data-pin-action="backspace" aria-label="Delete last digit"><svg class="pin-key-icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path d="M9 5h11a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H9L2 12l7-7z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M11.5 9.5l4.5 5m0-5l-4.5 5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></button>
     </div>
     <p class="pin-lock-foot">🌷 Seven stars · one sky · forever purple 💜✨</p>
   </div>
