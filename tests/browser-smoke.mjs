@@ -112,6 +112,32 @@ try {
       await intro.waitFor({ state: 'hidden' });
     }
 
+    // Gift letter: opening must remain readable even if the reveal transition/observer is interrupted.
+    const giftButton = page.locator('#gift-btn');
+    await giftButton.scrollIntoViewIfNeeded();
+    await giftButton.click();
+    assert.equal(await giftButton.getAttribute('aria-expanded'), 'true',
+      profile.name + ': gift button must expose its expanded state');
+    const giftReveal = page.locator('#gift-reveal');
+    await page.waitForFunction(() => {
+      const panel = document.querySelector('#gift-reveal');
+      return !!panel && panel.getBoundingClientRect().height > 0 && getComputedStyle(panel).opacity === '1';
+    });
+    const giftState = await page.evaluate(() => {
+      const panel = document.querySelector('#gift-reveal');
+      const wrapper = document.querySelector('#gift-btn')?.closest('.reveal');
+      return {
+        height: panel?.getBoundingClientRect().height || 0,
+        opacity: panel ? getComputedStyle(panel).opacity : 'missing',
+        wrapperOpacity: wrapper ? getComputedStyle(wrapper).opacity : 'missing',
+        text: panel?.textContent || ''
+      };
+    });
+    assert.ok(giftState.height > 0, profile.name + ': secret gift letter must have visible height');
+    assert.equal(giftState.opacity, '1', profile.name + ': secret gift letter must be fully opaque');
+    assert.equal(giftState.wrapperOpacity, '1', profile.name + ': gift wrapper must not remain hidden');
+    assert.ok(giftState.text.includes('To My Dearest Nishi'), profile.name + ': gift letter content missing');
+
     // Secret World: seven OT7 stars, bilingual Open-When letters and virtual hug.
     const secretWorld = page.locator('#nishi-secret-world');
     try {
