@@ -181,6 +181,28 @@ try {
     assert.ok(['RM', 'Jin', 'SUGA', 'j-hope', 'Jimin', 'V', 'Jung Kook'].includes(pulledMember),
       profile.name + ': photocard should feature exactly one OT7 member');
 
+    // Quest flow + clipboard failure must never report a false successful copy.
+    const quest = page.locator('#quest-mount');
+    await quest.locator('[data-quest="start"]').click();
+    while (await quest.locator('[data-quest="skip"]').count()) {
+      await quest.locator('[data-quest="skip"]').click();
+    }
+    await quest.locator('[data-quest="reveal"]').click();
+    await page.evaluate(() => {
+      Object.defineProperty(navigator, 'clipboard', {
+        configurable: true,
+        value: { writeText: () => Promise.reject(new Error('clipboard permission denied')) }
+      });
+      document.execCommand = () => false;
+    });
+    const copyButton = quest.locator('[data-quest="copy"]');
+    await copyButton.click();
+    await page.waitForFunction(() => /Copy unavailable/.test(
+      document.querySelector('#quest-mount [data-quest="copy"]')?.textContent || ''
+    ));
+    assert.ok(!(await copyButton.textContent()).includes('Copied'),
+      profile.name + ': failed clipboard operation must not claim success');
+
     // Allow either a real first WebGL frame or the explicit CSS fallback timeout.
     await page.waitForTimeout(2300);
 

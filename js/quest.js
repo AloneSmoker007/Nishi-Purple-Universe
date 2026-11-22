@@ -888,20 +888,33 @@ function onAction(e) {
     case 'copy': {
       const r = buildReveal();
       const text = [r.title, '', ...r.lines, '', t({ en: 'With love, Your Bilal 💜', bn: 'ভালোবাসাসহ, তোমার বিলাল 💜' })].join('\n');
-      const done = () => {
-        el.textContent = t({ en: 'Copied ✓', bn: 'কপি হয়েছে ✓' });
-        setTimeout(() => render(), 1400);
+      const finishCopy = (success) => {
+        el.textContent = success
+          ? t({ en: 'Copied ✓', bn: 'কপি হয়েছে ✓' })
+          : t({ en: 'Copy unavailable — please select the text manually.', bn: 'কপি করা যায়নি — অনুগ্রহ করে লেখাটি নিজে নির্বাচন করো।' });
+        el.setAttribute('aria-live', 'polite');
+        if (success) setTimeout(() => render(), 1400);
       };
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text).then(done).catch(done);
-      } else {
+      const legacyCopy = () => {
         const tmp = document.createElement('textarea');
         tmp.value = text;
+        tmp.setAttribute('readonly', '');
+        tmp.style.position = 'fixed';
+        tmp.style.opacity = '0';
         document.body.appendChild(tmp);
         tmp.select();
-        try { document.execCommand('copy'); } catch (err) { /* ignore */ }
+        let copied = false;
+        try { copied = document.execCommand('copy') === true; } catch (err) { copied = false; }
         document.body.removeChild(tmp);
-        done();
+        finishCopy(copied);
+      };
+      if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+        navigator.clipboard.writeText(text).then(
+          () => finishCopy(true),
+          () => legacyCopy()
+        );
+      } else {
+        legacyCopy();
       }
       return;
     }
