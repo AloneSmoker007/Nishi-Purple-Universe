@@ -203,6 +203,39 @@ try {
     assert.ok(!(await copyButton.textContent()).includes('Copied'),
       profile.name + ': failed clipboard operation must not claim success');
 
+    // Race regression: a stale local-audio play() promise must not pause the newer track.
+    const localFiles = page.locator('#player-local-files');
+    await localFiles.setInputFiles([
+      { name: 'regression-first.mp3', mimeType: 'audio/mpeg', buffer: Buffer.from('first-track') },
+      { name: 'regression-second.mp3', mimeType: 'audio/mpeg', buffer: Buffer.from('second-track') }
+    ]);
+    const playerTracks = page.locator('#player-list .player-track');
+    const trackCount = await playerTracks.count();
+    assert.ok(trackCount >= 2, profile.name + ': local MP3 tracks were not added');
+    const firstLocalIndex = trackCount - 2;
+    const secondLocalIndex = trackCount - 1;
+    await page.evaluate(() => {
+      window.__nishiPendingPlay = [];
+      window.__nishiPauseCount = 0;
+      HTMLMediaElement.prototype.play = function () {
+        return new Promise(resolve => window.__nishiPendingPlay.push(resolve));
+      };
+      HTMLMediaElement.prototype.pause = function () { window.__nishiPauseCount += 1; };
+    });
+    await page.locator('#player-list .player-track[data-index="' + firstLocalIndex + '"]').click();
+    await page.waitForFunction(() => window.__nishiPendingPlay.length === 1);
+    await page.locator('#player-list .player-track[data-index="' + secondLocalIndex + '"]').click();
+    await page.waitForFunction(() => window.__nishiPendingPlay.length === 2);
+    const pausesAfterNewRequest = await page.evaluate(() => window.__nishiPauseCount);
+    await page.evaluate(() => window.__nishiPendingPlay[0]());
+    await page.waitForTimeout(50);
+    assert.equal(await page.evaluate(() => window.__nishiPauseCount), pausesAfterNewRequest,
+      profile.name + ': stale local play promise paused the newer track');
+    await page.evaluate(() => window.__nishiPendingPlay[1]());
+    await page.waitForFunction(() => /Playing from your device/.test(
+      document.querySelector('#player-status')?.textContent || ''
+    ));
+
     // Allow either a real first WebGL frame or the explicit CSS fallback timeout.
     await page.waitForTimeout(2300);
 
