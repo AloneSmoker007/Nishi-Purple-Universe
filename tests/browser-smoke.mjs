@@ -203,6 +203,32 @@ try {
     assert.ok(!(await copyButton.textContent()).includes('Copied'),
       profile.name + ': failed clipboard operation must not claim success');
 
+    // Wishes must fail honestly when storage is full and recover from corrupt saved JSON.
+    await page.waitForFunction(() => !!window.__nishiWishes);
+    await page.evaluate(() => {
+      const original = Storage.prototype.setItem;
+      window.__nishiOriginalSetItem = original;
+      Storage.prototype.setItem = function (key, value) {
+        if (key === 'nishi-wishes-v1') throw new DOMException('quota exceeded', 'QuotaExceededError');
+        return original.call(this, key, value);
+      };
+    });
+    await page.locator('#wish-input').fill('Storage quota regression');
+    await page.locator('#wish-send').click();
+    await page.waitForFunction(() => /Could not save/.test(document.querySelector('#toast')?.textContent || ''));
+    assert.equal(await page.locator('#wish-constellation .wish-star').count(), 0,
+      profile.name + ': an unsaved wish must not remain visible as persisted');
+    await page.evaluate(() => {
+      Storage.prototype.setItem = window.__nishiOriginalSetItem;
+      localStorage.setItem('nishi-wishes-v1', '{broken-json');
+      const root = document.querySelector('#wish-scene');
+      window.__nishiWishes.initWishes(root, { lang: 'en', reducedMotion: true });
+    });
+    assert.equal(await page.locator('#wish-constellation .wish-star').count(), 0,
+      profile.name + ': corrupt wish storage should recover to an empty constellation');
+    assert.equal(await page.evaluate(() => window.__nishiWishes.getWishes().length), 0,
+      profile.name + ': corrupt saved wishes should not leak partial state');
+
     // Race regression: a stale local-audio play() promise must not pause the newer track.
     const localFiles = page.locator('#player-local-files');
     await localFiles.setInputFiles([
