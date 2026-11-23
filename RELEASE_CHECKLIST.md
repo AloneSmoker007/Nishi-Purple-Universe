@@ -1,32 +1,41 @@
 # RELEASE_CHECKLIST.md — Nishi's Purple Universe
 
-**Status (2026-11-20): NOT RELEASE READY** — blocking items in bold.
+**Updated:** 2026-11-23  
+**Current main:** `33bbc972595bec28f0992e69e1348a4e150406de`
 
-## Merge queue (needs human approval)
-- [x] PR #22 (iPhone PIN fix) **MERGED** `291e6c2` (2026-11-21)
-- [x] PR #15 (playful arcade) **MERGED** `70b8074` (2026-11-21)
-- [x] Docs PR #23 (handover docs) **MERGED** `cb05a13` (2026-11-21)
-- [ ] Integration branch (regression-branch work) completed & merged (NEXT_TASK.md)
+## Merge state
 
-## Verification gates
-- [x] `node --check` on all JS — PASS (11/11 per branch; all files on main)
-- [x] `validate.yml` static validation — PASS (12/12 blocks)
-- [x] PIN regression suite (WebKit + Chromium) — PASS 6/6
-- [x] Browser smoke suite — PASS 4/4 (both PR lines)
-- [x] Zero removed assertions vs main (diff-audited)
-- [x] QR destination verified (decodes to live URL)
-- [x] Post-merge re-run of both suites on `main` — **PIN 6/6 PASS, smoke 4/4 PASS, static 12/12 PASS** (2026-11-21)
-- [x] Live GitHub Pages deployment verified after merge — HTTP 200, new PIN lock live
-- [ ] **Physical-device tap-through: real iPhone (Safari) + one low-end Android (e.g. Vivo Y11)** — PIN keypad, music, scroll, landscape
-- [ ] Music playback manually verified on phone (YouTube embed + local MP3 + no overlapping audio)
+- [x] PR #22 — iPhone PIN keypad reliability — merged
+- [x] PR #15 — playful bilingual birthday surprises — merged
+- [x] PR #23 — handover documentation — merged
+- [x] PR #27 — restore latest collected star message after reload — merged
 
-## Content/design sanity
-- [x] OT7 equal representation (V has member card + "Taehyung" role; no exclusivity)
-- [x] English/Bangla strings intact
-- [x] Reduced-motion paths present
-- [ ] Human walkthrough of the visitor journey (emotional check: cute, polished)
+## CI and deployment gates
 
-## Git hygiene
-- [x] No force-pushes, no rewritten shared history
-- [x] Every verified task pushed with remote SHA confirmed
-- [ ] Tag/release only after the above blocks clear
+- [x] PR #27 static validation — PASS (run #45288176507)
+- [x] PR #27 Safari/WebKit iPhone PIN regression — PASS (run #45288176254)
+- [x] PR #27 desktop + mobile viewport browser smoke — PASS (run #45288176254)
+- [x] Post-merge main static validation — PASS (run #45289218806)
+- [ ] Post-merge main browser smoke — pending at update time (run #45289218736)
+- [ ] Post-merge GitHub Pages deployment — pending at update time (run #45289217565)
+- [ ] Verify live site serves the new main build after deployment
+
+## Manual and product QA
+
+- [ ] Real iPhone Safari: keypad taps, orientation, scrolling, music
+- [ ] Low-end Android: keypad taps, orientation, scrolling, music
+- [ ] Confirm YouTube playback, local MP3 playback, and no overlapping audio on phones
+- [ ] Human walkthrough of the full visitor journey in English and Bangla
+- [ ] Keyboard-only navigation, focus behavior, and screen-reader spot check
+- [ ] Reduced-motion experience review
+- [ ] Low-end mobile 3D startup, fallback, and memory/lifecycle profiling
+
+## Security and privacy notes
+
+- [x] Public-site limitation documented: PIN is a friendly client-side gate, not authentication
+- [ ] Review CSP inline-script/style requirements before any policy tightening
+- [ ] Confirm no private notes, credentials, or personal data are committed to this public repository
+
+## Release decision
+
+Do not mark the project fully release-verified or tag a release until the pending CI/deployment checks, live-site verification, and manual-device gates are completed. Browser emulation does not satisfy physical-device QA.
