@@ -163,6 +163,25 @@ try {
     assert.match(await secretWorld.locator('#nishi-star-count').textContent(), /1 of 7/);
     assert.ok((await secretWorld.locator('.nishi-star-reveal').textContent()).includes('Keep dreaming boldly'),
       profile.name + ': collected star should reveal its wish');
+    await secretWorld.locator('[data-star-id="v"]').click();
+    assert.ok((await secretWorld.locator('.nishi-star-reveal').textContent()).includes('Keep seeing beauty in little things'),
+      profile.name + ': most recently collected star should replace the previous wish');
+
+    // Start a fresh PIN session before reload; the real gate intentionally stays unlocked
+    // for the current tab session, so clearing this session key simulates a new visit.
+    await page.evaluate(() => sessionStorage.removeItem('nishi-purple-universe-unlocked-v1'));
+    // Reload must restore both collection progress and the latest collected star message.
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    const reloadPin = page.locator('#pin-lock');
+    await reloadPin.waitFor({ state: 'visible' });
+    for (const digit of '20062008') await reloadPin.locator('[data-pin-digit="' + digit + '"]').click();
+    await reloadPin.waitFor({ state: 'hidden' });
+    await secretWorld.waitFor({ state: 'visible', timeout: 10000 });
+    assert.match(await secretWorld.locator('#nishi-star-count').textContent(), /2 of 7/,
+      profile.name + ': collected stars should persist after reload');
+    assert.ok((await secretWorld.locator('.nishi-star-reveal').textContent()).includes('Keep seeing beauty in little things'),
+      profile.name + ': latest collected star message should restore after reload');
+
     await secretWorld.locator('[data-letter-id="sad"]').click();
     assert.equal(await secretWorld.locator('#nishi-letter-reveal').isVisible(), true,
       profile.name + ': Open-When letter should reveal its message');

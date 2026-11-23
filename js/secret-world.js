@@ -122,6 +122,17 @@ function initSecretWorld() {
   }
   updateStars();
 
+  // Restore the most recently collected star's message after a reload.
+  // Keep the stored collection order so the last action remains the active reveal.
+  const lastCollectedId = [...progress.stars].reverse().find(id =>
+    config.stars.some(star => star.id === id)
+  );
+  const lastCollectedStar = config.stars.find(star => star.id === lastCollectedId);
+  if (lastCollectedStar) {
+    starRevealEn.textContent = lastCollectedStar.message || "";
+    starRevealBn.textContent = lastCollectedStar.messageBn || "";
+  }
+
   // Open-when letters.
   const lettersPanel = el("section", "nishi-secret-panel");
   lettersPanel.setAttribute("aria-labelledby", "nishi-letters-title");
