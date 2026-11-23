@@ -167,6 +167,9 @@ try {
     assert.ok((await secretWorld.locator('.nishi-star-reveal').textContent()).includes('Keep seeing beauty in little things'),
       profile.name + ': most recently collected star should replace the previous wish');
 
+    // Start a fresh PIN session before reload; the real gate intentionally stays unlocked
+    // for the current tab session, so clearing this session key simulates a new visit.
+    await page.evaluate(() => sessionStorage.removeItem('nishi-purple-universe-unlocked-v1'));
     // Reload must restore both collection progress and the latest collected star message.
     await page.reload({ waitUntil: 'domcontentloaded' });
     const reloadPin = page.locator('#pin-lock');
