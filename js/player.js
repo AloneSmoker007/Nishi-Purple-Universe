@@ -241,10 +241,9 @@ async function play(index) {
       if (!state.localAudio) throw new Error('Local audio is not initialized');
       state.localAudio.src = selected.localUrl;
       await state.localAudio.play();
-      if (requestId !== state.requestId || state.activeSource !== 'local') {
-        state.localAudio.pause();
-        return;
-      }
+      // A newer play() request already owns this shared Audio element. Do not
+      // pause it here: a stale promise may settle after the newer track starts.
+      if (requestId !== state.requestId || state.activeSource !== 'local') return;
       state.playing = true;
       setStatus('Playing from your device · ' + selected.title);
       syncUI();
