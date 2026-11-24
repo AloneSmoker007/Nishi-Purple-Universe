@@ -207,6 +207,10 @@ try {
       await quest.locator('[data-quest="skip"]').click();
     }
     await quest.locator('[data-quest="reveal"]').click();
+    const questRevealTitle = quest.locator('.quest-reveal-title');
+    await questRevealTitle.waitFor({ state: 'visible' });
+    assert.ok((await questRevealTitle.textContent()).trim().length > 3,
+      profile.name + ': quest reveal must render a non-empty personalised title');
     await page.evaluate(() => {
       Object.defineProperty(navigator, 'clipboard', {
         configurable: true,
@@ -302,6 +306,58 @@ try {
     assert.ok(contentConfigLoaded, profile.name + ': central editable content config did not load');
     assert.ok(layout.mainSections, profile.name + ': core sections missing');
     assert.ok(layout.canvas && layout.canvasState, profile.name + ': 3D canvas is neither rendering nor explicitly using CSS fallback');
+
+    const worldStatus = await page.evaluate(() =>
+      window.__nishi?.world?.api?.getWorldStatus?.() || null
+    );
+    if (profile.name === 'desktop' && worldStatus?.ready) {
+      assert.ok(worldStatus.renderedFrames > 0,
+        'desktop: initialized 3D world must draw real frames, not only reveal the CSS fallback');
+      // Switching across the antialias boundary replaces the renderer. The new
+      // renderer must keep rendering, and the detached renderer's context must be released.
+      for (let i = 0; i < 2; i++) {
+        const before = await page.evaluate(() => {
+          const api = window.__nishi?.world?.api;
+          const canvas = document.querySelector('#scene-canvas');
+          const gl = canvas?.getContext('webgl2') || canvas?.getContext('webgl');
+          const status = api?.getWorldStatus?.();
+          if (!api || !gl || !status?.ready) return null;
+          window.__nishiOldWebGLContext = gl;
+          window.__nishiFramesBeforeQualitySwitch = status.renderedFrames;
+          api.setQuality(status.quality === 'high' ? 'medium' : 'high');
+          return status.renderedFrames;
+        });
+        assert.notEqual(before, null, 'desktop: world API and WebGL context must be available for quality-switch test');
+        await page.waitForFunction(() => {
+          const status = window.__nishi?.world?.api?.getWorldStatus?.();
+          return status && status.renderedFrames >= window.__nishiFramesBeforeQualitySwitch + 5;
+        }, null, { timeout: 5000 });
+        assert.equal(await page.evaluate(() => window.__nishiOldWebGLContext.isContextLost()), true,
+          'desktop: replaced WebGL renderer context should be explicitly released');
+      }
+    }
+
+    if (worldStatus?.ready) {
+      const resizeResult = await page.evaluate(() => {
+        const api = window.__nishi?.world?.api;
+        const canvas = document.querySelector('#scene-canvas');
+        if (!api || !canvas) return null;
+        const oldDisplay = canvas.style.display;
+        const before = canvas.width;
+        canvas.style.display = 'none';
+        api.resize();
+        api.resize();
+        api.resize();
+        const after = canvas.width;
+        canvas.style.display = oldDisplay;
+        api.resize();
+        return { before, after };
+      });
+      assert.ok(resizeResult, profile.name + ': world resize API should be available');
+      assert.equal(resizeResult.after, resizeResult.before,
+        profile.name + ': hidden canvas resize must not multiply drawing-buffer dimensions');
+    }
+
     assert.ok(layout.scrollWidth <= layout.width + 2,
       profile.name + ': horizontal overflow (' + layout.scrollWidth + ' > ' + layout.width + ')');
 
