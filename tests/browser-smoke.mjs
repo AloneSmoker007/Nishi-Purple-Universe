@@ -310,7 +310,9 @@ try {
     const worldStatus = await page.evaluate(() =>
       window.__nishi?.world?.api?.getWorldStatus?.() || null
     );
-    if (profile.name === 'desktop' && worldStatus?.ready) {
+    if (profile.name === 'desktop') {
+      assert.ok(worldStatus?.ready,
+        'desktop: configured SwiftShader browser must initialize the real 3D world');
       assert.ok(worldStatus.renderedFrames > 0,
         'desktop: initialized 3D world must draw real frames, not only reveal the CSS fallback');
       // Switching across the antialias boundary replaces the renderer. The new
@@ -405,6 +407,11 @@ try {
       assert.equal(await menu.getAttribute('aria-expanded'), 'false', profile.name + ': mobile menu did not close');
     }
     assert.equal(pageErrors.length, 0, profile.name + ': uncaught browser errors: ' + pageErrors.join('; '));
+    const unexpectedConsoleErrors = consoleErrors.filter(message =>
+      !/youtube|ytimg|googlevideo|doubleclick|CONTEXT_LOST_WEBGL/i.test(message)
+    );
+    assert.equal(unexpectedConsoleErrors.length, 0,
+      profile.name + ': unexpected browser console errors: ' + unexpectedConsoleErrors.join('; '));
     assert.equal(localFailures.length, 0, profile.name + ': failed local assets: ' + localFailures.join(', '));
 
     console.log('PASS ' + profile.name + ': layout, visible 3D/CSS fallback, core content, nav, language, no runtime errors');
