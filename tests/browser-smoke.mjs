@@ -159,11 +159,15 @@ try {
     }
     assert.equal(await secretWorld.locator('.nishi-star-card').count(), 7,
       profile.name + ': all seven OT7 treasure stars should be present');
-    await secretWorld.locator('[data-star-id="rm"]').click();
+    const rmStar = secretWorld.locator('[data-star-id="rm"]');
+    await rmStar.evaluate(element => element.scrollIntoView({ block: 'center', behavior: 'instant' }));
+    await rmStar.click();
     assert.match(await secretWorld.locator('#nishi-star-count').textContent(), /1 of 7/);
     assert.ok((await secretWorld.locator('.nishi-star-reveal').textContent()).includes('Keep dreaming boldly'),
       profile.name + ': collected star should reveal its wish');
-    await secretWorld.locator('[data-star-id="v"]').click();
+    const vStar = secretWorld.locator('[data-star-id="v"]');
+    await vStar.evaluate(element => element.scrollIntoView({ block: 'center', behavior: 'instant' }));
+    await vStar.click();
     assert.ok((await secretWorld.locator('.nishi-star-reveal').textContent()).includes('Keep seeing beauty in little things'),
       profile.name + ': most recently collected star should replace the previous wish');
 
@@ -207,6 +211,10 @@ try {
       await quest.locator('[data-quest="skip"]').click();
     }
     await quest.locator('[data-quest="reveal"]').click();
+    const questRevealTitle = quest.locator('.quest-reveal-title');
+    await questRevealTitle.waitFor({ state: 'visible' });
+    assert.ok((await questRevealTitle.textContent()).trim().length > 3,
+      profile.name + ': quest reveal must render a non-empty personalised title');
     await page.evaluate(() => {
       Object.defineProperty(navigator, 'clipboard', {
         configurable: true,
@@ -302,6 +310,60 @@ try {
     assert.ok(contentConfigLoaded, profile.name + ': central editable content config did not load');
     assert.ok(layout.mainSections, profile.name + ': core sections missing');
     assert.ok(layout.canvas && layout.canvasState, profile.name + ': 3D canvas is neither rendering nor explicitly using CSS fallback');
+
+    const worldStatus = await page.evaluate(() =>
+      window.__nishi?.world?.api?.getWorldStatus?.() || null
+    );
+    if (profile.name === 'desktop') {
+      assert.ok(worldStatus?.ready,
+        'desktop: configured SwiftShader browser must initialize the real 3D world');
+      assert.ok(worldStatus.renderedFrames > 0,
+        'desktop: initialized 3D world must draw real frames, not only reveal the CSS fallback');
+      // Switching across the antialias boundary replaces the renderer. The new
+      // renderer must keep rendering, and the detached renderer's context must be released.
+      for (let i = 0; i < 2; i++) {
+        const before = await page.evaluate(() => {
+          const api = window.__nishi?.world?.api;
+          const canvas = document.querySelector('#scene-canvas');
+          const gl = canvas?.getContext('webgl2') || canvas?.getContext('webgl');
+          const status = api?.getWorldStatus?.();
+          if (!api || !gl || !status?.ready) return null;
+          window.__nishiOldWebGLContext = gl;
+          window.__nishiFramesBeforeQualitySwitch = status.renderedFrames;
+          api.setQuality(status.quality === 'high' ? 'medium' : 'high');
+          return status.renderedFrames;
+        });
+        assert.notEqual(before, null, 'desktop: world API and WebGL context must be available for quality-switch test');
+        await page.waitForFunction(() => {
+          const status = window.__nishi?.world?.api?.getWorldStatus?.();
+          return status && status.renderedFrames >= window.__nishiFramesBeforeQualitySwitch + 5;
+        }, null, { timeout: 5000 });
+        assert.equal(await page.evaluate(() => window.__nishiOldWebGLContext.isContextLost()), true,
+          'desktop: replaced WebGL renderer context should be explicitly released');
+      }
+    }
+
+    if (worldStatus?.ready) {
+      const resizeResult = await page.evaluate(() => {
+        const api = window.__nishi?.world?.api;
+        const canvas = document.querySelector('#scene-canvas');
+        if (!api || !canvas) return null;
+        const oldDisplay = canvas.style.display;
+        const before = canvas.width;
+        canvas.style.display = 'none';
+        api.resize();
+        api.resize();
+        api.resize();
+        const after = canvas.width;
+        canvas.style.display = oldDisplay;
+        api.resize();
+        return { before, after };
+      });
+      assert.ok(resizeResult, profile.name + ': world resize API should be available');
+      assert.equal(resizeResult.after, resizeResult.before,
+        profile.name + ': hidden canvas resize must not multiply drawing-buffer dimensions');
+    }
+
     assert.ok(layout.scrollWidth <= layout.width + 2,
       profile.name + ': horizontal overflow (' + layout.scrollWidth + ' > ' + layout.width + ')');
 
@@ -349,6 +411,11 @@ try {
       assert.equal(await menu.getAttribute('aria-expanded'), 'false', profile.name + ': mobile menu did not close');
     }
     assert.equal(pageErrors.length, 0, profile.name + ': uncaught browser errors: ' + pageErrors.join('; '));
+    const unexpectedConsoleErrors = consoleErrors.filter(message =>
+      !/youtube|ytimg|googlevideo|doubleclick|CONTEXT_LOST_WEBGL/i.test(message)
+    );
+    assert.equal(unexpectedConsoleErrors.length, 0,
+      profile.name + ': unexpected browser console errors: ' + unexpectedConsoleErrors.join('; '));
     assert.equal(localFailures.length, 0, profile.name + ': failed local assets: ' + localFailures.join(', '));
 
     console.log('PASS ' + profile.name + ': layout, visible 3D/CSS fallback, core content, nav, language, no runtime errors');

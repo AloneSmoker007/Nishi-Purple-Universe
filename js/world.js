@@ -1969,18 +1969,29 @@ function postProcessingSize() {
   };
 }
 
+function postTargetType() {
+  if (state.quality !== 'high' || !state.renderer) return THREE.UnsignedByteType;
+  const extensions = state.renderer.extensions;
+  const supportsRenderableHalfFloat = !!(
+    extensions &&
+    (extensions.has('EXT_color_buffer_float') || extensions.has('EXT_color_buffer_half_float'))
+  );
+  return supportsRenderableHalfFloat ? THREE.HalfFloatType : THREE.UnsignedByteType;
+}
+
 function setupPostProcessing() {
   if (!state.renderer || !state.scene || !state.camera) return;
   disposePostProcessing();
 
   const { w, h } = postProcessingSize();
 
-  // Offscreen render target (scene renders here first)
+  // Offscreen render target (scene renders here first). Fall back to 8-bit
+  // colour when the device cannot render to a half-float framebuffer.
   const rt = new THREE.WebGLRenderTarget(w, h, {
     minFilter: THREE.LinearFilter,
     magFilter: THREE.LinearFilter,
     format: THREE.RGBAFormat,
-    type: state.quality === 'high' ? THREE.HalfFloatType : THREE.UnsignedByteType,
+    type: postTargetType(),
   });
 
   // Fullscreen quad with post-processing shader
@@ -2180,27 +2191,55 @@ function applyQuality() {
 
 /** Recreate the renderer on a fresh canvas so antialiasing can change at runtime. */
 function swapAntialias(wantAA) {
-  const parent = state.canvas && state.canvas.parentNode;
-  if (!parent) return false;
+  const previousCanvas = state.canvas;
+  const previousRenderer = state.renderer;
+  const parent = previousCanvas && previousCanvas.parentNode;
+  if (!parent || !previousRenderer) return false;
+
+  let fresh = null;
+  let freshRenderer = null;
   try {
-    const previousCanvas = state.canvas;
-    const fresh = previousCanvas.cloneNode(false); // keeps id/class/style attributes
+    fresh = previousCanvas.cloneNode(false); // keeps id/class/style attributes
     detachContextHandlers(previousCanvas);
+    previousRenderer.setAnimationLoop(null);
     parent.replaceChild(fresh, previousCanvas);
     disposePostProcessing();
-    try {
-      state.renderer.dispose();
-    } catch (e) {
-      /* ignore */
-    }
+
     state.canvas = fresh;
-    state.renderer = createRenderer(fresh, wantAA);
-  setupPostProcessing();
+    freshRenderer = createRenderer(fresh, wantAA);
+    state.renderer = freshRenderer;
+    setupPostProcessing();
     attachContextHandlers(fresh);
-    state.renderer.setPixelRatio(dprForQuality());
-    resizePostProcessing();
+    resize();
+    // setAnimationLoop belongs to the renderer instance. Replacing the
+    // renderer without reattaching it silently freezes the 3D world.
+    freshRenderer.setAnimationLoop(tick);
+
+    // The old canvas is no longer used. Explicitly release its GPU context
+    // instead of relying on browser garbage collection.
+    try { previousRenderer.dispose(); } catch (e) { /* ignore */ }
+    try { previousRenderer.forceContextLoss?.(); } catch (e) { /* ignore */ }
     return true;
   } catch (e) {
+    try { freshRenderer?.setAnimationLoop(null); } catch (cleanupError) { /* ignore */ }
+    try { disposePostProcessing(); } catch (cleanupError) { /* ignore */ }
+    try { freshRenderer?.dispose(); } catch (cleanupError) { /* ignore */ }
+    try { freshRenderer?.forceContextLoss?.(); } catch (cleanupError) { /* ignore */ }
+    try {
+      if (fresh?.parentNode === parent) parent.replaceChild(previousCanvas, fresh);
+    } catch (cleanupError) { /* ignore */ }
+
+    // Roll back to the previous working renderer if the replacement failed.
+    state.canvas = previousCanvas;
+    state.renderer = previousRenderer;
+    try {
+      setupPostProcessing();
+      attachContextHandlers(previousCanvas);
+      resize();
+      previousRenderer.setAnimationLoop(tick);
+    } catch (rollbackError) {
+      console.warn('[nishi] renderer swap rollback failed:', rollbackError && rollbackError.message);
+    }
     return false;
   }
 }
@@ -2255,12 +2294,14 @@ function attachContextHandlers(canvas) {
 
 function webglAvailable() {
   try {
-    const c = document.createElement('canvas');
-    return !!(
-      typeof window !== 'undefined' &&
-      window.WebGLRenderingContext &&
-      (c.getContext('webgl2') || c.getContext('webgl') || c.getContext('experimental-webgl'))
-    );
+    if (typeof window === 'undefined' || !window.WebGLRenderingContext) return false;
+    const probe = document.createElement('canvas');
+    const gl = probe.getContext('webgl2') || probe.getContext('webgl') || probe.getContext('experimental-webgl');
+    if (!gl) return false;
+    // This canvas is only a capability probe. Release its context immediately so
+    // the actual renderer does not compete with an unused WebGL context.
+    try { gl.getExtension('WEBGL_lose_context')?.loseContext(); } catch (e) { /* best effort */ }
+    return true;
   } catch (e) {
     return false;
   }
@@ -2459,11 +2500,14 @@ export function onScroll(progress) {
 
 /** Resize the render target to the canvas' current CSS size. */
 export function resize() {
-  if (!state.ready || !state.renderer || !state.camera) return;
+  if (!state.ready || !state.renderer || !state.camera || !state.canvas) return;
   try {
-    const w = (state.canvas && (state.canvas.clientWidth || state.canvas.width)) || window.innerWidth;
-    const h = (state.canvas && (state.canvas.clientHeight || state.canvas.height)) || window.innerHeight;
-    if (!w || !h) return;
+    // Only CSS-pixel dimensions are valid inputs to setSize(). Falling back to
+    // canvas.width/height when the canvas is hidden feeds device pixels back
+    // into setSize(), multiplying the drawing buffer on every resize.
+    const w = state.canvas.clientWidth;
+    const h = state.canvas.clientHeight;
+    if (!Number.isFinite(w) || !Number.isFinite(h) || w <= 0 || h <= 0) return;
     state.camera.aspect = w / h;
     state.camera.updateProjectionMatrix();
     state.renderer.setSize(w, h, false);

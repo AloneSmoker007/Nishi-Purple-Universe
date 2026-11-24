@@ -52,6 +52,9 @@ const world = {
       const probe = document.createElement('canvas');
       const gl = probe.getContext('webgl2') || probe.getContext('webgl');
       if (!gl) { document.body.classList.add('no-webgl'); return; } // CSS fallback layer stays visible
+      // The probe is temporary; do not keep an extra WebGL context alive beside
+      // the real Three.js renderer on context-limited mobile browsers.
+      try { gl.getExtension('WEBGL_lose_context')?.loseContext(); } catch { /* best effort */ }
     } catch { document.body.classList.add('no-webgl'); return; }
 
     try {
