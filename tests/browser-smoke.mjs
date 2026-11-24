@@ -159,11 +159,15 @@ try {
     }
     assert.equal(await secretWorld.locator('.nishi-star-card').count(), 7,
       profile.name + ': all seven OT7 treasure stars should be present');
-    await secretWorld.locator('[data-star-id="rm"]').click();
+    const rmStar = secretWorld.locator('[data-star-id="rm"]');
+    await rmStar.evaluate(element => element.scrollIntoView({ block: 'center', behavior: 'instant' }));
+    await rmStar.click();
     assert.match(await secretWorld.locator('#nishi-star-count').textContent(), /1 of 7/);
     assert.ok((await secretWorld.locator('.nishi-star-reveal').textContent()).includes('Keep dreaming boldly'),
       profile.name + ': collected star should reveal its wish');
-    await secretWorld.locator('[data-star-id="v"]').click();
+    const vStar = secretWorld.locator('[data-star-id="v"]');
+    await vStar.evaluate(element => element.scrollIntoView({ block: 'center', behavior: 'instant' }));
+    await vStar.click();
     assert.ok((await secretWorld.locator('.nishi-star-reveal').textContent()).includes('Keep seeing beauty in little things'),
       profile.name + ': most recently collected star should replace the previous wish');
 
