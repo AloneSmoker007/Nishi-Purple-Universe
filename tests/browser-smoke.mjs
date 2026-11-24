@@ -251,12 +251,17 @@ try {
     // Race regression: a stale local-audio play() promise must not pause the newer track.
     const localFiles = page.locator('#player-local-files');
     await localFiles.setInputFiles([
-      { name: 'regression-first.mp3', mimeType: 'audio/mpeg', buffer: Buffer.from('first-track') },
-      { name: 'regression-second.mp3', mimeType: 'audio/mpeg', buffer: Buffer.from('second-track') }
+      { name: 'regression-first.mp3', mimeType: 'audio/mpeg', buffer: Buffer.alloc(20 * 1024 * 1024) },
+      { name: 'regression-second.mp3', mimeType: 'audio/mpeg', buffer: Buffer.alloc(12 * 1024 * 1024) },
+      { name: 'over-budget-third.mp3', mimeType: 'audio/mpeg', buffer: Buffer.alloc(1 * 1024 * 1024) }
     ]);
     const playerTracks = page.locator('#player-list .player-track');
     const trackCount = await playerTracks.count();
     assert.ok(trackCount >= 2, profile.name + ': local MP3 tracks were not added');
+    assert.equal(await page.locator('#player-list .pt-sub').filter({ hasText: 'local audio' }).count(), 2,
+      profile.name + ': local MP3 aggregate budget should accept only the first 32 MB');
+    assert.match(await page.locator('#toast').textContent(), /32 MB total/,
+      profile.name + ': aggregate MP3 size limit should be announced');
     const firstLocalIndex = trackCount - 2;
     const secondLocalIndex = trackCount - 1;
     await page.evaluate(() => {

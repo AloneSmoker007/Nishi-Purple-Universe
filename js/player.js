@@ -14,6 +14,9 @@ import { siteConfig } from '../content/site-config.js';
 
 const TRACKS = siteConfig.tracks;
 
+// Keep user-selected audio within a conservative mobile memory budget.
+const MAX_LOCAL_AUDIO_BYTES = 32 * 1024 * 1024;
+
 const state = {
   ready: false,
   player: null,
@@ -25,6 +28,7 @@ const state = {
   ambience: null,
   localAudio: null,
   localUrls: new Set(),
+  localBytes: 0,
   activeSource: 'youtube',
   requestId: 0,
   initialized: false,
@@ -348,20 +352,34 @@ export function initPlayer() {
     const selected = Array.from(localInput.files || []);
     const accepted = selected.filter(file => /\.mp3$/i.test(file.name) || ['audio/mpeg', 'audio/mp3', 'audio/x-mpeg'].includes((file.type || '').toLowerCase()));
     const valid = accepted.filter(file => file.size > 0 && file.size <= 20 * 1024 * 1024);
-    const remaining = Math.max(0, 10 - state.localUrls.size);
-    const files = valid.slice(0, remaining);
-    if (selected.length !== accepted.length) toast('Only MP3 files are supported.');
-    if (accepted.length !== valid.length) toast('Each MP3 must be under 20 MB.');
-    if (valid.length > remaining) toast('You can add up to 10 local tracks.');
-    if (!files.length) { localInput.value = ''; return; }
+    const remainingCount = Math.max(0, 10 - state.localUrls.size);
+    let remainingBytes = Math.max(0, MAX_LOCAL_AUDIO_BYTES - state.localBytes);
+    const files = [];
+    for (const file of valid) {
+      if (files.length >= remainingCount) break;
+      if (file.size > remainingBytes) continue;
+      files.push(file);
+      remainingBytes -= file.size;
+    }
+    const notices = [];
+    if (selected.length !== accepted.length) notices.push('Only MP3 files are supported.');
+    if (accepted.length !== valid.length) notices.push('Each MP3 must be under 20 MB.');
+    if (valid.length > remainingCount) notices.push('You can add up to 10 local tracks.');
+    if (files.length < Math.min(valid.length, remainingCount)) notices.push('Local MP3 files are limited to 32 MB total.');
+    if (!files.length) {
+      if (notices.length) toast(notices.join(' '));
+      localInput.value = '';
+      return;
+    }
     files.forEach(file => {
       const url = URL.createObjectURL(file);
       state.localUrls.add(url);
+      state.localBytes += file.size;
       TRACKS.push({ id: null, title: file.name.replace(/\.[^.]+$/, '') || 'My MP3', note: '♫', localUrl: url });
     });
     renderPlaylist();
     setStatus(files.length + ' local MP3 track(s) added · files stay on this device');
-    toast(files.length + ' local MP3 track(s) added');
+    toast(notices.length ? notices.join(' ') : files.length + ' local MP3 track(s) added');
     localInput.value = '';
   });
   document.addEventListener('visibilitychange', syncUI);
